@@ -1,0 +1,204 @@
+# RefinementList Component
+
+The RefinementList component is a client-side React component that manages product sorting and refinement functionality in Medusa storefronts. It handles URL parameter management and provides a responsive interface for product sorting controls.
+
+## Component Interface
+
+### Props
+
+```typescript copy
+type RefinementListProps = {
+  sortBy: SortOptions
+  search?: boolean
+  'data-testid'?: string
+}
+```
+
+| Prop | Type | Required | Description |
+|------|------|----------|-------------|
+| `sortBy` | `SortOptions` | Yes | The current sort option for products |
+| `search` | `boolean` | No | Enable search functionality |
+| `data-testid` | `string` | No | Test identifier for component |
+
+## Implementation Details
+
+### URL Parameter Management
+
+The component uses Next.js' navigation hooks for URL management:
+
+```typescript copy
+const createQueryString = useCallback(
+  (name: string, value: string) => {
+    const params = new URLSearchParams(searchParams)
+    params.set(name, value)
+    return params.toString()
+  },
+  [searchParams]
+)
+```
+
+This implementation:
+- Preserves existing query parameters
+- Updates sort parameters efficiently
+- Maintains URL state for navigation
+- Uses memoization for performance
+
+### Navigation Handling
+
+Query parameter updates are handled through a dedicated function:
+
+```typescript copy
+const setQueryParams = (name: string, value: string) => {
+  const query = createQueryString(name, value)
+  router.push(`${pathname}?${query}`)
+}
+```
+
+Key features:
+- Client-side navigation
+- URL state preservation
+- Smooth transitions
+- History management
+
+### Layout Structure
+
+The component uses a responsive flex container:
+
+```typescript copy
+<div className="flex small:flex-col gap-12 py-4 mb-8 small:px-0 pl-6 small:min-w-[250px] small:ml-[1.675rem]">
+  <SortProducts 
+    sortBy={sortBy} 
+    setQueryParams={setQueryParams} 
+    data-testid={dataTestId} 
+  />
+</div>
+```
+
+Layout characteristics:
+- Responsive design
+- Mobile-first approach
+- Consistent spacing
+- Flexible container
+
+## Integration Requirements
+
+### Dependencies
+
+The component requires several Next.js and React imports:
+
+```typescript copy
+import { usePathname, useRouter, useSearchParams } from "next/navigation"
+import { useCallback } from "react"
+import SortProducts, { SortOptions } from "./sort-products"
+```
+
+### Client-Side Requirements
+
+1. Must be used with the `"use client"` directive
+2. Requires Next.js App Router
+3. Needs SortProducts component
+4. Depends on URL parameter access
+
+## Usage Examples
+
+### Basic Implementation
+
+```tsx copy
+import RefinementList from "./RefinementList"
+
+function ProductsPage() {
+  return (
+    <RefinementList 
+      sortBy="created_at"
+      data-testid="products-refinement"
+    />
+  )
+}
+```
+
+### With Search Enabled
+
+```tsx copy
+import RefinementList from "./RefinementList"
+
+function SearchableProducts() {
+  return (
+    <RefinementList 
+      sortBy="created_at"
+      search={true}
+      data-testid="searchable-refinement"
+    />
+  )
+}
+```
+
+## Best Practices
+
+1. URL Parameter Management
+   - Always use the provided setQueryParams function
+   - Avoid direct URL manipulation
+   - Handle parameter updates atomically
+
+2. Component Placement
+   - Place at the top of product listings
+   - Maintain consistent spacing
+   - Consider mobile viewports
+
+3. Performance Considerations
+   - Utilize useCallback for parameter management
+   - Avoid unnecessary re-renders
+   - Maintain URL state properly
+
+## Related Components
+
+- `SortProducts`: Handles product sorting UI and logic
+- `ProductGrid`: Displays sorted/filtered products
+- `SearchBar`: Optional search integration
+
+## Technical Considerations
+
+### Browser Support
+
+- Works with modern browsers
+- Requires URL API support
+- Needs client-side JavaScript
+- Compatible with SSR
+
+### State Management
+
+- URL-based state
+- Query parameter persistence
+- History state handling
+- Clean navigation
+
+### Accessibility
+
+- Semantic HTML structure
+- Keyboard navigation support
+- Screen reader compatibility
+- Focus management
+
+## Troubleshooting
+
+Common issues and solutions:
+
+1. Query Parameters Not Updating
+   - Verify URL parameter structure
+   - Check navigation hook usage
+   - Ensure client-side execution
+
+2. Layout Issues
+   - Review responsive classes
+   - Check parent container constraints
+   - Verify breakpoint behavior
+
+3. Sort Integration
+   - Validate SortOptions type
+   - Check SortProducts component
+   - Verify query parameter handling
+
+## Further Resources
+
+- [Medusa Documentation](https://docs.medusajs.com)
+- [Next.js Navigation](https://nextjs.org/docs/app/api-reference/functions/use-router)
+- [React Hooks Guide](https://react.dev/reference/react/hooks)

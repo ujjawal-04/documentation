@@ -1,0 +1,237 @@
+# Tailwind CSS Configuration
+
+A custom Tailwind CSS configuration that extends the base framework with custom utilities, components, and typography classes.
+
+## Base Imports
+
+```css copy
+@import "tailwindcss/base";
+@import "tailwindcss/components";
+@import "tailwindcss/utilities";
+```
+
+## Custom Utilities
+
+### Scrollbar Utilities
+
+Removes scrollbars across different browsers while maintaining scroll functionality.
+
+```css copy
+.no-scrollbar {
+  /* Chrome, Safari and Opera */
+  &::-webkit-scrollbar {
+    display: none;
+  }
+  
+  /* Firefox */
+  scrollbar-width: none;
+  
+  /* IE and Edge */
+  -ms-overflow-style: none;
+}
+```
+
+### Form Input Utilities
+
+#### Floating Label Animation
+```css copy
+input:focus ~ label,
+input:not(:placeholder-shown) ~ label {
+  @apply -translate-y-2 text-xsmall-regular;
+}
+
+input:focus ~ label {
+  @apply left-0;
+}
+```
+
+#### Autofill Styling
+Customizes the browser's autofill appearance:
+```css copy
+input:-webkit-autofill,
+input:-webkit-autofill:hover,
+input:-webkit-autofill:focus {
+  border: 1px solid #212121;
+  -webkit-text-fill-color: #212121;
+  -webkit-box-shadow: 0 0 0px 1000px #fff inset;
+  transition: background-color 5000s ease-in-out 0s;
+}
+```
+
+#### Search Input Customization
+Removes default browser search input styling:
+```css copy
+input[type="search"]::-webkit-search-decoration,
+input[type="search"]::-webkit-search-cancel-button,
+input[type="search"]::-webkit-search-results-button,
+input[type="search"]::-webkit-search-results-decoration {
+  -webkit-appearance: none;
+}
+```
+
+## Components
+
+### Content Container
+Standard container with maximum width and centered alignment:
+```css copy
+.content-container {
+  @apply max-w-[1440px] w-full mx-auto px-6;
+}
+```
+
+### Contrast Button
+Interactive button with hover state:
+```css copy
+.contrast-btn {
+  @apply px-4 py-2 border border-black rounded-full 
+         hover:bg-black hover:text-white 
+         transition-colors duration-200 ease-in;
+}
+```
+
+## Typography System
+
+A comprehensive type scale system with regular and semi-bold weights.
+
+### Extra Small Text
+```css copy
+.text-xsmall-regular {
+  @apply text-[10px] leading-4 font-normal;
+}
+```
+
+### Small Text
+```css copy
+.text-small-regular {
+  @apply text-xs leading-5 font-normal;
+}
+
+.text-small-semi {
+  @apply text-xs leading-5 font-semibold;
+}
+```
+
+### Base Text
+```css copy
+.text-base-regular {
+  @apply text-sm leading-6 font-normal;
+}
+
+.text-base-semi {
+  @apply text-sm leading-6 font-semibold;
+}
+```
+
+### Large Text
+```css copy
+.text-large-regular {
+  @apply text-base leading-6 font-normal;
+}
+
+.text-large-semi {
+  @apply text-base leading-6 font-semibold;
+}
+```
+
+### Extra Large Text
+```css copy
+.text-xl-regular {
+  @apply text-2xl leading-[36px] font-normal;
+}
+
+.text-xl-semi {
+  @apply text-2xl leading-[36px] font-semibold;
+}
+```
+
+### 2XL Text
+```css copy
+.text-2xl-regular {
+  @apply text-[30px] leading-[48px] font-normal;
+}
+
+.text-2xl-semi {
+  @apply text-[30px] leading-[48px] font-semibold;
+}
+```
+
+### 3XL Text
+```css copy
+.text-3xl-regular {
+  @apply text-[32px] leading-[44px] font-normal;
+}
+
+.text-3xl-semi {
+  @apply text-[32px] leading-[44px] font-semibold;
+}
+```
+
+## Type Scale Overview
+
+| Class | Size | Line Height | Weight |
+|-------|------|-------------|---------|
+| xsmall | 10px | 16px | normal/semi |
+| small | 12px | 20px | normal/semi |
+| base | 14px | 24px | normal/semi |
+| large | 16px | 24px | normal/semi |
+| xl | 24px | 36px | normal/semi |
+| 2xl | 30px | 48px | normal/semi |
+| 3xl | 32px | 44px | normal/semi |
+
+## Usage Examples
+
+### Content Container
+```html copy
+<div class="content-container">
+  <!-- Content here -->
+</div>
+```
+
+### Typography
+```html copy
+<h1 class="text-3xl-semi">Large Heading</h1>
+<p class="text-base-regular">Regular paragraph text</p>
+```
+
+### Interactive Elements
+```html copy
+<button class="contrast-btn">
+  Click Me
+</button>
+
+<div class="no-scrollbar">
+  <!-- Scrollable content without visible scrollbar -->
+</div>
+```
+
+### Form Inputs
+```html copy
+<div class="relative">
+  <input type="text" placeholder=" " />
+  <label>Floating Label</label>
+</div>
+```
+
+## Best Practices
+
+1. **Typography**
+   - Use semantic HTML elements with appropriate text classes
+   - Maintain consistent type scale across the application
+   - Use regular weight for body text and semi-bold for emphasis
+
+2. **Layout**
+   - Use content-container for consistent page widths
+   - Combine with Tailwind's built-in spacing utilities
+   - Respect the maximum width constraint
+
+3. **Forms**
+   - Apply no-scrollbar only when necessary
+   - Use floating labels for better form accessibility
+   - Maintain consistent input styling
+
+## Browser Support
+
+- Modern browsers (Chrome, Firefox, Safari, Edge)
+- Includes fallbacks for IE11 where necessary
+- Autoprefixer recommended for wider compatibility
+

@@ -1,0 +1,221 @@
+# Product Strip
+
+A React component that renders a paginated list of products with sorting capabilities and loading states. It serves as a wrapper component that handles the display of products in a Medusa storefront.
+
+## Template Props
+
+```typescript copy
+type ProductStripProps = {
+  sortBy?: SortOptions           // Optional sort option
+  page?: string                  // Optional page number as string
+  countryCode: string           // Required country code
+}
+```
+
+| Prop | Type | Required | Default | Description |
+|------|------|----------|---------|-------------|
+| `sortBy` | `SortOptions` | No | `"created_at"` | Product sort order |
+| `page` | `string` | No | `"1"` | Current page number |
+| `countryCode` | `string` | Yes | - | Country code for regional products |
+
+## Key Features
+
+### Suspense Integration
+
+The component implements React Suspense for loading states:
+```typescript copy
+<Suspense fallback={<SkeletonProductGrid />}>
+  <PaginatedProducts ... />
+</Suspense>
+```
+
+Benefits:
+- Smooth loading experience
+- Fallback skeleton UI
+- Streaming server rendering support
+- Reduced layout shift
+
+### Pagination Handling
+
+- Converts string page numbers to integers
+- Defaults to page 1 if not specified
+- Passes page number to PaginatedProducts
+
+### Sort Management
+
+- Accepts optional sort parameter
+- Defaults to "created_at" sorting
+- Supports multiple sort options (price_asc, price_desc, created_at)
+
+## Component Architecture
+
+### Composition Structure
+
+```typescript copy
+ProductStrip
+├── Suspense
+│   ├── SkeletonProductGrid (fallback)
+│   └── PaginatedProducts (main content)
+```
+
+### Data Flow
+
+1. Receives props (sort, page, country)
+2. Processes and validates inputs
+3. Renders PaginatedProducts with processed data
+4. Shows skeleton during loading
+
+## Usage Examples
+
+### Basic Usage
+
+```tsx copy
+function ProductPage() {
+  return (
+    <ProductStrip countryCode="us" />
+  )
+}
+```
+
+### With Sorting and Pagination
+
+```tsx copy
+function SortedProductPage() {
+  return (
+    <ProductStrip 
+      sortBy="price_asc"
+      page="2"
+      countryCode="uk"
+    />
+  )
+}
+```
+
+### In a Regional Context
+
+```tsx copy
+function RegionalProducts({ region }) {
+  return (
+    <ProductStrip 
+      countryCode={region.code}
+      sortBy="created_at"
+    />
+  )
+}
+```
+
+## Dependencies
+
+Required components and modules:
+- React (Suspense)
+- SkeletonProductGrid
+- PaginatedProducts
+- SortOptions type
+
+## Integration Guide
+
+### Parent Component Requirements
+
+1. Provide country code
+2. Optional: Handle sort preferences
+3. Optional: Manage pagination state
+4. Consider Suspense boundaries
+
+### URL Parameter Integration
+
+Example with Next.js:
+```tsx copy
+function ProductPageWithParams({ searchParams }) {
+  return (
+    <ProductStrip 
+      page={searchParams.page}
+      sortBy={searchParams.sort}
+      countryCode={searchParams.country}
+    />
+  )
+}
+```
+
+## Technical Considerations
+
+### Performance
+
+The component optimizes performance through:
+- Suspense for loading states
+- Skeleton UI for perceived speed
+- Efficient prop processing
+- Minimal re-renders
+
+### Error Boundaries
+
+Consider wrapping with error boundaries:
+```tsx copy
+<ErrorBoundary fallback={<ProductError />}>
+  <ProductStrip ... />
+</ErrorBoundary>
+```
+
+### Server-Side Rendering
+
+- Compatible with streaming SSR
+- Works with Next.js app router
+- Handles hydration gracefully
+- Supports edge runtime
+
+## Best Practices
+
+1. Data Handling
+   - Validate page numbers
+   - Provide default sort options
+   - Handle missing country codes
+
+2. Loading States
+   - Use appropriate skeleton layouts
+   - Show loading indicators
+   - Handle transition states
+
+3. Error Handling
+   - Implement error boundaries
+   - Provide fallback content
+   - Log errors appropriately
+
+## Related Components
+
+- PaginatedProducts: Handles product pagination
+- SkeletonProductGrid: Loading state UI
+- RefinementList: Product filtering/sorting
+- ProductGrid: Product display
+
+## Troubleshooting
+
+Common issues and solutions:
+
+1. Loading States
+   - Verify Suspense configuration
+   - Check skeleton component
+   - Monitor loading performance
+
+2. Pagination Issues
+   - Validate page number conversion
+   - Check page prop passing
+   - Verify PaginatedProducts setup
+
+3. Sorting Problems
+   - Confirm SortOptions usage
+   - Check sort prop handling
+   - Verify default sort value
+
+## API Reference
+
+### SortOptions Type
+
+```typescript copy
+type SortOptions = "price_asc" | "price_desc" | "created_at"
+```
+
+Supported sort values:
+- `price_asc`: Price low to high
+- `price_desc`: Price high to low
+- `created_at`: Latest arrivals
+
+Need more help? Check the [Medusa documentation](https://docs.medusajs.com).

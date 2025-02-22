@@ -1,0 +1,215 @@
+# SortProducts Component
+
+The SortProducts component provides a radio group interface for sorting products in a Medusa storefront. It handles product sorting by price and creation date.
+
+## Type Definitions
+
+### SortOptions
+
+```typescript copy
+export type SortOptions = "price_asc" | "price_desc" | "created_at"
+```
+
+These options represent:
+- `price_asc`: Sort by price ascending (low to high)
+- `price_desc`: Sort by price descending (high to low)
+- `created_at`: Sort by creation date (latest arrivals)
+
+### Props Interface
+
+```typescript copy
+type SortProductsProps = {
+  sortBy: SortOptions
+  setQueryParams: (name: string, value: SortOptions) => void
+  "data-testid"?: string
+}
+```
+
+| Prop | Type | Description |
+|------|------|-------------|
+| `sortBy` | `SortOptions` | Current sort option |
+| `setQueryParams` | `function` | Callback to update URL parameters |
+| `data-testid` | `string?` | Optional test identifier |
+
+## Sort Options Configuration
+
+The component uses a predefined array of sort options:
+
+```typescript copy
+const sortOptions = [
+  {
+    value: "created_at",
+    label: "Latest Arrivals",
+  },
+  {
+    value: "price_asc",
+    label: "Price: Low -> High",
+  },
+  {
+    value: "price_desc",
+    label: "Price: High -> Low",
+  },
+]
+```
+
+## Implementation Details
+
+### Change Handler
+
+```typescript copy
+const handleChange = (value: SortOptions) => {
+  setQueryParams("sortBy", value)
+}
+```
+
+The change handler:
+- Accepts a SortOptions value
+- Updates URL parameters via setQueryParams
+- Maintains consistent sorting state
+
+### Component Structure
+
+The component wraps a FilterRadioGroup with sorting configuration:
+
+```typescript copy
+<FilterRadioGroup
+  title="Sort by"
+  items={sortOptions}
+  value={sortBy}
+  handleChange={handleChange}
+  data-testid={dataTestId}
+/>
+```
+
+## Usage Examples
+
+### Basic Implementation
+
+```tsx copy
+import SortProducts from "./SortProducts"
+
+function ProductList() {
+  const setQueryParams = (name: string, value: SortOptions) => {
+    // Update URL parameters
+  }
+
+  return (
+    <SortProducts
+      sortBy="created_at"
+      setQueryParams={setQueryParams}
+      data-testid="product-sort"
+    />
+  )
+}
+```
+
+### With Parent Component State
+
+```tsx copy
+import SortProducts from "./SortProducts"
+import { useState } from "react"
+
+function ProductContainer() {
+  const [currentSort, setCurrentSort] = useState<SortOptions>("created_at")
+
+  const handleSortChange = (name: string, value: SortOptions) => {
+    setCurrentSort(value)
+    // Additional sort handling
+  }
+
+  return (
+    <SortProducts
+      sortBy={currentSort}
+      setQueryParams={handleSortChange}
+    />
+  )
+}
+```
+
+## Dependencies
+
+The component requires:
+- FilterRadioGroup component
+- Client-side rendering (`"use client"`)
+- React
+
+## Integration Guide
+
+### Parent Component Requirements
+
+1. Provide current sort value
+2. Handle sort parameter updates
+3. Manage URL parameters if needed
+4. Handle state persistence
+
+### FilterRadioGroup Integration
+
+The component expects FilterRadioGroup to handle:
+- Radio button rendering
+- Selection state
+- Change events
+- Accessibility features
+
+## Best Practices
+
+1. Sort State Management
+   - Maintain sort state in URL
+   - Handle state updates efficiently
+   - Preserve sort during navigation
+
+2. User Experience
+   - Show current sort option clearly
+   - Provide instant feedback
+   - Maintain consistent order
+
+3. Performance
+   - Handle change events efficiently
+   - Avoid unnecessary re-renders
+   - Manage state updates properly
+
+## Technical Considerations
+
+### Accessibility
+
+The component inherits accessibility features from FilterRadioGroup:
+- Keyboard navigation
+- Screen reader support
+- ARIA attributes
+- Focus management
+
+### State Management
+
+- URL parameter based
+- Controlled component pattern
+- Parent state integration
+- Change event handling
+
+### Error Handling
+
+Consider handling:
+- Invalid sort options
+- Failed parameter updates
+- State synchronization issues
+- Edge cases in sorting
+
+## Troubleshooting
+
+Common issues and solutions:
+
+1. Sort Not Updating
+   - Verify setQueryParams implementation
+   - Check sortBy value passing
+   - Validate change handler execution
+
+2. Radio Group Issues
+   - Check FilterRadioGroup props
+   - Verify sort options array
+   - Review change handler logic
+
+3. State Synchronization
+   - Validate URL parameter updates
+   - Check state management flow
+   - Verify parent component updates
+
+
+Need more help? Check the [Medusa documentation](https://docs.medusajs.com).

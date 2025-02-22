@@ -1,0 +1,263 @@
+# Paginated Products
+
+An asynchronous server component that fetches and displays paginated products with support for sorting, filtering, and regional pricing in a Medusa storefront.
+
+## Template Interface
+
+### Props
+
+```typescript copy
+type Props = {
+  sortBy?: SortOptions          // Optional sort option
+  page: number                  // Current page number
+  collectionId?: string        // Optional collection filter
+  categoryId?: string          // Optional category filter
+  productsIds?: string[]       // Optional specific product IDs
+  countryCode: string          // Region country code
+}
+```
+
+### Query Parameters Type
+
+```typescript copy
+type PaginatedProductsParams = {
+  limit: number
+  collection_id?: string[]
+  category_id?: string[]
+  id?: string[]
+  order?: string
+}
+```
+
+## Core Features
+
+### Pagination Configuration
+
+- Fixed product limit: 12 items per page
+- Automatic total pages calculation
+- Conditional pagination display
+- Zero-based page indexing
+
+### Query Building
+
+The component constructs query parameters based on provided filters:
+
+```typescript copy
+const queryParams: PaginatedProductsParams = {
+  limit: 12,
+  collection_id: collectionId ? [collectionId] : undefined,
+  category_id: categoryId ? [categoryId] : undefined,
+  id: productsIds,
+  order: sortBy === "created_at" ? "created_at" : undefined
+}
+```
+
+### Regional Support
+
+- Fetches region-specific data
+- Handles regional pricing
+- Validates country codes
+- Returns null for invalid regions
+
+## Component Structure
+
+### Layout
+
+```tsx copy
+<>
+  <ul className="grid grid-cols-2 small:grid-cols-3 medium:grid-cols-4 gap-x-6 gap-y-8">
+    {products.map((p) => (
+      <li key={p.id}>
+        <ProductStripPreview product={p} region={region} />
+      </li>
+    ))}
+  </ul>
+  {totalPages > 1 && (
+    <Pagination 
+      page={page}
+      totalPages={totalPages}
+    />
+  )}
+</>
+```
+
+### Grid System
+
+- Responsive column layout:
+  - Mobile: 2 columns
+  - Small screens: 3 columns
+  - Medium and up: 4 columns
+- Consistent gap spacing
+- Flexible item sizing
+
+## Usage Examples
+
+### Basic Implementation
+
+```tsx copy
+<PaginatedProducts
+  page={1}
+  countryCode="us"
+/>
+```
+
+### With Filtering and Sorting
+
+```tsx copy
+<PaginatedProducts
+  page={1}
+  countryCode="uk"
+  sortBy="created_at"
+  collectionId="summer-collection"
+  categoryId="t-shirts"
+/>
+```
+
+### Specific Products
+
+```tsx copy
+<PaginatedProducts
+  page={1}
+  countryCode="ca"
+  productsIds={["prod_1", "prod_2"]}
+/>
+```
+
+## Data Flow
+
+1. Parameter Processing
+   - Validates input parameters
+   - Constructs query object
+   - Applies sorting rules
+
+2. Region Fetching
+   - Gets region data
+   - Validates country code
+   - Handles missing regions
+
+3. Product Fetching
+   - Retrieves paginated products
+   - Applies sorting and filters
+   - Calculates total pages
+
+4. Rendering
+   - Displays product grid
+   - Shows pagination if needed
+   - Handles empty states
+
+## Integration Requirements
+
+### Dependencies
+
+- listProductsWithSort function
+- getRegion function
+- ProductStripPreview component
+- Pagination component
+- SortOptions type
+
+### Data Functions
+
+```typescript copy
+const { response: { products, count } } = await listProductsWithSort({
+  page,
+  queryParams,
+  sortBy,
+  countryCode,
+})
+
+const region = await getRegion(countryCode)
+```
+
+## Technical Considerations
+
+### Performance
+
+- Server-side rendering
+- Efficient pagination
+- Optimized grid layout
+- Conditional rendering
+
+### Error Handling
+
+The component handles:
+- Invalid regions
+- Missing products
+- Filter mismatches
+- Pagination edges
+
+### Accessibility
+
+- Semantic HTML structure
+- Grid-based layout
+- ARIA attributes
+- Keyboard navigation
+
+## Best Practices
+
+1. Data Fetching
+   - Use proper error boundaries
+   - Handle loading states
+   - Validate input data
+   - Cache responses when possible
+
+2. Rendering
+   - Implement responsive design
+   - Handle empty states
+   - Show loading indicators
+   - Maintain consistent layout
+
+3. Pagination
+   - Calculate total pages accurately
+   - Handle edge cases
+   - Show appropriate controls
+   - Maintain state correctly
+
+## Troubleshooting
+
+Common issues and solutions:
+
+1. Missing Products
+   - Verify query parameters
+   - Check region validity
+   - Validate filters
+   - Confirm API responses
+
+2. Layout Issues
+   - Review grid classes
+   - Check responsive breakpoints
+   - Verify spacing
+   - Test different screen sizes
+
+3. Pagination Problems
+   - Validate page calculations
+   - Check total count
+   - Verify page limits
+   - Test navigation
+
+## Related Components
+
+- ProductStripPreview: Individual product display
+- Pagination: Page navigation
+- Region components: Regional data handling
+- Filter components: Product filtering
+
+## API Integration
+
+### Product Listing
+
+```typescript copy
+const { products, count } = await listProductsWithSort({
+  page: number,
+  queryParams: PaginatedProductsParams,
+  sortBy: SortOptions,
+  countryCode: string
+})
+```
+
+### Region Fetching
+
+```typescript copy
+const region = await getRegion(countryCode)
+```
+
+Need more help? Check the [Medusa documentation](https://docs.medusajs.com).

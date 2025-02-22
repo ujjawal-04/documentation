@@ -1,0 +1,182 @@
+# Pagination
+
+A React component for handling pagination in Medusa storefronts. This component creates a responsive pagination interface that adapts its display based on the current page and total number of pages.
+
+## Props
+
+The component accepts the following props:
+
+- `page` (number, required): Current active page
+- `totalPages` (number, required): Total number of available pages
+- `data-testid` (string, optional): Test identifier for the component
+
+## Basic Usage
+
+```tsx copy
+import { Pagination } from "./Pagination"
+
+function MyList() {
+  return (
+    <Pagination 
+      page={1} 
+      totalPages={10} 
+      data-testid="products-pagination"
+    />
+  )
+}
+```
+
+## Features
+
+### Dynamic Display Logic
+
+The component implements smart pagination display logic:
+
+1. For 7 or fewer pages:
+   - Displays all page numbers
+   - Example: 1 2 3 4 5 6 7
+
+2. For more than 7 pages:
+   - When near the start (page ≤ 4):
+     - Shows: 1 2 3 4 5 ... lastPage
+   - When near the end (page ≥ totalPages - 3):
+     - Shows: 1 ... lastPage-4 lastPage-3 lastPage-2 lastPage-1 lastPage
+   - When in the middle:
+     - Shows: 1 ... page-1 page page+1 ... lastPage
+
+### URL Integration
+
+The component integrates with Next.js URL handling:
+- Updates URL query parameters when page changes
+- Preserves existing query parameters
+- Uses client-side navigation
+
+### Styling
+
+Uses Medusa UI's styling system:
+- Responsive design
+- Clear active state
+- Hover effects
+- Consistent spacing
+
+## Implementation Details
+
+### URL Management
+
+```tsx copy
+const handlePageChange = (newPage: number) => {
+  const params = new URLSearchParams(searchParams)
+  params.set("page", newPage.toString())
+  router.push(`${pathname}?${params.toString()}`)
+}
+```
+
+### Page Number Generation
+
+```tsx copy
+const arrayRange = (start: number, stop: number) =>
+  Array.from(
+    { length: stop - start + 1 }, 
+    (_, index) => start + index
+  )
+```
+
+### Button Rendering
+
+The component uses a consistent button structure:
+
+```tsx copy
+<button
+  className={clx("txt-xlarge-plus text-ui-fg-muted", {
+    "text-ui-fg-base hover:text-ui-fg-subtle": isCurrent,
+  })}
+  disabled={isCurrent}
+  onClick={() => handlePageChange(p)}
+>
+  {label}
+</button>
+```
+
+## Accessibility
+
+The component includes:
+- Disabled state for current page
+- Clear visual indicators
+- Semantic button elements
+- Consistent navigation pattern
+
+## Usage Notes
+
+### URL Requirements
+
+The component requires:
+- Next.js `app` router
+- Access to URL parameters
+- Client-side rendering
+
+### Component Location
+
+Must be used in:
+- Client components (`"use client"`)
+- Components with access to navigation hooks
+
+### State Management
+
+- Maintains page state in URL
+- No internal state management
+- Relies on parent for page/totalPages
+
+## Examples
+
+### Basic Implementation
+
+```tsx copy
+<Pagination page={1} totalPages={5} />
+```
+
+### With Test ID
+
+```tsx copy
+<Pagination 
+  page={1} 
+  totalPages={5} 
+  data-testid="my-pagination" 
+/>
+```
+
+### In a List Component
+
+```tsx copy
+function ProductList() {
+  const currentPage = 1
+  const totalPages = 10
+
+  return (
+    <div>
+      <div className="products-grid">
+        {/* Product items */}
+      </div>
+      <Pagination 
+        page={currentPage} 
+        totalPages={totalPages} 
+      />
+    </div>
+  )
+}
+```
+
+## Dependencies
+
+- @medusajs/ui
+- next/navigation
+- React 18+
+
+## Best Practices
+
+1. Always provide both page and totalPages props
+2. Use in client components only
+3. Consider loading states when page changes
+4. Handle edge cases (0 pages, negative numbers)
+5. Test with various page ranges
+
+Need more help? Check the [Medusa documentation](https://docs.medusajs.com).
