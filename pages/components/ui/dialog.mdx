@@ -1,142 +1,217 @@
-# Login Template
+# Dialog Components
 
-The `LoginTemplate` is a client-side component that manages the display of either a login or registration form. It uses React's useState hook to toggle between these two views.
+A collection of accessible dialog components built on top of Radix UI's Dialog primitive. These components provide a modal dialog system with animations, styling, and proper accessibility features.
 
-## Usage
+## Components
 
-```tsx copy
-import LoginTemplate from './LoginTemplate'
+### Dialog
 
-const AccountPage = () => {
-  return <LoginTemplate />
+The root container component for the dialog system.
+
+```jsx copy
+<Dialog>
+  <DialogTrigger />
+  <DialogContent>
+    {/* Dialog content */}
+  </DialogContent>
+</Dialog>
+```
+
+### DialogTrigger
+
+The button that opens the dialog.
+
+```jsx copy
+<DialogTrigger className="custom-class">Open Dialog</DialogTrigger>
+```
+
+### DialogContent
+
+The main container for dialog content. Renders in a portal and includes an overlay.
+
+```jsx copy
+<DialogContent className="custom-class">
+  <DialogHeader>
+    <DialogTitle>Title</DialogTitle>
+    <DialogDescription>Description</DialogDescription>
+  </DialogHeader>
+  {/* Content */}
+  <DialogFooter>
+    {/* Actions */}
+  </DialogFooter>
+</DialogContent>
+```
+
+Props:
+- `className`: Optional string for custom styles
+- `children`: React nodes to render inside the dialog
+- All other props are passed to the underlying Radix UI Dialog.Content
+
+### DialogHeader
+
+Container for dialog title and description with responsive styling.
+
+```jsx copy
+<DialogHeader>
+  <DialogTitle>Title</DialogTitle>
+  <DialogDescription>Description</DialogDescription>
+</DialogHeader>
+```
+
+Props:
+- `className`: Optional string for custom styles
+- Accepts all HTML div element props
+
+### DialogFooter
+
+Container for dialog actions with responsive layout.
+
+```jsx copy
+<DialogFooter>
+  <button>Cancel</button>
+  <button>Confirm</button>
+</DialogFooter>
+```
+
+Props:
+- `className`: Optional string for custom styles
+- Accepts all HTML div element props
+
+### DialogTitle
+
+The title of the dialog. Should be used within DialogHeader.
+
+```jsx copy
+<DialogTitle className="custom-class">Dialog Title</DialogTitle>
+```
+
+Props:
+- `className`: Optional string for custom styles
+- Inherits Radix UI Dialog.Title props
+
+### DialogDescription
+
+The description text for the dialog. Should be used within DialogHeader.
+
+```jsx copy
+<DialogDescription className="custom-class">
+  Detailed description of the dialog's purpose
+</DialogDescription>
+```
+
+Props:
+- `className`: Optional string for custom styles
+- Inherits Radix UI Dialog.Description props
+
+## Styling
+
+The components use Tailwind CSS for styling with the following features:
+
+### Animations
+- Fade in/out animations for overlay and content
+- Zoom animations for dialog content
+- Slide animations for positioning
+
+### Responsive Design
+- Full-width on mobile, max-width on larger screens
+- Centered positioning
+- Responsive text alignment
+- Responsive footer button layout
+
+### Theme Integration
+- Uses background and text colors from theme
+- Configurable through Tailwind classes
+- Supports dark/light modes through CSS variables
+
+## Technical Details
+
+### Key Features
+
+1. **Accessibility**
+   - Built on Radix UI primitives
+   - Proper ARIA attributes
+   - Keyboard navigation support
+   - Screen reader friendly
+
+2. **Portal Rendering**
+   - Content renders in a portal
+   - Prevents z-index and stacking context issues
+
+3. **Animation States**
+   - Open/closed state animations
+   - Smooth transitions
+   - Hardware-accelerated transforms
+
+### Implementation Details
+
+```typescript copy
+// TypeScript props interface example
+interface DialogContentProps
+  extends React.ComponentPropsWithoutRef<typeof DialogPrimitive.Content> {
+  className?: string;
+  children: React.ReactNode;
 }
 ```
 
-## Component Architecture
+### Utility Functions
 
-### View States
+The components use the `cn` utility for class name merging:
 
-The component uses an enum to define possible view states:
-
-```tsx copy
-export enum LOGIN_VIEW {
-  SIGN_IN = "sign-in",
-  REGISTER = "register",
-}
+```javascript copy
+import { cn } from '../../../lib/util/cn'
 ```
 
-### State Management
+## Examples
 
-- Uses the `useState` hook to track current view
-- Default view is "sign-in"
-- State is managed through `setCurrentView` function passed to child components
+### Basic Dialog
 
-### Conditional Rendering
-
-The component conditionally renders either:
-- `<Login />` component when currentView is "sign-in"
-- `<Register />` component when currentView is "register"
-
-## Implementation Details
-
-### Component Structure
-
-```tsx copy
-"use client"
-
-import { useState } from "react"
-import Register from "@modules/account/components/register"
-import Login from "@modules/account/components/login"
-
-const LoginTemplate = () => {
-  const [currentView, setCurrentView] = useState("sign-in")
-  
-  return (
-    <div className="w-full flex justify-start px-8 py-8">
-      {currentView === "sign-in" ? (
-        <Login setCurrentView={setCurrentView} />
-      ) : (
-        <Register setCurrentView={setCurrentView} />
-      )}
-    </div>
-  )
-}
-
-export default LoginTemplate
+```jsx copy
+<Dialog>
+  <DialogTrigger>Open</DialogTrigger>
+  <DialogContent>
+    <DialogHeader>
+      <DialogTitle>Example Dialog</DialogTitle>
+      <DialogDescription>
+        This is a basic example of the dialog component.
+      </DialogDescription>
+    </DialogHeader>
+    <p>Main content goes here.</p>
+    <DialogFooter>
+      <button>Action</button>
+    </DialogFooter>
+  </DialogContent>
+</Dialog>
 ```
 
-### Styling
+### Custom Styled Dialog
 
-The component uses Tailwind CSS classes for layout:
-- `w-full`: Full width container
-- `flex`: Flex container
-- `justify-start`: Left alignment
-- `px-8`: Horizontal padding of 8 units
-- `py-8`: Vertical padding of 8 units
-
-### Child Components
-
-#### Login Component Example
-
-```tsx copy
-interface LoginProps {
-  setCurrentView: (view: "sign-in" | "register") => void
-}
-
-const Login = ({ setCurrentView }: LoginProps) => {
-  return (
-    <div>
-      <form>
-        {/* Login form fields */}
-      </form>
-      <button onClick={() => setCurrentView("register")}>
-        Create an account
-      </button>
-    </div>
-  )
-}
+```jsx copy
+<Dialog>
+  <DialogContent className="max-w-xl bg-custom">
+    <DialogHeader className="border-b pb-4">
+      <DialogTitle className="text-xl">Custom Dialog</DialogTitle>
+    </DialogHeader>
+    {/* Custom content */}
+  </DialogContent>
+</Dialog>
 ```
 
-#### Register Component Example
+## Accessibility
 
-```tsx copy
-interface RegisterProps {
-  setCurrentView: (view: "sign-in" | "register") => void
-}
+The dialog components follow WAI-ARIA guidelines for modal dialogs:
 
-const Register = ({ setCurrentView }: RegisterProps) => {
-  return (
-    <div>
-      <form>
-        {/* Registration form fields */}
-      </form>
-      <button onClick={() => setCurrentView("sign-in")}>
-        Already have an account? Sign in
-      </button>
-    </div>
-  )
-}
-```
+- Proper role="dialog" attribute
+- Focus management
+- Escape key support
+- Click-outside handling
+- Screen reader announcements
+- Focus trap within dialog
 
-## Props
+## Browser Support
 
-| Prop | Type | Description |
-|------|------|-------------|
-| setCurrentView | `(view: "sign-in" \| "register") => void` | Function to update the current view state |
-
-## Key Features
-
-1. **Client Component**
-   - Marked with "use client" directive
-   - Handles client-side state
-   - Manages view transitions
-
-2. **State Management**
-   - Uses React useState hook
-   - Toggles between login and register views
-   - Passes state setter to child components
-
-3. **Type Safety**
-   - TypeScript interfaces for props
-   - Enum for view states
-   - Strict type checking for state management
+- Modern browsers supporting:
+  - CSS Grid
+  - CSS Custom Properties
+  - CSS Transforms
+  - IntersectionObserver (for animations)
+  - DOM Portals

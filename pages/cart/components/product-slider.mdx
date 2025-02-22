@@ -1,183 +1,233 @@
----
-title: 'AccountInfo'
-description: 'A reusable account information component that handles edit states, success/error messages, and form submission.'
----
+# Product Slider
 
-# AccountInfo
+A client-side component that displays a slider of product recommendations with "Add to Cart" functionality.
 
-The `AccountInfo` component is designed to display and edit account-related information. It provides a consistent interface for viewing current information, editing it, and handling success/error states.
+## Overview
+
+The `Product Slider` component creates a responsive grid display of recommended products with sliding navigation. It shows two products at a time and includes add-to-cart functionality.
+
+## Technical Details
+
+### Import
+
+```javascript copy
+"use client"
+
+import React, { useState } from 'react'
+import { ChevronLeft, ChevronRight } from 'lucide-react'
+import { Button } from '@medusajs/ui'
+import { addToCart } from "@lib/data/cart"
+import { useParams } from "next/navigation"
+```
+
+### Product Type Definition
+
+```typescript copy
+type Product = {
+  id: number
+  name: string
+  strength: string
+  image: string
+  variant: {
+    id: string
+    inventory_quantity: number
+    manage_inventory: boolean
+    allow_backorder: boolean
+    prices: Array<{
+      amount: number
+      currency_code: string
+      region_id: string
+    }>
+    original_price: number
+    calculated_price: number
+    original_tax: number
+    calculated_tax: number
+    tax_rates: null
+  }
+  inStock: boolean
+  isValidVariant: boolean
+}
+```
 
 ## Features
 
-- Toggle between view and edit modes
-- Built-in success and error state handling
-- Customizable form content
-- Loading state during form submission
-- Accessible disclosure panels
-- Responsive design
+### Slider Navigation
+- Previous/Next buttons for product navigation
+- Circular navigation (wraps around at ends)
+- Shows two products at a time
+- Smooth transitions
 
-## Props
+### Product Display
+- Product image
+- Product name and strength
+- Price formatting
+- Stock status
+- Add to cart button with loading state
 
-| Prop | Type | Required | Description |
-|------|------|----------|-------------|
-| `label` | `string` | Yes | The label for the account information field |
-| `currentInfo` | `string \| React.ReactNode` | Yes | The current value to display |
-| `isSuccess` | `boolean` | No | Indicates if the update was successful |
-| `isError` | `boolean` | No | Indicates if an error occurred |
-| `errorMessage` | `string` | No | Custom error message (defaults to "An error occurred, please try again") |
-| `clearState` | `function` | Yes | Function to clear the current state |
-| `children` | `React.ReactNode` | No | Content to render in the edit form |
-| `data-testid` | `string` | No | Test ID for the component |
+### Cart Integration
+- Add to cart functionality
+- Loading states
+- Error handling
+- Stock checking
 
-## Usage
+## State Management
 
-```tsx copy
-import AccountInfo from '@/components/AccountInfo'
+### Component State
+```javascript copy
+const [currentIndex, setCurrentIndex] = useState(0)
+const [isAdding, setIsAdding] = useState({})
+```
 
-export default function ProfilePage() {
-  const [isSuccess, setIsSuccess] = useState(false)
-  const [isError, setIsError] = useState(false)
-  
-  const clearState = () => {
-    setIsSuccess(false)
-    setIsError(false)
-  }
+### Navigation Functions
 
-  return (
-    <AccountInfo
-      label="Email"
-      currentInfo="user@example.com"
-      isSuccess={isSuccess}
-      isError={isError}
-      clearState={clearState}
-    >
-      <form>
-        <input
-          type="email"
-          name="email"
-          placeholder="Enter new email"
-          className="w-full p-2 border rounded"
-        />
-      </form>
-    </AccountInfo>
+```javascript copy
+const nextSlide = () => {
+  setCurrentIndex((prevIndex) => (prevIndex + 1) % products.length)
+}
+
+const prevSlide = () => {
+  setCurrentIndex((prevIndex) => 
+    prevIndex === 0 ? products.length - 1 : prevIndex - 1
   )
+}
+```
+
+### Product Selection
+```javascript copy
+const getVisibleProducts = () => {
+  const firstIndex = currentIndex
+  const secondIndex = (currentIndex + 1) % products.length
+  return [products[firstIndex], products[secondIndex]]
+}
+```
+
+## Cart Integration
+
+### Add to Cart Handler
+```javascript copy
+const handleAddToCart = async (product) => {
+  if (!product.variant?.id) return null
+  setIsAdding(prev => ({ ...prev, [product.id]: true }))
+  
+  try {
+    await addToCart({
+      variantId: product.variant.id,
+      quantity: 1,
+      countryCode,
+    })
+  } catch (error) {
+    console.error("Failed to add item to cart:", error)
+  } finally {
+    setIsAdding(prev => ({ ...prev, [product.id]: false }))
+  }
+}
+```
+
+### Stock Checking
+```javascript copy
+const checkInStock = (product) => {
+  const variant = product.variant
+  if (!variant) return false
+  if (!variant.manage_inventory || variant.allow_backorder) {
+    return true
+  }
+  return (variant.inventory_quantity ?? 0) > 0
 }
 ```
 
 ## Styling
 
-The component uses Tailwind CSS for styling and includes:
+### Container Styles
+```javascript copy
+"w-full pb-4 sm:pb-8 px-2 sm:px-4 max-w-screen-2xl mx-auto"
+```
 
-- Custom teal-colored buttons (`bg-[#008080]`)
-- Hover states for buttons
-- Smooth transitions for disclosure panels
-- Responsive width adjustments
-- Consistent text styles and spacing
+### Product Card Styles
+```javascript copy
+"bg-white p-3 sm:p-4 md:p-6 rounded-lg border hover:shadow-lg transition-shadow duration-200"
+```
 
-## States
+### Navigation Button Styles
+```javascript copy
+"p-1 sm:p-2 rounded-full border hover:bg-gray-100 transition-colors duration-200"
+```
 
-### View Mode
-- Displays the current information
-- Shows an "Edit" button
-- No form fields visible
+### Add to Cart Button Styles
+```javascript copy
+"w-full sm:w-auto h-8 sm:h-10 bg-[#008080] text-white px-3 sm:px-6 py-1 sm:py-2 
+ rounded-lg sm:rounded-xl hover:bg-teal-600 active:bg-teal-700 
+ font-medium flex items-center justify-center gap-1 sm:gap-2 
+ text-xs sm:text-sm transition-colors duration-200
+ disabled:bg-gray-300 disabled:cursor-not-allowed"
+```
 
-### Edit Mode
-- Displays the form fields (provided as children)
-- Shows "Cancel" and "Save changes" buttons
-- Cancel returns to view mode
-- Save triggers form submission
+## Responsive Design
 
-### Success State
-- Shows a green badge with success message
-- Automatically closes edit mode
-- Success message fades out
+### Breakpoints
+- Small (sm): 640px
+- Medium (md): 768px
+- Large (lg): 1024px
 
-### Error State
-- Shows a red badge with error message
-- Keeps edit mode open
-- Allows retry
-
-### Loading State
-- Shows loading indicator on save button
-- Prevents multiple submissions
+### Responsive Features
+- Grid layout changes
+- Font size adjustments
+- Padding and margin scaling
+- Button size adaptations
+- Image size responsiveness
 
 ## Accessibility
 
-The component uses the Headless UI Disclosure component for accessible expanding/collapsing sections and includes:
+### ARIA Attributes
+- Navigation buttons have aria-labels
+- SVG icons marked as decorative
+- Loading states communicated
 
-- Proper ARIA attributes
-- Keyboard navigation support
-- Clear visual states
-- Test IDs for testing
+### Keyboard Navigation
+- Buttons are keyboard accessible
+- Focus states maintained
+- Tab order logical
 
-## Examples
+## Testing
 
-### Basic Usage
-
-```tsx copy
-<AccountInfo
-  label="Username"
-  currentInfo="johndoe"
-  clearState={() => {}}
->
-  <input
-    type="text"
-    placeholder="Enter new username"
-    className="w-full p-2 border rounded"
-  />
-</AccountInfo>
+```javascript copy
+data-testid="add-product-button"  // Test ID for add to cart button
 ```
 
-### With Custom Error Message
+## Best Practices
 
-```tsx copy
-<AccountInfo
-  label="Password"
-  currentInfo="********"
-  errorMessage="Password must be at least 8 characters"
-  clearState={() => {}}
->
-  <input
-    type="password"
-    placeholder="Enter new password"
-    className="w-full p-2 border rounded"
-  />
-</AccountInfo>
-```
+1. Error Handling
+   - Cart addition errors caught and logged
+   - Loading states managed
+   - Stock validation before cart addition
 
-### With React Node as Current Info
+2. Performance
+   - Memoized product selection
+   - Efficient state updates
+   - Optimized image loading
 
-```tsx copy
-<AccountInfo
-  label="Status"
-  currentInfo={<Badge color="green">Active</Badge>}
-  clearState={() => {}}
->
-  <select className="w-full p-2 border rounded">
-    <option value="active">Active</option>
-    <option value="inactive">Inactive</option>
-  </select>
-</AccountInfo>
-```
+3. User Experience
+   - Clear loading indicators
+   - Smooth transitions
+   - Responsive design
+   - Stock status indication
 
 ## Dependencies
 
-- @headlessui/react
-- @medusajs/ui
-- react
-- react-dom
+- React
+- Next.js
+- Medusa UI
+- Lucide React (for icons)
+- Tailwind CSS
 
-## Technical Details
+## Browser Compatibility
 
-The component uses several React hooks:
+- Modern browsers supported
+- CSS Grid and Flexbox required
+- JavaScript enabled
+- Touch events for mobile
 
-- `useToggleState` - Custom hook for managing edit state
-- `useFormStatus` - React hook for form submission state
-- `useEffect` - For handling success state changes
+## See Also
 
-The component also implements:
-
-- Debounced state clearing (100ms timeout)
-- Automatic closure on successful update
-- Dynamic height transitions
-- Consistent spacing and alignment
+- [Medusa UI Documentation](https://docs.medusajs.com/ui)
+- [Next.js Documentation](https://nextjs.org/docs)
+- [React State Management](https://react.dev/learn/managing-state)

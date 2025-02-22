@@ -1,273 +1,221 @@
----
-Address Card 
----
+# Cart Item Components
 
-# Address Components
+A set of components for displaying and managing cart items, including a quantity selector and item display.
 
-## Add Address Component
+## Components Overview
 
-The `AddAddress` component allows users to input and save a new address within their account.
+### 1. Item Component
+Displays cart line items with product details, quantity controls, and pricing.
 
-### Installation
+### 2. CustomQuantitySelector Component
+A dropdown-based quantity selector with support for up to 100 items.
 
-```tsx copy
-import AddAddress from "@components/AddAddress"
-```
+## Item Component
 
 ### Props
 
-| Prop Name | Type | Description |
-|-----------|------|-------------|
-| `region` | `HttpTypes.StoreRegion` | The region context for address management |
-| `addresses` | `HttpTypes.StoreCustomerAddress[]` | List of existing customer addresses |
-
-### Features
-
-- **Modal Interface**: Opens a modal for adding a new address
-- **Form Inputs**: Includes fields for first name, last name, company, address, postal code, city, state, country, and phone
-- **Validation**: Ensures required fields are filled before submission
-- **Success & Error Handling**: Displays success and error messages based on API responses
-
-### Usage Example
-
-```tsx copy
-<AddAddress 
-  region={regionData} 
-  addresses={customerData.addresses} 
-/>
-```
-
-### Implementation Example
-
-```tsx copy
-import { AddAddress } from "@components/AddAddress"
-import { useRegion } from "@lib/hooks/use-region"
-
-export default function NewAddressSection() {
-  const { region } = useRegion()
-  
-  return (
-    <div className="mt-4">
-      <h2 className="text-xl font-bold mb-4">Add New Address</h2>
-      <AddAddress
-        region={region}
-        addresses={customer.addresses}
-        onSuccess={() => {
-          // Handle success
-          toast.success("Address added successfully")
-        }}
-      />
-    </div>
-  )
+```typescript copy
+type ItemProps = {
+  item: HttpTypes.StoreCartLineItem
+  type?: "full" | "preview"
+  currencyCode: string
 }
 ```
 
-## Edit Address Component
+| Prop | Type | Required | Description |
+|------|------|----------|-------------|
+| item | HttpTypes.StoreCartLineItem | Yes | Cart line item data |
+| type | "full" \| "preview" | No | Display mode (defaults to "full") |
+| currencyCode | string | Yes | Currency code for price display |
 
-The `EditAddress` component allows users to modify their existing saved addresses.
+### Usage
 
-### Installation
+```jsx copy
+import Item from "@modules/cart/components/item"
 
-```tsx copy
-import EditAddress from "@components/EditAddress"
+<Item 
+  item={cartItem}
+  type="full"
+  currencyCode="USD"
+/>
 ```
+
+### Features
+
+- Product thumbnail with link
+- Product title and variant details
+- Quantity selector
+- Unit and total price display
+- Delete button (in full mode)
+- Error handling for quantity updates
+- Loading state indication
+
+### States
+- Loading state during quantity updates
+- Error state for failed updates
+- Different layouts for "full" vs "preview" modes
+
+## CustomQuantitySelector Component
 
 ### Props
 
-| Prop Name | Type | Description |
-|-----------|------|-------------|
-| `region` | `HttpTypes.StoreRegion` | The region context for address management |
-| `address` | `HttpTypes.StoreCustomerAddress` | The address object to be edited |
-| `isActive` | `boolean` | Indicates if the address is the default one |
-
-### Features
-
-- **Modal Interface**: Opens a modal for editing the selected address
-- **Form Inputs**: Provides fields for first name, last name, company, address, postal code, city, state, country, and phone
-- **Validation**: Ensures required fields are completed before submission
-- **Success & Error Handling**: Displays appropriate messages based on API responses
-- **Delete Functionality**: Allows users to remove an existing address
-
-### Usage Example
-
-```tsx copy
-<EditAddress 
-  region={regionData} 
-  address={addressData} 
-  isActive={true} 
-/>
-```
-
-### Form Implementation
-
-```tsx copy
-// Example of form structure within EditAddress
-<form onSubmit={handleSubmit}>
-  <div className="grid grid-cols-2 gap-4">
-    <Input
-      label="First Name"
-      name="first_name"
-      defaultValue={address.first_name}
-      required
-    />
-    <Input
-      label="Last Name"
-      name="last_name"
-      defaultValue={address.last_name}
-      required
-    />
-  </div>
-  <Input
-    label="Company"
-    name="company"
-    defaultValue={address.company}
-  />
-  <Input
-    label="Address"
-    name="address_1"
-    defaultValue={address.address_1}
-    required
-  />
-  <div className="grid grid-cols-2 gap-4">
-    <Input
-      label="Postal Code"
-      name="postal_code"
-      defaultValue={address.postal_code}
-      required
-    />
-    <Input
-      label="City"
-      name="city"
-      defaultValue={address.city}
-      required
-    />
-  </div>
-  <CountrySelect
-    region={region}
-    defaultValue={address.country_code}
-  />
-  <Input
-    label="Phone"
-    name="phone"
-    defaultValue={address.phone}
-  />
-  <div className="flex justify-end gap-4 mt-6">
-    <Button
-      type="button"
-      variant="secondary"
-      onClick={handleDelete}
-    >
-      Delete
-    </Button>
-    <Button
-      type="submit"
-      isLoading={isSubmitting}
-    >
-      Save Changes
-    </Button>
-  </div>
-</form>
-```
-
-## Component Integration
-
-Here's how these components work together in the AddressBook context:
-
-```tsx copy
-import { AddressBook, AddAddress, EditAddress } from "@components/address"
-
-export default function AddressManagement() {
-  const { customer } = useCustomer()
-  const { region } = useRegion()
-
-  return (
-    <div className="space-y-8">
-      <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-        {customer.addresses.map((address) => (
-          <EditAddress
-            key={address.id}
-            address={address}
-            region={region}
-            isActive={address.id === customer.default_address_id}
-          />
-        ))}
-      </div>
-      
-      <AddAddress
-        region={region}
-        addresses={customer.addresses}
-      />
-    </div>
-  )
+```typescript copy
+type CustomQuantitySelectorProps = {
+  value: number
+  onChange: (quantity: number) => void
+  disabled: boolean
 }
 ```
 
-## Error Handling
+### Usage
 
-Both components implement comprehensive error handling:
+```jsx copy
+<CustomQuantitySelector
+  value={5}
+  onChange={(quantity) => handleQuantityChange(quantity)}
+  disabled={false}
+/>
+```
 
-```tsx copy
-const handleAddressUpdate = async (data) => {
+### Features
+
+- Dropdown-based quantity selection
+- Supports values 1-100
+- Smart positioning (top/bottom based on viewport space)
+- Scroll to current value
+- Click outside to close
+- Keyboard navigation support
+- Responsive design
+
+### Behavior
+
+#### Positioning Logic
+```javascript copy
+const updateDropdownPosition = () => {
+  const spaceBelow = windowHeight - buttonRect.bottom
+  const spaceAbove = buttonRect.top
+  const dropdownHeight = 250
+
+  return spaceBelow < dropdownHeight && spaceAbove > spaceBelow ? 'top' : 'bottom'
+}
+```
+
+## Technical Implementation
+
+### Dependencies
+
+```javascript copy
+import { Table, Text, clx } from "@medusajs/ui"
+import { updateLineItem } from "@lib/data/cart"
+import { HttpTypes } from "@medusajs/types"
+import { useState, useRef, useEffect } from "react"
+// ... other imports
+```
+
+### Key Components Used
+- `Table` components from Medusa UI
+- `LocalizedClientLink` for product links
+- `Thumbnail` for product images
+- `LineItemOptions` for variant details
+- `LineItemPrice` and `LineItemUnitPrice` for pricing
+- Lucide icons for UI elements
+
+## Styling
+
+### Base Styles
+```javascript copy
+"relative w-full"  // Container
+"w-full flex items-center justify-between px-2 sm:px-4 py-2 sm:py-3"  // Button
+"fixed z-50 bg-white border border-gray-200"  // Dropdown
+```
+
+### Responsive Design
+- Small screen adaptations
+- Dynamic positioning
+- Flexible layouts
+- Mobile-friendly controls
+
+### State-Based Styles
+```javascript copy
+{
+  'opacity-50 cursor-not-allowed': disabled,
+  'cursor-pointer hover:bg-gray-200 active:bg-gray-300': !disabled
+}
+```
+
+## Events and Interactions
+
+### Click Outside Detection
+```javascript copy
+useEffect(() => {
+  const handleClickOutside = (event: MouseEvent) => {
+    if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+      setIsOpen(false)
+    }
+  }
+  // ... event listener setup
+}, [isOpen])
+```
+
+### Scroll and Resize Handling
+- Closes dropdown on scroll
+- Updates position on resize
+- Maintains visibility in viewport
+
+## Accessibility
+
+- ARIA attributes for interactive elements
+- Keyboard navigation support
+- Focus management
+- Clear visual states
+- Screen reader friendly structure
+
+## Best Practices
+
+1. Error Handling
+```javascript copy
+const changeQuantity = async (quantity: number) => {
+  setError(null)
+  setUpdating(true)
   try {
-    await updateAddress({
-      ...data,
-      address_id: address.id
+    await updateLineItem({
+      lineId: item.id,
+      quantity,
     })
-    onSuccess()
-  } catch (error) {
-    setError(error.message)
+  } catch (err) {
+    setError(err.message)
+  } finally {
+    setUpdating(false)
   }
 }
 ```
 
-## Best Practices
-
-1. Always validate form inputs before submission
-2. Provide clear feedback for user actions
-3. Handle loading states appropriately
-4. Implement proper error handling
-5. Use consistent styling across address forms
-6. Maintain accessibility standards
-7. Include proper form validation messages
-
-## Accessibility
-
-Both components follow accessibility best practices:
-
-- Semantic HTML structure
-- Proper form labeling
-- Keyboard navigation support
-- ARIA attributes for modals
-- Error message announcements
-- Focus management
-- Screen reader friendly validation
+2. Performance Considerations
+- Event listener cleanup
+- Conditional rendering
+- Efficient state updates
+- Responsive image handling
 
 ## Testing
 
-Example test cases for both components:
-
-```tsx copy
-describe('AddAddress', () => {
-  it('validates required fields', async () => {
-    render(<AddAddress region={mockRegion} addresses={[]} />)
-    
-    fireEvent.click(screen.getByText('Save'))
-    
-    expect(await screen.findByText('First name is required')).toBeInTheDocument()
-  })
-})
-
-describe('EditAddress', () => {
-  it('loads existing address data', () => {
-    render(
-      <EditAddress
-        region={mockRegion}
-        address={mockAddress}
-        isActive={false}
-      />
-    )
-    
-    expect(screen.getByDisplayValue(mockAddress.first_name)).toBeInTheDocument()
-  })
-})
+```javascript copy
+// Test IDs for component testing
+data-testid="product-row"
+data-testid="product-title"
+data-testid="product-variant"
+data-testid="product-delete-button"
+data-testid="product-error-message"
 ```
+
+## Browser Compatibility
+
+- Modern browser support required
+- CSS Grid and Flexbox support needed
+- JavaScript enabled
+- Touch event support for mobile
+
+## See Also
+
+- [Medusa UI Documentation](https://docs.medusajs.com/ui)
+- [React Hooks Documentation](https://react.dev/reference/react/hooks)
+- [Tailwind CSS Documentation](https://tailwindcss.com/docs)

@@ -1,206 +1,214 @@
----
-title: 'Address Book'
-description: 'A component for managing user addresses, including display, addition, and modification functionality.'
----
+# Hero
 
-# Address Book
+A responsive React component that creates a visually appealing hero section with gradient backgrounds, feature lists, and responsive product images.
 
-The `AddressBook` component manages the display and modification of a user's saved addresses. It allows users to add new addresses and edit existing ones.
+## Syntax
 
-## Installation
-
-Ensure you have the component in your project:
-
-```tsx copy
-import AddressBook from "@components/AddressBook"
+```jsx copy
+<Hero />
 ```
 
-## Props
+## Description
 
-| Prop Name | Type | Required | Description |
-|-----------|------|----------|-------------|
-| `customer` | `HttpTypes.StoreCustomer` | Yes | The logged-in customer data, including addresses |
-| `region` | `HttpTypes.StoreRegion` | Yes | The region context for address management |
+The Hero component creates a modern, responsive landing section featuring:
+- Gradient background
+- Gradient text heading
+- Feature list with icons
+- Responsive product images
+- Call-to-action button
+- Mobile and desktop layouts
 
-## Usage
+## Visual Structure
 
-Here's a basic example of how to use the `AddressBook` component:
-
-```tsx copy
-<AddressBook customer={customerData} region={regionData} />
+```
+┌─────────────────────────────────────────┐
+│              Gradient BG                │
+├───────────────────┬─────────────────────┤
+│   Title           │                     │
+│   Subtitle        │                     │
+│   Description     │     Product Image   │
+│   Feature List    │     (Desktop only)  │
+│   CTA Button      │                     │
+│                   │                     │
+│ Mobile Image      │                     │
+│ (Mobile only)     │                     │
+└───────────────────┴─────────────────────┘
 ```
 
-## Features
+## Component Structure
 
-### Address Management
-- **Displays Saved Addresses**: Lists all addresses stored in the customer's account
-- **Add New Address**: Integrates the `AddAddress` component to allow users to add a new address
-- **Edit Existing Addresses**: Uses `EditAddress` to provide an editing interface for each address
-
-### Responsive Design
-- **Desktop View**: Grid layout for optimal display
-- **Mobile View**: Adjusts layout for smaller screens
-- **Automatic Adaptation**: Ensures usability across devices
-
-## Implementation Example
-
-```tsx copy
-import { AddressBook } from "@components/AddressBook"
-import { useCustomer } from "@lib/hooks/use-customer"
-import { useRegion } from "@lib/hooks/use-region"
-
-export default function AccountAddresses() {
-  const { customer } = useCustomer()
-  const { region } = useRegion()
-
-  return (
-    <div className="w-full">
-      <div className="mb-8 flex flex-col gap-y-4">
-        <h1 className="text-2xl-semi">Shipping Addresses</h1>
-        <p className="text-base-regular">
-          View and update your shipping addresses, you can add as many as you like.
-        </p>
-      </div>
-      {customer && region ? (
-        <AddressBook customer={customer} region={region} />
-      ) : null}
-    </div>
-  )
-}
+### Main Container
+```jsx copy
+<section 
+  className="relative mx-auto max-w-[1920px] lg:px-10"
+  style={{
+    background: 'linear-gradient(102.84deg, #E1EFFF 26.12%, #B5D7F8 66.91%, #D3EAFF 93.51%)'
+  }}
+>
 ```
 
-## Behavior
-
-The component implements the following behavior:
-
-### Address Display
-```tsx copy
-// Example of address mapping implementation
-{customer.addresses.map((address) => (
-  <EditAddress
-    key={address.id}
-    address={address}
-    region={region}
-    customer={customer}
-  />
-))}
-```
-
-### New Address Addition
-```tsx copy
-<AddAddress
-  region={region}
-  customer={customer}
-  className="bg-white p-4 rounded-lg"
-/>
-```
-
-## Styling
-
-The component uses Tailwind CSS for styling:
-
-```tsx copy
-// Example styling structure
-<div className="grid grid-cols-1 md:grid-cols-2 gap-4 p-4">
-  {/* Address components */}
-  <div className="bg-white rounded-lg shadow p-4">
-    {/* Individual address content */}
+### Content Grid
+```jsx copy
+<div className="content-container grid min-h-[600px] grid-cols-2 py-4">
+  <div className="z-20 col-span-full flex items-center lg:col-span-1">
+    {/* Left column content */}
+  </div>
+  <div className="z-10 hidden w-full items-center justify-center lg:flex">
+    {/* Right column/image */}
   </div>
 </div>
 ```
 
-### Style Features
-- Consistent spacing and padding
-- Hover and active states
-- Responsive layout adjustments
-- Clear visual hierarchy
+## Features List
 
-## Form Handling
+Each feature item includes:
+1. Custom SVG icon
+2. Two-line description
+3. White background card
+4. Responsive layout
 
-The component handles address forms with proper validation:
-
-```tsx copy
-// Example form implementation
-<form onSubmit={handleSubmit}>
-  <div className="grid grid-cols-1 gap-y-2">
-    <Input
-      label="Address"
-      name="address_1"
-      required
-      autoComplete="street-address"
-    />
-    <div className="grid grid-cols-2 gap-x-2">
-      <Input
-        label="Postal Code"
-        name="postal_code"
-        required
-        autoComplete="postal-code"
-      />
-      <Input
-        label="City"
-        name="city"
-        required
-        autoComplete="address-level2"
-      />
+```jsx copy
+<ul className="mt-6 hidden flex-col items-center gap-4 lg:flex lg:flex-row">
+  <li className="flex w-full items-center gap-2 rounded-[12px] bg-white px-4 py-4 lg:w-1/3">
+    <div className="text-default-700">
+      <svg>{/* Icon SVG */}</svg>
     </div>
-  </div>
-</form>
+    <p className="ignore-br text-sm font-medium leading-tight text-[#293B45] lg:whitespace-nowrap lg:text-base">
+      Feature Title<br/>Feature Description
+    </p>
+  </li>
+  {/* Additional features */}
+</ul>
 ```
 
-## Best Practices
+## Responsive Images
 
-1. Always provide the `customer` prop
-2. Use within authenticated routes
-3. Maintain a consistent address management structure
-4. Handle loading and error states appropriately
-5. Validate address data before submission
-6. Provide clear feedback for user actions
-7. Implement proper error handling
+### Mobile Image
+```jsx copy
+<div className="relative z-10 mt-8 block aspect-[337/286] w-full lg:hidden">
+  <img 
+    alt="Product Mobile View"
+    className="object-contain"
+    src="/pics.png"
+    {...imageProps}
+  />
+</div>
+```
 
-## Accessibility
+### Desktop Image
+```jsx copy
+<div className="z-10 hidden w-full items-center justify-center lg:flex">
+  <div className="relative aspect-[587/500] w-full">
+    <img 
+      alt="Product Desktop View"
+      className="object-contain xl:p-16"
+      src="/pic.avif"
+      {...imageProps}
+    />
+  </div>
+</div>
+```
 
-The component follows accessibility best practices:
+## Styling
 
-- Semantic HTML structure
-- Keyboard navigation support
-- ARIA labels where appropriate
-- High contrast active states for visibility
-- Focus management for form elements
-- Clear error messaging
-- Screen reader friendly content structure
+### Typography Classes
+- Heading: `text-4xl font-semibold tracking-tight md:text-4xl lg:text-6xl`
+- Subheading: `font-semibold text-[#697294]`
+- Description: `text-base leading-7 text-[#11181C] md:text-lg md:leading-8`
+- Feature text: `text-sm font-medium leading-tight lg:text-base`
 
-## Error Handling
+### Gradient Effects
+```css copy
+/* Background Gradient */
+background: linear-gradient(102.84deg, #E1EFFF 26.12%, #B5D7F8 66.91%, #D3EAFF 93.51%)
 
-```tsx copy
-const handleAddressSubmit = async (data) => {
-  try {
-    await updateAddress(data)
-    showNotification("Address updated successfully")
-  } catch (error) {
-    showNotification("Error updating address", "error")
-  }
+/* Text Gradient */
+.hero-title {
+  background-gradient-to-r: from-[#1e2c60] to-[#3c53a8];
+  background-clip: text;
+  text-transparent;
 }
 ```
 
-## Dependencies
+### Layout Classes
+- Container: `max-w-[1920px] lg:px-10`
+- Grid: `grid min-h-[600px] grid-cols-2`
+- Feature cards: `rounded-[12px] bg-white px-4 py-4`
 
-- React
-- Tailwind CSS for styling
-- Custom hooks for customer and region management
-- Form handling utilities
-- UI components (Input, Button, etc.)
-
-## Testing
-
-The component includes comprehensive test coverage:
-
-```tsx copy
-describe('AddressBook', () => {
-  it('renders existing addresses', () => {
-    render(<AddressBook customer={mockCustomer} region={mockRegion} />)
-    expect(screen.getAllByTestId('address-card')).toHaveLength(
-      mockCustomer.addresses.length
-    )
-  })
-})
+### Interactive Elements
+```css copy
+.cta-button {
+  background: #008080;
+  hover:bg-[#028186];
+  transition-colors duration-200;
+}
 ```
+
+## Responsive Design
+
+### Breakpoints
+- Mobile: Single column layout
+- Desktop (lg): Two-column layout
+- Extra large (xl): Additional padding for product image
+
+### Key Responsive Features
+1. Image switching between mobile/desktop versions
+2. Column layout changes
+3. Typography scaling
+4. Feature list layout adaptation
+5. Padding and margin adjustments
+
+## Accessibility
+
+### Image Attributes
+- Descriptive alt text
+- Async decoding
+- Proper aspect ratios
+- Color transparency fallback
+
+### Text Content
+- Semantic heading structure
+- Proper text contrast
+- Font scaling for readability
+
+## Examples
+
+### Basic Usage
+```jsx copy
+import Hero from "./Hero"
+
+export default function HomePage() {
+  return (
+    <main>
+      <Hero />
+      {/* Other sections */}
+    </main>
+  )
+}
+```
+
+## Browser Support
+
+Requires browsers with support for:
+- CSS Grid
+- CSS Gradients
+- Aspect Ratio
+- Modern CSS Variables
+- Flexbox
+- CSS Transitions
+
+## Performance Considerations
+
+1. Images
+   - Different versions for mobile/desktop
+   - Proper aspect ratios to prevent layout shift
+   - Async decoding for performance
+
+2. SVG Icons
+   - Inline SVGs for faster loading
+   - Proper viewBox settings
+   - Optimized paths
+
+3. Gradients
+   - Hardware-accelerated when possible
+   - Z-index management for proper layering

@@ -1,0 +1,199 @@
+# ProductRail
+
+An asynchronous React component that displays a horizontal collection of products with region-specific pricing, featuring a header with collection title and a responsive grid layout.
+
+## Syntax
+
+```jsx copy
+<ProductRail
+  collection={collection}
+  region={region}
+/>
+```
+
+## Parameters
+
+The component accepts an object with the following properties:
+
+- `collection` (Required)
+  - Type: `HttpTypes.StoreCollection`
+  - Description: A Medusa store collection object containing the title, handle, and ID.
+
+- `region` (Required)
+  - Type: `HttpTypes.StoreRegion`
+  - Description: A Medusa store region object containing regional settings for pricing and availability.
+
+## Description
+
+The ProductRail component creates a responsive product showcase featuring:
+- Collection title header
+- Responsive product grid
+- Region-specific pricing
+- Conditional "View All" link placement
+- Adaptive layout for different screen sizes
+
+## Technical Details
+
+### Imports
+
+```javascript copy
+import { listProducts } from "@lib/data/products"
+import { HttpTypes } from "@medusajs/types"
+import { Text } from "@medusajs/ui"
+import InteractiveLink from "@modules/common/components/interactive-link"
+import ProductPreview from "@modules/products/components/product-preview"
+```
+
+### Data Fetching
+
+The component uses Medusa's `listProducts` function to fetch products with calculated prices:
+
+```javascript copy
+const { response: { products: pricedProducts } } = await listProducts({
+  regionId: region.id,
+  queryParams: {
+    collection_id: collection.id,
+    fields: "*variants.calculated_price",
+  },
+})
+```
+
+### Component Structure
+
+```jsx copy
+<div className="content-container flex flex-col px-3 py-10 md:py-10">
+  {/* Header */}
+  <div className="mb-5 flex flex-wrap items-center gap-x-6">
+    <Text>{collection.title}</Text>
+    <InteractiveLink />
+  </div>
+  
+  {/* Product Grid */}
+  <ul className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 xl:grid-cols-5">
+    {pricedProducts.map((product) => (
+      <ProductPreview />
+    ))}
+  </ul>
+  
+  {/* Mobile View All Link */}
+  <div className="mt-6 md:hidden">
+    <InteractiveLink />
+  </div>
+</div>
+```
+
+## Grid System
+
+The component implements a responsive grid system with progressive breakpoints:
+
+```css copy
+.product-grid {
+  grid-cols-2      /* Mobile: 2 columns */
+  sm:grid-cols-3   /* Small screens: 3 columns */
+  md:grid-cols-4   /* Medium screens: 4 columns */
+  xl:grid-cols-5   /* Extra large screens: 5 columns */
+}
+```
+
+## Layout Features
+
+### Header Section
+- Flexible layout with wrap support
+- Consistent spacing (`mb-5`, `gap-x-6`)
+- Responsive title sizing
+- Conditional "View All" link visibility
+
+### Product Grid
+- Responsive gap spacing
+  - Mobile: `gap-x-2 gap-y-2`
+  - Desktop: `lg:gap-x-6 lg:gap-y-8`
+- Consistent product card sizing
+- Automatic grid placement
+
+### View All Link
+- Desktop: Appears in header
+- Mobile: Centered below products
+- Contextual visibility based on screen size
+
+## Examples
+
+### Basic Usage
+
+```jsx copy
+import ProductRail from "./ProductRail"
+
+async function CollectionPage({ collection, region }) {
+  return (
+    <ProductRail
+      collection={collection}
+      region={region}
+    />
+  )
+}
+```
+
+### Error Handling
+
+```jsx copy
+async function ProductRail({ collection, region }) {
+  try {
+    const { response: { products } } = await listProducts({
+      // ... query params
+    })
+    
+    if (!products) {
+      return null
+    }
+    
+    return (
+      // ... component render
+    )
+  } catch (error) {
+    console.error("Failed to fetch products:", error)
+    return null
+  }
+}
+```
+
+## Best Practices
+
+1. **Data Loading**
+   - Implement error boundaries for fetch failures
+   - Handle empty product lists gracefully
+   - Use appropriate loading states
+
+2. **Performance**
+   - Request only needed fields in product query
+   - Implement pagination if needed
+   - Consider implementing virtual scrolling for large collections
+
+3. **Accessibility**
+   - Maintain semantic HTML structure
+   - Ensure proper focus management
+   - Provide clear navigation paths
+
+## Props Interface
+
+```typescript copy
+interface ProductRailProps {
+  collection: HttpTypes.StoreCollection;
+  region: HttpTypes.StoreRegion;
+}
+
+interface ProductData {
+  id: string;
+  title: string;
+  handle: string;
+  variants: {
+    calculated_price: number;
+  }[];
+}
+```
+
+## Browser Support
+
+Requires browsers with support for:
+- CSS Grid
+- CSS Flexbox
+- Modern JavaScript (async/await)
+- CSS Custom Properties

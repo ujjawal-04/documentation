@@ -1,0 +1,134 @@
+# Collection Template
+
+The `Collection Template` component renders a product collection page featuring a sorting interface, collection title, and paginated product grid.
+
+## Syntax
+
+```jsx copy
+<CollectionTemplate
+  collection={collection}
+  sortBy={sortBy}
+  page={page}
+  countryCode={countryCode}
+/>
+```
+
+## Parameters
+
+The component accepts an object with the following properties:
+
+- `collection` (Required)
+  - Type: `HttpTypes.StoreCollection`
+  - Description: The collection object containing details such as title, ID, and associated products.
+
+- `sortBy` (Optional)
+  - Type: `SortOptions`
+  - Default: `"created_at"`
+  - Description: Determines the sort order of products within the collection.
+
+- `page` (Optional)
+  - Type: `string`
+  - Default: `"1"`
+  - Description: The current page number for paginated products display.
+
+- `countryCode` (Required)
+  - Type: `string`
+  - Description: The country code used for region-specific product display and pricing.
+
+## Description
+
+The `CollectionTemplate` component creates a structured layout for displaying product collections. It includes:
+
+1. A sidebar with refinement options (`RefinementList`)
+2. Collection title
+3. Paginated product grid with loading skeleton state
+
+### Layout Structure
+
+The component implements a responsive layout that:
+- Uses a single column on mobile devices (default)
+- Switches to a two-column layout on larger screens (using the `small:` prefix class)
+- Maintains consistent spacing and typography across viewports
+
+## Examples
+
+Basic usage with required props:
+
+```jsx copy
+<CollectionTemplate
+  collection={collectionData}
+  countryCode="US"
+/>
+```
+
+With optional sorting and pagination:
+
+```jsx copy
+<CollectionTemplate
+  collection={collectionData}
+  sortBy="price_desc"
+  page="3"
+  countryCode="US"
+/>
+```
+
+## Technical Details
+
+### Imports
+
+The component requires the following imports:
+
+```javascript copy
+import { Suspense } from "react"
+import SkeletonProductGrid from "@modules/skeletons/templates/skeleton-product-grid"
+import RefinementList from "@modules/store/components/refinement-list"
+import { SortOptions } from "@modules/store/components/refinement-list/sort-products"
+import PaginatedProducts from "@modules/store/templates/paginated-products"
+import { HttpTypes } from "@medusajs/types"
+```
+
+### Component Structure
+
+The component follows a simple but effective structure:
+
+```javascript copy
+const pageNumber = page ? parseInt(page) : 1
+const sort = sortBy || "created_at"
+```
+
+This initialization ensures:
+- Valid page numbers for pagination
+- Default sort order when none is specified
+
+### Loading States
+
+The component implements React Suspense for loading states:
+
+```javascript copy
+<Suspense
+  fallback={
+    <SkeletonProductGrid
+      numberOfProducts={collection.products?.length}
+    />
+  }
+>
+  <PaginatedProducts />
+</Suspense>
+```
+
+### CSS Classes
+
+The component uses utility classes for styling:
+- `flex flex-col small:flex-row` - Responsive layout control
+- `text-2xl-semi` - Typography scaling
+- `content-container` - Width constraints
+- `w-full` - Full width layout for content area
+
+## Component Differences from CategoryTemplate
+
+While similar to the CategoryTemplate, this component has some key differences:
+1. No breadcrumb navigation
+2. Simpler title structure
+3. No description or subcategory display
+4. Direct collection title display instead of nested category handling
+

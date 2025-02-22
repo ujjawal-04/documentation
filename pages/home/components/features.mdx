@@ -1,183 +1,194 @@
----
-title: 'AccountInfo'
-description: 'A reusable account information component that handles edit states, success/error messages, and form submission.'
----
+# FeaturesSection
 
-# AccountInfo
+A React component that creates a visually appealing features section with decorative background gradients, a headline, description, and three feature cards highlighting key business aspects.
 
-The `AccountInfo` component is designed to display and edit account-related information. It provides a consistent interface for viewing current information, editing it, and handling success/error states.
+## Syntax
 
-## Features
+```jsx copy
+<FeaturesSection />
+```
 
-- Toggle between view and edit modes
-- Built-in success and error state handling
-- Customizable form content
-- Loading state during form submission
-- Accessible disclosure panels
-- Responsive design
+## Description
 
-## Props
+The FeaturesSection component creates a modern, responsive section layout featuring:
+- Decorative gradient backgrounds with blur effects
+- A centered headline and description
+- Three feature cards with icons
+- Hover animations and glass-morphism effects
 
-| Prop | Type | Required | Description |
-|------|------|----------|-------------|
-| `label` | `string` | Yes | The label for the account information field |
-| `currentInfo` | `string \| React.ReactNode` | Yes | The current value to display |
-| `isSuccess` | `boolean` | No | Indicates if the update was successful |
-| `isError` | `boolean` | No | Indicates if an error occurred |
-| `errorMessage` | `string` | No | Custom error message (defaults to "An error occurred, please try again") |
-| `clearState` | `function` | Yes | Function to clear the current state |
-| `children` | `React.ReactNode` | No | Content to render in the edit form |
-| `data-testid` | `string` | No | Test ID for the component |
+## Visual Structure
 
-## Usage
+```
+┌─────────────────────────────────────┐
+│            Blur Gradient            │
+├─────────────────────────────────────┤
+│              Headline               │
+│             Description             │
+├───────────┬───────────┬────────────┤
+│  Feature  │  Feature  │  Feature   │
+│   Card 1  │   Card 2  │   Card 3   │
+└───────────┴───────────┴────────────┘
+```
 
-```tsx copy
-import AccountInfo from '@/components/AccountInfo'
+## Component Structure
 
-export default function ProfilePage() {
-  const [isSuccess, setIsSuccess] = useState(false)
-  const [isError, setIsError] = useState(false)
-  
-  const clearState = () => {
-    setIsSuccess(false)
-    setIsError(false)
-  }
+### Section Container
+```jsx copy
+<section className="relative mx-auto max-w-7xl px-4 py-12 sm:px-6 sm:py-24 lg:px-8">
+```
 
-  return (
-    <AccountInfo
-      label="Email"
-      currentInfo="user@example.com"
-      isSuccess={isSuccess}
-      isError={isError}
-      clearState={clearState}
-    >
-      <form>
-        <input
-          type="email"
-          name="email"
-          placeholder="Enter new email"
-          className="w-full p-2 border rounded"
-        />
-      </form>
-    </AccountInfo>
-  )
-}
+### Decorative Gradients
+```jsx copy
+<div 
+  aria-hidden="true" 
+  className="absolute inset-x-0 top-40 -z-10 transform-gpu overflow-hidden blur-3xl sm:top-0"
+>
+  <div className="relative left-[calc(60%-11rem)] aspect-[1155/678] w-[36.125rem] -translate-x-1/2 rotate-[30deg] bg-gradient-to-tr from-[#00BFFF] to-[#1E90FF] opacity-30 ...">
+```
+
+### Content Section
+```jsx copy
+<div className="relative">
+  <h2>Headline</h2>
+  <p>Description</p>
+  <div className="grid grid-cols-1 gap-8 md:grid-cols-3">
+    {/* Feature Cards */}
+  </div>
+</div>
+```
+
+## Feature Cards
+
+Each feature card consists of:
+1. Icon container with background
+2. Title
+3. Description text
+4. Hover and focus states
+5. Glass-morphism effect
+
+### Card Structure
+```jsx copy
+<div className="flex flex-col relative overflow-hidden h-auto...">
+  <div className="relative flex w-full flex-auto flex-col...">
+    <div className="mb-4 w-fit rounded-xl bg-blue-50 p-3">
+      {/* SVG Icon */}
+    </div>
+    <h3>Title</h3>
+    <p>Description</p>
+  </div>
+</div>
 ```
 
 ## Styling
 
-The component uses Tailwind CSS for styling and includes:
+### Layout Classes
+- Container: `max-w-7xl mx-auto`
+- Grid: `grid grid-cols-1 md:grid-cols-3`
+- Spacing: `px-4 py-12 sm:px-6 sm:py-24 lg:px-8`
 
-- Custom teal-colored buttons (`bg-[#008080]`)
-- Hover states for buttons
-- Smooth transitions for disclosure panels
-- Responsive width adjustments
-- Consistent text styles and spacing
+### Typography
+- Headline: `text-4xl font-semibold`
+- Description: `text-lg text-gray-600`
+- Card Title: `text-2xl font-medium`
+- Card Text: `text-gray-600`
 
-## States
+### Card Styling
+```css copy
+.feature-card {
+  background: white/90
+  backdrop-filter: blur
+  box-shadow: 0 4px 12px rgba(0,0,0,0.1)
+  transition: shadow 300ms
+  border-radius: large
+}
 
-### View Mode
-- Displays the current information
-- Shows an "Edit" button
-- No form fields visible
+.feature-card:hover {
+  box-shadow: 0 4px 16px rgba(0,0,0,0.15)
+}
+```
 
-### Edit Mode
-- Displays the form fields (provided as children)
-- Shows "Cancel" and "Save changes" buttons
-- Cancel returns to view mode
-- Save triggers form submission
-
-### Success State
-- Shows a green badge with success message
-- Automatically closes edit mode
-- Success message fades out
-
-### Error State
-- Shows a red badge with error message
-- Keeps edit mode open
-- Allows retry
-
-### Loading State
-- Shows loading indicator on save button
-- Prevents multiple submissions
+### Gradient Effects
+- Colors: `from-[#00BFFF] to-[#1E90FF]`
+- Opacity: `opacity-30`
+- Blur: `blur-3xl`
+- Transform: `transform-gpu`
 
 ## Accessibility
 
-The component uses the Headless UI Disclosure component for accessible expanding/collapsing sections and includes:
+### ARIA Attributes
+- Decorative elements marked with `aria-hidden="true"`
+- Semantic HTML structure with `<section>`, `<h2>`, and `<h3>` tags
+- Proper heading hierarchy
 
-- Proper ARIA attributes
-- Keyboard navigation support
-- Clear visual states
-- Test IDs for testing
+### Focus Management
+- Cards have `tabIndex="-1"`
+- Focus visible styles defined
+- Outline offset for focus states
+
+## Responsive Design
+
+### Breakpoints
+- Mobile: Single column layout
+- Medium (md): Three column grid
+- Padding adjustments at sm and lg breakpoints
+
+### Responsive Classes
+```javascript copy
+{
+  container: "px-4 sm:px-6 lg:px-8",
+  grid: "grid-cols-1 md:grid-cols-3",
+  gradient: {
+    mobile: "w-[36.125rem]",
+    desktop: "sm:w-[55rem]"
+  }
+}
+```
 
 ## Examples
 
 ### Basic Usage
+```jsx copy
+import FeaturesSection from "./FeaturesSection"
 
-```tsx copy
-<AccountInfo
-  label="Username"
-  currentInfo="johndoe"
-  clearState={() => {}}
->
-  <input
-    type="text"
-    placeholder="Enter new username"
-    className="w-full p-2 border rounded"
-  />
-</AccountInfo>
+export default function HomePage() {
+  return (
+    <main>
+      <FeaturesSection />
+      {/* Other sections */}
+    </main>
+  )
+}
 ```
 
-### With Custom Error Message
-
-```tsx copy
-<AccountInfo
-  label="Password"
-  currentInfo="********"
-  errorMessage="Password must be at least 8 characters"
-  clearState={() => {}}
->
-  <input
-    type="password"
-    placeholder="Enter new password"
-    className="w-full p-2 border rounded"
-  />
-</AccountInfo>
+### Customizing Icons
+The component uses SVG icons that can be replaced:
+```jsx copy
+// Inside feature card
+<div className="mb-4 w-fit rounded-xl bg-blue-50 p-3">
+  <CustomIcon />
+</div>
 ```
 
-### With React Node as Current Info
+## Browser Support
 
-```tsx copy
-<AccountInfo
-  label="Status"
-  currentInfo={<Badge color="green">Active</Badge>}
-  clearState={() => {}}
->
-  <select className="w-full p-2 border rounded">
-    <option value="active">Active</option>
-    <option value="inactive">Inactive</option>
-  </select>
-</AccountInfo>
-```
+Requires browsers with support for:
+- CSS Grid
+- Backdrop Filter
+- CSS Transform GPU
+- CSS Transitions
+- CSS Clip Path
+- Modern CSS Variables
 
-## Dependencies
+## Performance Considerations
 
-- @headlessui/react
-- @medusajs/ui
-- react
-- react-dom
+1. Transform GPU
+   - Uses `transform-gpu` for hardware acceleration
+   - Helps with gradient animation performance
 
-## Technical Details
+2. Optimized Gradients
+   - Z-index management for proper layering
+   - Opacity control for better performance
 
-The component uses several React hooks:
-
-- `useToggleState` - Custom hook for managing edit state
-- `useFormStatus` - React hook for form submission state
-- `useEffect` - For handling success state changes
-
-The component also implements:
-
-- Debounced state clearing (100ms timeout)
-- Automatic closure on successful update
-- Dynamic height transitions
-- Consistent spacing and alignment
+3. Motion Reduction
+   - Respects `motion-reduce` preferences
+   - Disables transitions when requested

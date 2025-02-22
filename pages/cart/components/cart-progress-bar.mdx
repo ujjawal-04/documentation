@@ -1,194 +1,179 @@
----
-title: 'AccountNav'
-description: 'A navigation component for managing user account sections and authentication state.'
----
+# Cart Progress Bars
 
-# AccountNav Component
+The `Cart Progress Bars` component displays progress bars that visualize cart thresholds for free shipping and free products based on the current cart amount.
 
-The `AccountNav` component provides navigation for users to manage their account settings, including profile information, addresses, orders, and logout functionality. It adapts its layout for both mobile and desktop views.
+## Overview
 
-## Installation
+This component creates a visual representation of shopping progress with multiple thresholds:
+- Free shipping at €200
+- Free Bac Water rewards at every €400 increment
 
-First, ensure you have the component in your project:
+## Syntax
 
-```tsx copy
-import AccountNav from "@components/AccountNav"
+```jsx copy
+<CartProgressBars currentAmount={250} />
 ```
 
-## Props
+## Properties
 
-| Prop Name | Type | Required | Description |
-|-----------|------|----------|-------------|
-| `customer` | `HttpTypes.StoreCustomer \| null` | Yes | The currently logged-in customer's data |
+### currentAmount
+- Type: `number`
+- Default: `0`
+- Optional: Yes
+- Description: The current cart total amount in euros
 
-## Usage
+## Technical Details
 
-Here's a basic example of how to use the AccountNav component:
+### Import
 
-```tsx copy
-import AccountNav from "@components/AccountNav"
-
-const MyAccountPage = ({ customer }) => {
-  return (
-    <div>
-      <AccountNav customer={customer} />
-      {/* Rest of your account page content */}
-    </div>
-  )
-}
+```jsx copy
+import CartProgressBars from "@components/CartProgressBars"
 ```
 
-## Features
+### Progress Bar Thresholds
 
-### Responsive Design
-- **Desktop View**: Full navigation menu with all options visible
-- **Mobile View**: Condensed navigation with appropriate layout adjustments
-- Automatic adaptation based on screen size
+1. **First Threshold (€200)**
+   - Appears when currentAmount > 1
+   - Progress calculation: `(currentAmount / 200) * 100`
+   - Unlocks free shipping
 
-### Navigation Options
-- Profile settings
-- Address management
-- Order history 
-- Logout functionality
+2. **Second Threshold (€400)**
+   - Appears when currentAmount > 1
+   - Progress calculation: `(currentAmount / 400) * 100`
+   - Unlocks first free Bac Water
 
-### Active State Handling
-- Visual indication of current section
-- Uses `clx` utility for conditional styling
-- Highlights active navigation item
-
-## Subcomponents
-
-### AccountNavLink
-
-A helper component used internally to create consistent navigation links.
-
-#### Props
-
-| Prop Name | Type | Required | Description |
-|-----------|------|----------|-------------|
-| `href` | `string` | Yes | Destination URL for the link |
-| `route` | `string` | Yes | Current route pathname |
-| `children` | `React.ReactNode` | Yes | Content to display inside the link |
-| `data-testid` | `string` | No | Test identifier for the link |
-
-#### Example Usage
-
-```tsx copy
-<AccountNavLink 
-  href="/account/orders" 
-  route={route}
-  data-testid="account-nav-orders"
->
-  Orders
-</AccountNavLink>
-```
-
-## Behavior
-
-### Authentication Flow
-- Checks for customer data to determine authentication state
-- Provides logout functionality through `signout` function
-- Handles country code for region-specific logout behavior
-
-### Navigation States
-1. **Default State**
-   - Displays user name when on `/account`
-   - Shows all available navigation options
-
-2. **Active Link**
-   - Highlights current section
-   - Provides visual feedback for user location
-
-3. **Mobile State**
-   - Collapses into mobile-friendly layout
-   - Maintains all functionality in compressed format
+3. **Additional Thresholds**
+   - Appears when currentAmount >= 400
+   - Progress calculation: `((currentAmount % 400) / 400) * 100`
+   - Unlocks additional Bac Water rewards
 
 ## Styling
 
 The component uses Tailwind CSS for styling:
 
-```tsx copy
-// Example of styled link
-<div className={clx(
-  "text-sm flex items-center gap-x-2 px-4 py-2 rounded-rounded",
-  {
-    "text-ui-fg-base hover:text-ui-fg-base": href !== route,
-    "bg-ui-bg-subtle font-semibold": href === route,
-  }
-)}>
-  {children}
+### Base Container
+```jsx copy
+<div className="relative flex items-center justify-between gap-2 px-8 text-xs text-black lg:px-10">
+```
+
+### Progress Bar
+```jsx copy
+<div className="h-2 w-full overflow-hidden rounded-lg bg-[#C4C4C4]">
+  <div className="h-full bg-[#008080]" />
 </div>
 ```
 
 ### Style Features
-- Consistent spacing and padding
-- Hover and active states
-- Responsive layout adjustments
-- Clear visual hierarchy
-
-## Dependencies
-
-- Next.js for routing
-- Tailwind CSS for styling
-- `clx` utility for conditional classes
-- Various icon components (`ChevronDown`, `User`, etc.)
+- Responsive padding (`px-8 lg:px-10`)
+- Consistent height for progress bars (`h-2`)
+- Rounded corners (`rounded-lg`)
+- Teal color for completed progress (`bg-[#008080]`)
+- Gray background for incomplete progress (`bg-[#C4C4C4]`)
 
 ## Examples
 
-### Basic Implementation
+### Basic Usage
 
-```tsx copy
-function AccountPage() {
-  const { customer } = useCustomer()
+```jsx copy
+function CartPage() {
+  const cartTotal = 150;
   
   return (
-    <div className="flex flex-col">
-      <AccountNav customer={customer} />
-      <div className="account-content">
-        {/* Account page content */}
-      </div>
+    <div className="cart-container">
+      <CartProgressBars currentAmount={cartTotal} />
     </div>
   )
 }
 ```
 
-### With Custom Styling
+### Multiple Rewards Example
 
-```tsx copy
-<AccountNav 
-  customer={customer}
-  className="custom-nav-class"
-  data-testid="account-navigation"
-/>
+```jsx copy
+// At €850, this will show:
+// - Completed shipping threshold
+// - Two completed Bac Water rewards (at €400 and €800)
+// - Progress towards third Bac Water reward
+<CartProgressBars currentAmount={850} />
 ```
 
-## Testing
+## Visual Elements
 
-The component includes data-testid attributes for easy testing:
-
-```tsx copy
-// Example test
-it('should highlight active link', () => {
-  render(<AccountNav customer={mockCustomer} />)
-  const activeLink = screen.getByTestId('account-nav-orders')
-  expect(activeLink).toHaveClass('bg-ui-bg-subtle')
-})
+### Icons
+1. **Shipping Icon**
+```jsx copy
+<svg
+  xmlns="http://www.w3.org/2000/svg"
+  fill="none"
+  viewBox="0 0 24 24"
+  strokeWidth="1.5"
+  stroke="currentColor"
+  className="w-6 h-6"
+>
+  {/* Path data */}
+</svg>
 ```
 
-## Best Practices
+2. **Bac Water Icon**
+```jsx copy
+<svg
+  xmlns="http://www.w3.org/2000/svg"
+  width="20"
+  height="20"
+  viewBox="0 0 512 512"
+>
+  {/* Path data */}
+</svg>
+```
 
-1. Always provide the customer prop
-2. Use within authenticated routes
-3. Place at the top of account-related pages
-4. Maintain consistent navigation structure
-5. Handle loading and error states appropriately
+## Behavior
+
+### Progress Calculation
+
+```jsx copy
+// Free Shipping Progress (€200)
+width: `${Math.min((currentAmount / 200) * 100, 100)}%`
+
+// Bac Water Progress (€400 intervals)
+width: `${currentAmount < 400 
+  ? Math.min((currentAmount / 400) * 100, 100)
+  : 100}%`
+```
+
+### Reward Counter
+- Calculates free Bac Water quantities based on cart total
+- Formula: `Math.floor(currentAmount / 400)`
+- Example display: "Bac Water x2" for €850 cart value
 
 ## Accessibility
 
-The component follows accessibility best practices:
+- Uses semantic HTML structure
+- Maintains text contrast ratios
+- Provides visual feedback through colors
+- Includes descriptive labels
 
-- Semantic HTML structure
-- Keyboard navigation support
-- ARIA labels where appropriate
-- Focus management
-- High contrast active states
+## Best Practices
+
+1. Keep currentAmount as a number type
+2. Handle edge cases (zero or negative amounts)
+3. Maintain consistent spacing
+4. Use the component within a cart context
+5. Consider mobile responsiveness
+
+## Dependencies
+
+- React
+- Tailwind CSS
+- SVG icons
+
+## Browser Compatibility
+
+- Supports modern browsers
+- Requires CSS Grid/Flexbox support
+- SVG support required
+- JavaScript enabled
+
+## See Also
+
+- [React Component Documentation](https://react.dev/reference/react/Component)
+- [Tailwind CSS Documentation](https://tailwindcss.com/docs)
+- [SVG MDN Documentation](https://developer.mozilla.org/en-US/docs/Web/SVG)

@@ -1,0 +1,240 @@
+# Shipping
+
+A client-side React component that displays a dynamic progress indicator for free shipping thresholds. It supports both inline and popup display variants with animated progress bars.
+
+## Syntax
+
+```jsx copy
+<ShippingPriceNudge
+  variant="inline"
+  cart={cart}
+  shippingOptions={shippingOptions}
+/>
+```
+
+## Parameters
+
+- `variant` (Optional)
+  - Type: `"popup" | "inline"`
+  - Default: `"inline"`
+  - Description: Determines the display style of the nudge component
+
+- `cart` (Required)
+  - Type: `StoreCart`
+  - Description: The current cart object containing items and totals
+
+- `shippingOptions` (Required)
+  - Type: `StoreCartShippingOption[]`
+  - Description: Available shipping options with their pricing rules
+
+## Utility Functions
+
+### computeTarget
+
+Calculates the progress towards free shipping based on cart total and price rules.
+
+```typescript copy
+function computeTarget(
+  cart: HttpTypes.StoreCart,
+  price: HttpTypes.StorePrice
+): {
+  current_amount: number;
+  target_amount: number;
+  target_reached: boolean;
+  target_remaining: number;
+  remaining_percentage: number;
+}
+```
+
+#### Operators Handled:
+- `gt` (greater than)
+- `gte` (greater than or equal)
+- `lt` (less than)
+- `lte` (less than or equal)
+
+## Component Variants
+
+### FreeShippingInline
+
+A static progress bar display embedded within the page layout.
+
+```jsx copy
+<FreeShippingInline
+  cart={cart}
+  price={freeShippingPrice}
+/>
+```
+
+Features:
+- Progress bar with gradient background
+- Dynamic completion percentage
+- Success state with checkmark
+- Remaining amount display
+
+### FreeShippingPopup
+
+A dismissible floating notification that appears at the bottom-right of the screen.
+
+```jsx copy
+<FreeShippingPopup
+  cart={cart}
+  price={freeShippingPrice}
+/>
+```
+
+Features:
+- Close button
+- Animated entrance/exit
+- Call-to-action buttons
+- Dark theme design
+
+## Styling
+
+### Common Elements
+
+```css copy
+/* Progress Bar Base */
+.progress-bar {
+  height: 1px;
+  rounded-full;
+  transition: width 500ms ease-in-out;
+}
+
+/* Gradient Variations */
+.progress-gradient {
+  background: linear-gradient(to right, from-zinc-400 to-zinc-500);
+}
+
+.progress-gradient-complete {
+  background: linear-gradient(to right, from-green-400 to-green-500);
+}
+```
+
+### Variant-Specific Styles
+
+#### Inline
+```css copy
+.inline-container {
+  background-color: neutral-100;
+  padding: 0.5rem;
+  border-radius: lg;
+  border: 1px solid;
+}
+```
+
+#### Popup
+```css copy
+.popup-container {
+  position: fixed;
+  bottom: 1.25rem;
+  right: 1.25rem;
+  width: 400px;
+  background: black;
+  color: white;
+  padding: 1.5rem;
+  border-radius: lg;
+}
+```
+
+## State Management
+
+### Popup State
+```typescript copy
+const [isClosed, setIsClosed] = useState(false);
+```
+
+### Progress States
+```typescript copy
+interface ProgressState {
+  target_reached: boolean;
+  remaining_percentage: number;
+  target_remaining: number;
+}
+```
+
+## Examples
+
+### Basic Inline Usage
+```jsx copy
+<ShippingPriceNudge
+  cart={cart}
+  shippingOptions={shippingOptions}
+/>
+```
+
+### Popup with Custom Position
+```jsx copy
+<ShippingPriceNudge
+  variant="popup"
+  cart={cart}
+  shippingOptions={shippingOptions}
+/>
+```
+
+## Implementation Details
+
+### Price Rule Filtering
+```javascript copy
+const validCurrencyPrices = shippingOption.prices.filter(
+  (price) =>
+    price.currency_code === cart.currency_code &&
+    (price.price_rules || []).some(
+      (priceRule) => priceRule.attribute === "item_total"
+    )
+)
+```
+
+### Progress Calculation
+```javascript copy
+const remaining_percentage = (currentAmount / targetAmount) * 100;
+```
+
+## Animations
+
+### Progress Bar
+- Smooth width transitions
+- Color gradient changes
+- Duration: 500ms
+- Timing: ease-in-out
+
+### Popup
+- Fade in/out
+- Visibility transitions
+- Delay on completion: 1000ms
+
+## Accessibility
+
+### Keyboard Navigation
+- Closeable popup with button
+- Proper focus management
+- Keyboard-accessible links
+
+### ARIA Attributes
+- Hidden decorative elements
+- Proper button roles
+- Status updates
+
+## Browser Support
+
+Requires browsers with support for:
+- CSS Grid
+- CSS Flexbox
+- CSS Transitions
+- CSS Gradients
+- Modern JavaScript features
+
+## Types
+
+```typescript copy
+interface ShippingPriceNudgeProps {
+  variant?: "popup" | "inline";
+  cart: StoreCart;
+  shippingOptions: StoreCartShippingOption[];
+}
+
+interface StoreFreeShippingPrice extends StorePrice {
+  target_reached: boolean;
+  target_remaining: number;
+  remaining_percentage: number;
+}
+```

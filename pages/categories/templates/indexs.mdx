@@ -1,0 +1,132 @@
+# Category Template
+
+The `Category Template` component renders a product category page with sorting options, navigation breadcrumbs, category description, subcategories, and a paginated product grid.
+
+## Syntax
+
+```jsx copy
+<CategoryTemplate
+  category={category}
+  sortBy={sortBy}
+  page={page}
+  countryCode={countryCode}
+/>
+```
+
+## Parameters
+
+The component accepts an object with the following properties:
+
+- `category` (Required)
+  - Type: `HttpTypes.StoreProductCategory`
+  - Description: The product category object containing category details including name, description, parent category, and child categories.
+
+- `sortBy` (Optional)
+  - Type: `SortOptions`
+  - Default: `"created_at"`
+  - Description: Determines the sort order of products within the category.
+
+- `page` (Optional)
+  - Type: `string`
+  - Default: `"1"`
+  - Description: The current page number for paginated products display.
+
+- `countryCode` (Required)
+  - Type: `string`
+  - Description: The country code used for region-specific product display and pricing.
+
+## Description
+
+The `CategoryTemplate` component creates a structured layout for displaying product categories and their associated products. It includes:
+
+1. A sidebar with refinement options (`RefinementList`)
+2. Breadcrumb navigation showing parent categories
+3. Category name and description
+4. List of subcategories (if any)
+5. Paginated product grid with loading skeleton state
+
+### Parent Category Navigation
+
+The component automatically generates a breadcrumb trail by recursively traversing parent categories using the `getParents` helper function:
+
+```javascript copy
+const parents = [] as HttpTypes.StoreProductCategory[]
+
+const getParents = (category: HttpTypes.StoreProductCategory) => {
+  if (category.parent_category) {
+    parents.push(category.parent_category)
+    getParents(category.parent_category)
+  }
+}
+```
+
+### Layout Structure
+
+The component uses a responsive layout that switches between:
+- Single column on mobile devices (default)
+- Two-column layout on larger screens (using the `small:` prefix class)
+
+## Examples
+
+Basic usage with required props:
+
+```jsx copy
+<CategoryTemplate
+  category={categoryData}
+  countryCode="US"
+/>
+```
+
+With optional sorting and pagination:
+
+```jsx copy
+<CategoryTemplate
+  category={categoryData}
+  sortBy="price_asc"
+  page="2"
+  countryCode="US"
+/>
+```
+
+## Technical Details
+
+### Imports
+
+The component requires the following imports:
+
+```javascript copy
+import { notFound } from "next/navigation"
+import { Suspense } from "react"
+import InteractiveLink from "@modules/common/components/interactive-link"
+import SkeletonProductGrid from "@modules/skeletons/templates/skeleton-product-grid"
+import RefinementList from "@modules/store/components/refinement-list"
+import PaginatedProducts from "@modules/store/templates/paginated-products"
+import LocalizedClientLink from "@modules/common/components/localized-client-link"
+import { HttpTypes } from "@medusajs/types"
+```
+
+### Error Handling
+
+The component implements basic error handling:
+- Redirects to 404 if category or countryCode is missing
+- Uses Suspense boundary for loading states of product grid
+
+```javascript copy
+if (!category || !countryCode) notFound()
+```
+
+### CSS Classes
+
+The component uses utility classes for styling:
+- `flex flex-col small:flex-row` - Responsive layout control
+- `text-2xl-semi` - Typography scaling
+- `text-ui-fg-subtle` - Text color theming
+- `hover:text-black` - Interactive state styling
+
+## Notes
+
+1. The component assumes the existence of a global content-container class for width constraints
+2. Product grid loading state is handled by a skeleton component
+3. All links are localized using the LocalizedClientLink component
+4. Parent category navigation is automatically generated
+5. Subcategories are displayed if present in the category object

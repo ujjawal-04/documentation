@@ -1,183 +1,173 @@
----
-title: 'AccountInfo'
-description: 'A reusable account information component that handles edit states, success/error messages, and form submission.'
----
+# FAQ Introduction
 
-# AccountInfo
+A client-side React component that displays a responsive FAQ section with animated expandable questions and answers. Features a split-layout design with an introduction section and interactive FAQ list.
 
-The `AccountInfo` component is designed to display and edit account-related information. It provides a consistent interface for viewing current information, editing it, and handling success/error states.
+## Syntax
 
-## Features
+```jsx copy
+<FAQIntroduction />
+```
 
-- Toggle between view and edit modes
-- Built-in success and error state handling
-- Customizable form content
-- Loading state during form submission
-- Accessible disclosure panels
-- Responsive design
+## Description
 
-## Props
+The FAQ Introduction component creates a landing page-style FAQ section with:
+- A left column containing introductory text and a call-to-action button
+- A right column with an animated, expandable list of frequently asked questions
+- Responsive layout that switches between single and two-column layouts
+- Smooth animations for expanding/collapsing FAQ items
 
-| Prop | Type | Required | Description |
-|------|------|----------|-------------|
-| `label` | `string` | Yes | The label for the account information field |
-| `currentInfo` | `string \| React.ReactNode` | Yes | The current value to display |
-| `isSuccess` | `boolean` | No | Indicates if the update was successful |
-| `isError` | `boolean` | No | Indicates if an error occurred |
-| `errorMessage` | `string` | No | Custom error message (defaults to "An error occurred, please try again") |
-| `clearState` | `function` | Yes | Function to clear the current state |
-| `children` | `React.ReactNode` | No | Content to render in the edit form |
-| `data-testid` | `string` | No | Test ID for the component |
+## Technical Details
 
-## Usage
+### Dependencies
 
-```tsx copy
-import AccountInfo from '@/components/AccountInfo'
+```javascript copy
+import { useState } from "react"
+import { motion } from "framer-motion"
+import { Plus } from "lucide-react"
+import LocalizedClientLink from "@modules/common/components/localized-client-link"
+```
 
-export default function ProfilePage() {
-  const [isSuccess, setIsSuccess] = useState(false)
-  const [isError, setIsError] = useState(false)
-  
-  const clearState = () => {
-    setIsSuccess(false)
-    setIsError(false)
-  }
+### Data Structure
 
-  return (
-    <AccountInfo
-      label="Email"
-      currentInfo="user@example.com"
-      isSuccess={isSuccess}
-      isError={isError}
-      clearState={clearState}
-    >
-      <form>
-        <input
-          type="email"
-          name="email"
-          placeholder="Enter new email"
-          className="w-full p-2 border rounded"
-        />
-      </form>
-    </AccountInfo>
-  )
+The component uses a static array of FAQ items with the following structure:
+
+```typescript copy
+interface FAQ {
+  question: string;
+  answer: string;
 }
+
+const faqs: FAQ[] = [
+  {
+    question: "What sets Power Peptides apart from other peptide suppliers?",
+    answer: "At Power Peptides, we prioritize uncompromising quality..."
+  },
+  // ...
+]
+```
+
+### State Management
+
+The component uses React's useState hook to manage the expanded/collapsed state of FAQ items:
+
+```javascript copy
+const [openIndex, setOpenIndex] = useState<number | null>(null);
+
+const toggleFAQ = (index: number) => {
+  setOpenIndex(openIndex === index ? null : index);
+};
+```
+
+## Animations
+
+The component uses Framer Motion for smooth animations:
+
+### Plus Icon Rotation
+```jsx copy
+<motion.div
+  animate={{ rotate: openIndex === index ? 90 : 0 }}
+  transition={{ duration: 0.2 }}
+>
+```
+
+### Content Expansion
+```jsx copy
+<motion.div
+  initial={{ height: 0, opacity: 0 }}
+  animate={{ height: "auto", opacity: 1 }}
+  exit={{ height: 0, opacity: 0 }}
+  transition={{ duration: 0.3 }}
+>
+```
+
+## Layout Structure
+
+### Container
+```jsx copy
+<div className="w-full max-w-screen-2xl mx-auto px-6 py-12">
+  <div className="flex flex-col lg:flex-row gap-12">
+```
+
+### Left Column (Introduction)
+```jsx copy
+<div className="lg:w-1/2 space-y-8 pl-8">
+  <div className="space-y-6">
+    <h1>...</h1>
+    <p>...</p>
+  </div>
+  <button>...</button>
+</div>
+```
+
+### Right Column (FAQ List)
+```jsx copy
+<div className="lg:w-1/2">
+  <div className="space-y-0">
+    {/* FAQ items */}
+  </div>
+</div>
 ```
 
 ## Styling
 
-The component uses Tailwind CSS for styling and includes:
+The component uses Tailwind CSS for styling with the following key features:
 
-- Custom teal-colored buttons (`bg-[#008080]`)
-- Hover states for buttons
-- Smooth transitions for disclosure panels
-- Responsive width adjustments
-- Consistent text styles and spacing
+### Responsive Design
+- Single column layout on mobile devices
+- Two-column layout on large screens (`lg:flex-row`)
+- Consistent spacing with `gap-12`
+- Maximum width constraint (`max-w-screen-2xl`)
 
-## States
+### Typography
+- Headings: `text-3xl font-semibold text-gray-900`
+- Body text: `text-lg text-gray-600`
+- Question text: `text-lg text-gray-900`
+- Answer text: `text-gray-600`
 
-### View Mode
-- Displays the current information
-- Shows an "Edit" button
-- No form fields visible
-
-### Edit Mode
-- Displays the form fields (provided as children)
-- Shows "Cancel" and "Save changes" buttons
-- Cancel returns to view mode
-- Save triggers form submission
-
-### Success State
-- Shows a green badge with success message
-- Automatically closes edit mode
-- Success message fades out
-
-### Error State
-- Shows a red badge with error message
-- Keeps edit mode open
-- Allows retry
-
-### Loading State
-- Shows loading indicator on save button
-- Prevents multiple submissions
-
-## Accessibility
-
-The component uses the Headless UI Disclosure component for accessible expanding/collapsing sections and includes:
-
-- Proper ARIA attributes
-- Keyboard navigation support
-- Clear visual states
-- Test IDs for testing
+### Interactive Elements
+- Hover states on buttons
+- Animated expansion/collapse
+- Visual separation with borders
+- Icon rotation feedback
 
 ## Examples
 
 ### Basic Usage
+```jsx copy
+import FAQIntroduction from "./FAQIntroduction"
 
-```tsx copy
-<AccountInfo
-  label="Username"
-  currentInfo="johndoe"
-  clearState={() => {}}
->
-  <input
-    type="text"
-    placeholder="Enter new username"
-    className="w-full p-2 border rounded"
-  />
-</AccountInfo>
+export default function FAQPage() {
+  return <FAQIntroduction />
+}
 ```
 
-### With Custom Error Message
-
-```tsx copy
-<AccountInfo
-  label="Password"
-  currentInfo="********"
-  errorMessage="Password must be at least 8 characters"
-  clearState={() => {}}
->
-  <input
-    type="password"
-    placeholder="Enter new password"
-    className="w-full p-2 border rounded"
-  />
-</AccountInfo>
+### Customizing FAQ Items
+```jsx copy
+// You can modify the faqs array to customize the content
+const customFaqs = [
+  {
+    question: "Custom question?",
+    answer: "Custom answer"
+  },
+  // ...
+]
 ```
 
-### With React Node as Current Info
+## Accessibility
 
-```tsx copy
-<AccountInfo
-  label="Status"
-  currentInfo={<Badge color="green">Active</Badge>}
-  clearState={() => {}}
->
-  <select className="w-full p-2 border rounded">
-    <option value="active">Active</option>
-    <option value="inactive">Inactive</option>
-  </select>
-</AccountInfo>
-```
+The component implements several accessibility features:
 
-## Dependencies
+- Semantic HTML structure with proper heading hierarchy
+- Interactive elements are keyboard accessible
+- Visual feedback for interactive states
+- Text contrast meets WCAG guidelines
+- Expandable content is properly announced to screen readers
 
-- @headlessui/react
-- @medusajs/ui
-- react
-- react-dom
+## Browser Support
 
-## Technical Details
-
-The component uses several React hooks:
-
-- `useToggleState` - Custom hook for managing edit state
-- `useFormStatus` - React hook for form submission state
-- `useEffect` - For handling success state changes
-
-The component also implements:
-
-- Debounced state clearing (100ms timeout)
-- Automatic closure on successful update
-- Dynamic height transitions
-- Consistent spacing and alignment
+Requires browsers with support for:
+- CSS Grid
+- CSS Flexbox
+- CSS Transitions
+- Modern JavaScript (ES6+)
+- Framer Motion animations

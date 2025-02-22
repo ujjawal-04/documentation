@@ -1,206 +1,151 @@
----
-title: 'Address Book'
-description: 'A component for managing user addresses, including display, addition, and modification functionality.'
----
+# Empty Cart Message
 
-# Address Book
+The `Empty Cart Message` component displays a message when the user's shopping cart is empty, providing a link to browse products.
 
-The `AddressBook` component manages the display and modification of a user's saved addresses. It allows users to add new addresses and edit existing ones.
+## Overview
 
-## Installation
+This component creates a user-friendly empty state for the shopping cart, featuring a heading, descriptive text, and a call-to-action link to the store.
 
-Ensure you have the component in your project:
+## Syntax
 
-```tsx copy
-import AddressBook from "@components/AddressBook"
+```jsx copy
+<EmptyCartMessage />
 ```
 
-## Props
+## Technical Details
 
-| Prop Name | Type | Required | Description |
-|-----------|------|----------|-------------|
-| `customer` | `HttpTypes.StoreCustomer` | Yes | The logged-in customer data, including addresses |
-| `region` | `HttpTypes.StoreRegion` | Yes | The region context for address management |
+### Import
 
-## Usage
-
-Here's a basic example of how to use the `AddressBook` component:
-
-```tsx copy
-<AddressBook customer={customerData} region={regionData} />
+```jsx copy
+import EmptyCartMessage from "@modules/cart/components/empty-cart-message"
 ```
 
-## Features
+### Dependencies
 
-### Address Management
-- **Displays Saved Addresses**: Lists all addresses stored in the customer's account
-- **Add New Address**: Integrates the `AddAddress` component to allow users to add a new address
-- **Edit Existing Addresses**: Uses `EditAddress` to provide an editing interface for each address
+```jsx copy
+import { Heading, Text } from "@medusajs/ui"
+import InteractiveLink from "@modules/common/components/interactive-link"
+```
 
-### Responsive Design
-- **Desktop View**: Grid layout for optimal display
-- **Mobile View**: Adjusts layout for smaller screens
-- **Automatic Adaptation**: Ensures usability across devices
+## Component Structure
 
-## Implementation Example
+### Layout
+The component uses a flex container with the following structure:
+- Main container with vertical padding and centered content
+- Heading "Cart"
+- Descriptive text
+- Interactive link to store
 
-```tsx copy
-import { AddressBook } from "@components/AddressBook"
-import { useCustomer } from "@lib/hooks/use-customer"
-import { useRegion } from "@lib/hooks/use-region"
+```jsx copy
+<div className="py-48 px-2 flex flex-col justify-center items-start">
+  <Heading>Cart</Heading>
+  <Text>...</Text>
+  <InteractiveLink>...</InteractiveLink>
+</div>
+```
 
-export default function AccountAddresses() {
-  const { customer } = useCustomer()
-  const { region } = useRegion()
+### Styling
 
+The component uses Tailwind CSS classes for styling:
+
+#### Container
+```jsx copy
+"py-48 px-2 flex flex-col justify-center items-start"
+```
+- Vertical padding: `py-48`
+- Horizontal padding: `px-2`
+- Flex layout: `flex flex-col`
+- Content alignment: `justify-center items-start`
+
+#### Heading
+```jsx copy
+"flex flex-row text-3xl-regular gap-x-2 items-baseline"
+```
+- Text size: `text-3xl-regular`
+- Flex layout: `flex flex-row`
+- Gap between elements: `gap-x-2`
+- Alignment: `items-baseline`
+
+#### Description Text
+```jsx copy
+"text-base-regular mt-4 mb-6 max-w-[32rem]"
+```
+- Text size: `text-base-regular`
+- Margins: `mt-4 mb-6`
+- Maximum width: `max-w-[32rem]`
+
+## Testing
+
+The component includes a data-testid attribute for testing:
+```jsx copy
+data-testid="empty-cart-message"
+```
+
+## Examples
+
+### Basic Usage
+
+```jsx copy
+function CartPage() {
+  const isEmpty = true;
+  
   return (
-    <div className="w-full">
-      <div className="mb-8 flex flex-col gap-y-4">
-        <h1 className="text-2xl-semi">Shipping Addresses</h1>
-        <p className="text-base-regular">
-          View and update your shipping addresses, you can add as many as you like.
-        </p>
-      </div>
-      {customer && region ? (
-        <AddressBook customer={customer} region={region} />
-      ) : null}
+    <div className="cart-container">
+      {isEmpty && <EmptyCartMessage />}
     </div>
   )
 }
 ```
 
-## Behavior
+### Within a Cart Context
 
-The component implements the following behavior:
-
-### Address Display
-```tsx copy
-// Example of address mapping implementation
-{customer.addresses.map((address) => (
-  <EditAddress
-    key={address.id}
-    address={address}
-    region={region}
-    customer={customer}
-  />
-))}
-```
-
-### New Address Addition
-```tsx copy
-<AddAddress
-  region={region}
-  customer={customer}
-  className="bg-white p-4 rounded-lg"
-/>
-```
-
-## Styling
-
-The component uses Tailwind CSS for styling:
-
-```tsx copy
-// Example styling structure
-<div className="grid grid-cols-1 md:grid-cols-2 gap-4 p-4">
-  {/* Address components */}
-  <div className="bg-white rounded-lg shadow p-4">
-    {/* Individual address content */}
-  </div>
-</div>
-```
-
-### Style Features
-- Consistent spacing and padding
-- Hover and active states
-- Responsive layout adjustments
-- Clear visual hierarchy
-
-## Form Handling
-
-The component handles address forms with proper validation:
-
-```tsx copy
-// Example form implementation
-<form onSubmit={handleSubmit}>
-  <div className="grid grid-cols-1 gap-y-2">
-    <Input
-      label="Address"
-      name="address_1"
-      required
-      autoComplete="street-address"
-    />
-    <div className="grid grid-cols-2 gap-x-2">
-      <Input
-        label="Postal Code"
-        name="postal_code"
-        required
-        autoComplete="postal-code"
-      />
-      <Input
-        label="City"
-        name="city"
-        required
-        autoComplete="address-level2"
-      />
+```jsx copy
+function Cart() {
+  const { items } = useCart();
+  
+  return (
+    <div>
+      {items.length === 0 ? (
+        <EmptyCartMessage />
+      ) : (
+        <CartItems items={items} />
+      )}
     </div>
-  </div>
-</form>
-```
-
-## Best Practices
-
-1. Always provide the `customer` prop
-2. Use within authenticated routes
-3. Maintain a consistent address management structure
-4. Handle loading and error states appropriately
-5. Validate address data before submission
-6. Provide clear feedback for user actions
-7. Implement proper error handling
-
-## Accessibility
-
-The component follows accessibility best practices:
-
-- Semantic HTML structure
-- Keyboard navigation support
-- ARIA labels where appropriate
-- High contrast active states for visibility
-- Focus management for form elements
-- Clear error messaging
-- Screen reader friendly content structure
-
-## Error Handling
-
-```tsx copy
-const handleAddressSubmit = async (data) => {
-  try {
-    await updateAddress(data)
-    showNotification("Address updated successfully")
-  } catch (error) {
-    showNotification("Error updating address", "error")
-  }
+  )
 }
 ```
 
+## Accessibility
+
+- Uses semantic HTML structure
+- Employs proper heading hierarchy with `<Heading level="h1">`
+- Provides clear navigation with interactive link
+- Maintains readable text sizes
+
+## Best Practices
+
+1. Use within a cart context
+2. Place at appropriate cart empty states
+3. Maintain consistent spacing
+4. Keep text content clear and actionable
+5. Ensure link destination is valid
+
 ## Dependencies
 
-- React
-- Tailwind CSS for styling
-- Custom hooks for customer and region management
-- Form handling utilities
-- UI components (Input, Button, etc.)
+- Medusa UI (`@medusajs/ui`)
+  - `Heading` component
+  - `Text` component
+- Interactive Link component
+- Tailwind CSS
 
-## Testing
+## Browser Compatibility
 
-The component includes comprehensive test coverage:
+- Works in all modern browsers
+- Requires JavaScript enabled
+- CSS Flexbox support required
 
-```tsx copy
-describe('AddressBook', () => {
-  it('renders existing addresses', () => {
-    render(<AddressBook customer={mockCustomer} region={mockRegion} />)
-    expect(screen.getAllByTestId('address-card')).toHaveLength(
-      mockCustomer.addresses.length
-    )
-  })
-})
-```
+## See Also
+
+- [Medusa UI Documentation](https://docs.medusajs.com/ui)
+- [React Component Documentation](https://react.dev/reference/react/Component)
+- [Tailwind CSS Documentation](https://tailwindcss.com/docs)

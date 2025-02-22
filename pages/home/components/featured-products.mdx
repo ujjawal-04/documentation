@@ -1,194 +1,175 @@
----
-title: 'AccountNav'
-description: 'A navigation component for managing user account sections and authentication state.'
----
+# Featured Products
 
-# AccountNav Component
+An asynchronous React component that renders a list of product collections as horizontal product rails, with region-specific pricing and availability.
 
-The `AccountNav` component provides navigation for users to manage their account settings, including profile information, addresses, orders, and logout functionality. It adapts its layout for both mobile and desktop views.
+## Syntax
 
-## Installation
-
-First, ensure you have the component in your project:
-
-```tsx copy
-import AccountNav from "@components/AccountNav"
-```
-
-## Props
-
-| Prop Name | Type | Required | Description |
-|-----------|------|----------|-------------|
-| `customer` | `HttpTypes.StoreCustomer \| null` | Yes | The currently logged-in customer's data |
-
-## Usage
-
-Here's a basic example of how to use the AccountNav component:
-
-```tsx copy
-import AccountNav from "@components/AccountNav"
-
-const MyAccountPage = ({ customer }) => {
-  return (
-    <div>
-      <AccountNav customer={customer} />
-      {/* Rest of your account page content */}
-    </div>
-  )
-}
-```
-
-## Features
-
-### Responsive Design
-- **Desktop View**: Full navigation menu with all options visible
-- **Mobile View**: Condensed navigation with appropriate layout adjustments
-- Automatic adaptation based on screen size
-
-### Navigation Options
-- Profile settings
-- Address management
-- Order history 
-- Logout functionality
-
-### Active State Handling
-- Visual indication of current section
-- Uses `clx` utility for conditional styling
-- Highlights active navigation item
-
-## Subcomponents
-
-### AccountNavLink
-
-A helper component used internally to create consistent navigation links.
-
-#### Props
-
-| Prop Name | Type | Required | Description |
-|-----------|------|----------|-------------|
-| `href` | `string` | Yes | Destination URL for the link |
-| `route` | `string` | Yes | Current route pathname |
-| `children` | `React.ReactNode` | Yes | Content to display inside the link |
-| `data-testid` | `string` | No | Test identifier for the link |
-
-#### Example Usage
-
-```tsx copy
-<AccountNavLink 
-  href="/account/orders" 
-  route={route}
-  data-testid="account-nav-orders"
->
-  Orders
-</AccountNavLink>
-```
-
-## Behavior
-
-### Authentication Flow
-- Checks for customer data to determine authentication state
-- Provides logout functionality through `signout` function
-- Handles country code for region-specific logout behavior
-
-### Navigation States
-1. **Default State**
-   - Displays user name when on `/account`
-   - Shows all available navigation options
-
-2. **Active Link**
-   - Highlights current section
-   - Provides visual feedback for user location
-
-3. **Mobile State**
-   - Collapses into mobile-friendly layout
-   - Maintains all functionality in compressed format
-
-## Styling
-
-The component uses Tailwind CSS for styling:
-
-```tsx copy
-// Example of styled link
-<div className={clx(
-  "text-sm flex items-center gap-x-2 px-4 py-2 rounded-rounded",
-  {
-    "text-ui-fg-base hover:text-ui-fg-base": href !== route,
-    "bg-ui-bg-subtle font-semibold": href === route,
-  }
-)}>
-  {children}
-</div>
-```
-
-### Style Features
-- Consistent spacing and padding
-- Hover and active states
-- Responsive layout adjustments
-- Clear visual hierarchy
-
-## Dependencies
-
-- Next.js for routing
-- Tailwind CSS for styling
-- `clx` utility for conditional classes
-- Various icon components (`ChevronDown`, `User`, etc.)
-
-## Examples
-
-### Basic Implementation
-
-```tsx copy
-function AccountPage() {
-  const { customer } = useCustomer()
-  
-  return (
-    <div className="flex flex-col">
-      <AccountNav customer={customer} />
-      <div className="account-content">
-        {/* Account page content */}
-      </div>
-    </div>
-  )
-}
-```
-
-### With Custom Styling
-
-```tsx copy
-<AccountNav 
-  customer={customer}
-  className="custom-nav-class"
-  data-testid="account-navigation"
+```jsx copy
+<FeaturedProducts
+  collections={collections}
+  region={region}
 />
 ```
 
-## Testing
+## Parameters
 
-The component includes data-testid attributes for easy testing:
+The component accepts an object with the following properties:
 
-```tsx copy
-// Example test
-it('should highlight active link', () => {
-  render(<AccountNav customer={mockCustomer} />)
-  const activeLink = screen.getByTestId('account-nav-orders')
-  expect(activeLink).toHaveClass('bg-ui-bg-subtle')
-})
+- `collections` (Required)
+  - Type: `HttpTypes.StoreCollection[]`
+  - Description: An array of Medusa store collections, each containing product information to be displayed in a rail format.
+
+- `region` (Required)
+  - Type: `HttpTypes.StoreRegion`
+  - Description: The store region object containing regional settings like currency, tax rates, and shipping information.
+
+## Description
+
+The FeaturedProducts component maps through an array of collections and renders each collection's products in a horizontal scrollable rail format. It's designed to showcase featured products from multiple collections on a store's homepage or landing pages.
+
+### Key Features
+
+- Asynchronous rendering
+- Region-specific pricing
+- Collection-based organization
+- Horizontal scrolling product display
+
+## Technical Details
+
+### Imports
+
+```javascript copy
+import { HttpTypes } from "@medusajs/types"
+import ProductRail from "@modules/home/components/featured-products/product-rail"
 ```
+
+### Component Structure
+
+```javascript copy
+export default async function FeaturedProducts({
+  collections,
+  region,
+}: {
+  collections: HttpTypes.StoreCollection[]
+  region: HttpTypes.StoreRegion
+}) {
+  return collections.map((collection) => (
+    <li key={collection.id}>
+      <ProductRail collection={collection} region={region} />
+    </li>
+  ))
+}
+```
+
+### Type Definitions
+
+The component uses Medusa's type system for strong typing:
+
+```typescript copy
+interface StoreCollection extends HttpTypes.StoreCollection {
+  // Medusa store collection properties
+  id: string
+  title: string
+  handle: string
+  products: Product[]
+  // ... other collection properties
+}
+
+interface StoreRegion extends HttpTypes.StoreRegion {
+  // Medusa store region properties
+  id: string
+  name: string
+  currency_code: string
+  tax_rate: number
+  // ... other region properties
+}
+```
+
+## Examples
+
+### Basic Usage
+
+```jsx copy
+import FeaturedProducts from "./featured-products"
+
+// Inside an async component or page
+const MyPage = async () => {
+  const collections = await fetchCollections()
+  const region = await fetchRegion()
+
+  return (
+    <ul>
+      <FeaturedProducts
+        collections={collections}
+        region={region}
+      />
+    </ul>
+  )
+}
+```
+
+### With Error Handling
+
+```jsx copy
+const MyPage = async () => {
+  try {
+    const [collections, region] = await Promise.all([
+      fetchCollections(),
+      fetchRegion()
+    ])
+
+    return (
+      <ul>
+        <FeaturedProducts
+          collections={collections}
+          region={region}
+        />
+      </ul>
+    )
+  } catch (error) {
+    return <div>Error loading featured products</div>
+  }
+}
+```
+
+## Implementation Notes
+
+1. The component must be used within an async component or page due to its async nature
+2. Parent element should be a `<ul>` as the component returns `<li>` elements
+3. Each collection is rendered as a separate ProductRail
+4. Region information is passed down to each ProductRail for proper pricing display
+
+## Child Components
+
+### ProductRail
+
+The component relies on the ProductRail component which should:
+- Accept a single collection and region as props
+- Handle horizontal scrolling functionality
+- Display products in a rail format
+- Apply region-specific pricing and availability
 
 ## Best Practices
 
-1. Always provide the customer prop
-2. Use within authenticated routes
-3. Place at the top of account-related pages
-4. Maintain consistent navigation structure
-5. Handle loading and error states appropriately
+1. **Error Handling**
+   - Implement error boundaries around the component
+   - Handle missing or empty collections gracefully
+   - Validate region data before rendering
 
-## Accessibility
+2. **Performance**
+   - Use pagination or limiting in collection fetching
+   - Implement virtual scrolling for large collections
+   - Consider lazy loading ProductRail components
 
-The component follows accessibility best practices:
+3. **Accessibility**
+   - Ensure proper list semantics are maintained
+   - Verify keyboard navigation works in ProductRail
+   - Implement proper ARIA attributes in child components
 
-- Semantic HTML structure
-- Keyboard navigation support
-- ARIA labels where appropriate
-- Focus management
-- High contrast active states
+## Browser Support
+
+- Requires browsers supporting:
+  - async/await
+  - Array.map()
+  - Modern JavaScript features
+  - React Server Components (if used in Next.js)

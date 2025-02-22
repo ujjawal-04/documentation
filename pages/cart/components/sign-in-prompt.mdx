@@ -1,268 +1,173 @@
----
-title: "Request Reset Password"
-description: "A component for handling password reset requests in a Next.js storefront"
----
+# Sign In Prompt
 
-# Request Reset Password
+A component that displays a prompt encouraging users to sign in to their account, featuring a heading, descriptive text, and a sign-in button.
 
-The `RequestResetPassword` component provides users with a form to request a password reset link via email.
+## Overview
 
-## Installation
+The `Sign In Prompt` component creates a horizontal banner with text content and a call-to-action button for user authentication.
 
-```tsx copy
-import RequestResetPassword from "@components/RequestResetPassword"
+## Technical Details
+
+### Import
+
+```javascript copy
+import { Button, Heading, Text } from "@medusajs/ui"
+import LocalizedClientLink from "@modules/common/components/localized-client-link"
 ```
 
-## Features
+### Component Structure
 
-- **User Input for Email**: Accepts the user's email to send a reset link
-- **Validation**: Ensures the email field is not empty before submitting
-- **API Request Handling**: Sends a request to the Medusa backend to trigger a password reset email
-- **Loading State**: Displays a loading indicator while the request is being processed
-- **Success/Error Feedback**: Notifies users if the request was successful or if an error occurred
-- **Navigation Link**: Provides a link for users to log in if they remember their password
-
-## Usage
-
-Basic implementation of the component:
-
-```tsx copy
-<RequestResetPassword />
-```
-
-## Implementation Example
-
-Here's a complete example of how to implement the component:
-
-```tsx copy
-import { RequestResetPassword } from "@components/RequestResetPassword"
-import { Container } from "@components/ui"
-
-export default function ResetPasswordPage() {
+```jsx copy
+const SignInPrompt = () => {
   return (
-    <Container className="py-8">
-      <div className="flex justify-center">
-        <div className="max-w-md w-full">
-          <h1 className="text-2xl font-bold mb-6">
-            Reset your password
-          </h1>
-          <RequestResetPassword />
-        </div>
-      </div>
-    </Container>
+    <div className="flex items-center justify-between bg-white">
+      <ContentSection />
+      <ButtonSection />
+    </div>
   )
 }
 ```
 
-## Component Structure
+## Features
 
-### State Management
+### Content Display
+- Heading with "Already have an account?"
+- Descriptive text for better user experience
+- Secondary button style for sign-in action
+- Localized navigation link
 
-```tsx copy
-const RequestResetPassword = () => {
-  const [loading, setLoading] = useState(false)
-  const [email, setEmail] = useState("")
-  const [message, setMessage] = useState("")
+## Styling
 
-  // Component logic here
-}
+### Container
+```javascript copy
+"flex items-center justify-between bg-white"
 ```
 
-### Form Handler
-
-```tsx copy
-const handleSubmit = async (e: React.FormEvent) => {
-  e.preventDefault()
-  setLoading(true)
-  setMessage("")
-
-  try {
-    const response = await fetch(
-      `${BACKEND_URL}/auth/customer/emailpass/reset-password`,
-      {
-        credentials: "include",
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ identifier: email }),
-      }
-    )
-
-    if (response.ok) {
-      setMessage("Reset link sent to your email")
-      setEmail("")
-    } else {
-      setMessage("Error sending reset link")
-    }
-  } catch (error) {
-    setMessage("An error occurred")
-  } finally {
-    setLoading(false)
-  }
-}
+### Button Styling
+```javascript copy
+"z-0 group relative inline-flex items-center justify-center box-border appearance-none select-none whitespace-nowrap font-normal subpixel-antialiased overflow-hidden tap-highlight-transparent data-[pressed=true]:scale-[0.97] outline-none data-[focus-visible=true]:z-10 data-[focus-visible=true]:outline-2 data-[focus-visible=true]:outline-focus data-[focus-visible=true]:outline-offset-2 px-4 min-w-20 text-small gap-2 rounded-medium [&>svg]:max-w-[theme(spacing.8)] transition-transform-colors-opacity motion-reduce:transition-none text-default-foreground data-[hover=true]:opacity-hover h-10 bg-default-100 hover:bg-default-200"
 ```
 
-### UI Implementation
+### Text Styling
+- Heading: `"txt-xlarge font-sans font-medium"`
+- Description: `"txt-medium font-sans font-normal text-ui-fg-subtle"`
 
-```tsx copy
-return (
-  <div className="w-full">
-    <form onSubmit={handleSubmit} className="space-y-4">
-      <div>
-        <label 
-          htmlFor="email" 
-          className="block text-sm font-medium text-gray-700"
-        >
-          Email
-        </label>
-        <input
-          id="email"
-          type="email"
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
-          required
-          className="mt-1 block w-full rounded-md border-gray-300 shadow-sm"
-          placeholder="Enter your email"
-        />
-      </div>
+## Component Elements
 
-      <button
-        type="submit"
-        disabled={loading}
-        className="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
-      >
-        {loading ? "Sending..." : "Reset Password"}
-      </button>
-
-      {message && (
-        <div className="mt-4 text-sm text-center">
-          {message}
-        </div>
-      )}
-
-      <div className="mt-4 text-sm text-center">
-        <a
-          href="/login"
-          className="text-blue-600 hover:text-blue-500"
-        >
-          Remember your password? Log in
-        </a>
-      </div>
-    </form>
-  </div>
-)
+### Heading
+```jsx copy
+<Heading level="h2" className="txt-xlarge font-sans font-medium">
+  Already have an account?
+</Heading>
 ```
 
-## API Integration
-
-The component interacts with the Medusa backend:
-
-```tsx copy
-const BACKEND_URL = process.env.NEXT_PUBLIC_MEDUSA_BACKEND_URL
-
-// API request configuration
-const requestConfig = {
-  credentials: "include",
-  method: "POST",
-  headers: {
-    "Content-Type": "application/json"
-  },
-  body: JSON.stringify({ 
-    identifier: email 
-  })
-}
-
-// API call
-const response = await fetch(
-  `${BACKEND_URL}/auth/customer/emailpass/reset-password`,
-  requestConfig
-)
+### Description Text
+```jsx copy
+<Text className="txt-medium font-sans font-normal text-ui-fg-subtle">
+  Sign in for a better experience.
+</Text>
 ```
 
-## Error Handling
-
-The component implements comprehensive error handling:
-
-```tsx copy
-const handleError = (error: unknown) => {
-  if (error instanceof Error) {
-    setMessage(error.message)
-  } else {
-    setMessage("An unexpected error occurred")
-  }
-  setLoading(false)
-}
+### Sign In Button
+```jsx copy
+<Button 
+  variant="secondary" 
+  className="..." 
+  data-testid="sign-in-button"
+>
+  Sign in
+</Button>
 ```
 
-## Best Practices
+## Interactive Features
 
-1. Always validate email format before submission
-2. Provide clear feedback for all user actions
-3. Implement proper loading states
-4. Handle all potential error cases
-5. Follow security best practices for password reset
-6. Use appropriate form validation
-7. Maintain consistent error messaging
+### Button States
+- Default state
+- Hover state: Background color change
+- Pressed state: Scale transform
+- Focus visible state: Outline styling
+
+### Navigation
+- Links to "/account" route
+- Uses LocalizedClientLink for internationalization support
 
 ## Accessibility
 
-The component follows accessibility best practices:
+### Semantic Structure
+- Uses semantic `<Heading>` component
+- Proper heading level (h2)
+- Descriptive text content
+- Accessible button states
 
-- Semantic HTML structure
-- Proper form labeling
-- ARIA attributes
-- Keyboard navigation support
-- Clear error messages
-- Loading state indicators
-- Focus management
+### Focus Management
+- Visible focus indicators
+- Proper tab order
+- Focus outline styling
+
+### Interactive Elements
+- Button press animation
+- Hover state feedback
+- Focus visible indicators
 
 ## Testing
 
-Example test cases for the component:
-
-```tsx copy
-describe('RequestResetPassword', () => {
-  it('validates email input', () => {
-    render(<RequestResetPassword />)
-    
-    const submitButton = screen.getByRole('button', {
-      name: /reset password/i
-    })
-    
-    fireEvent.click(submitButton)
-    
-    expect(screen.getByText('Email is required')).toBeInTheDocument()
-  })
-
-  it('handles successful submission', async () => {
-    render(<RequestResetPassword />)
-    
-    const emailInput = screen.getByLabelText(/email/i)
-    fireEvent.change(emailInput, {
-      target: { value: 'test@example.com' }
-    })
-    
-    const submitButton = screen.getByRole('button')
-    fireEvent.click(submitButton)
-    
-    expect(await screen.findByText('Reset link sent to your email'))
-      .toBeInTheDocument()
-  })
-})
+```javascript copy
+data-testid="sign-in-button"  // Test ID for sign-in button
 ```
 
 ## Dependencies
 
-- React
-- Next.js
-- Tailwind CSS for styling
-- Medusa backend integration
+### Components
+- `Button` from @medusajs/ui
+- `Heading` from @medusajs/ui
+- `Text` from @medusajs/ui
+- `LocalizedClientLink` from common components
 
-## Security Considerations
+### Styling
+- Tailwind CSS
+- Medusa UI theming
 
-- Rate limiting for reset requests
-- Secure token generation and validation
-- Proper error handling without information leakage
-- Secure communication with backend
-- Token expiration handling
+## Best Practices
+
+1. Component Organization
+   - Clear separation of content and interactive elements
+   - Semantic HTML structure
+   - Consistent spacing
+
+2. Accessibility
+   - Semantic heading structure
+   - Clear call to action
+   - Focus management
+
+3. Styling
+   - Responsive layout
+   - Interactive states
+   - Consistent typography
+
+## Usage Example
+
+```jsx copy
+import SignInPrompt from "@modules/account/components/sign-in-prompt"
+
+const AccountPage = () => {
+  return (
+    <div className="account-container">
+      <SignInPrompt />
+      {/* Other account-related content */}
+    </div>
+  )
+}
+```
+
+## Browser Compatibility
+
+- Modern browsers supported
+- Flexbox layout required
+- CSS transitions support
+- JavaScript enabled
+
+## See Also
+
+- [Medusa UI Documentation](https://docs.medusajs.com/ui)
+- [React Component Best Practices](https://react.dev/learn/thinking-in-react)
+- [Accessibility Guidelines](https://www.w3.org/WAI/ARIA/apg/)

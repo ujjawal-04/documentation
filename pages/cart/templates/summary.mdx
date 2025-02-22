@@ -1,142 +1,180 @@
-# Login Template
+---
+title: 'Summary'
+description: 'A cart summary component that displays totals, handles discounts, and manages checkout navigation.'
+---
 
-The `LoginTemplate` is a client-side component that manages the display of either a login or registration form. It uses React's useState hook to toggle between these two views.
+# Summary Component
 
-## Usage
+The `Summary` component provides a comprehensive cart overview with totals, discount functionality, and smart checkout routing.
 
-```tsx copy
-import LoginTemplate from './LoginTemplate'
-
-const AccountPage = () => {
-  return <LoginTemplate />
-}
-```
-
-## Component Architecture
-
-### View States
-
-The component uses an enum to define possible view states:
+## Installation
 
 ```tsx copy
-export enum LOGIN_VIEW {
-  SIGN_IN = "sign-in",
-  REGISTER = "register",
-}
-```
-
-### State Management
-
-- Uses the `useState` hook to track current view
-- Default view is "sign-in"
-- State is managed through `setCurrentView` function passed to child components
-
-### Conditional Rendering
-
-The component conditionally renders either:
-- `<Login />` component when currentView is "sign-in"
-- `<Register />` component when currentView is "register"
-
-## Implementation Details
-
-### Component Structure
-
-```tsx copy
-"use client"
-
-import { useState } from "react"
-import Register from "@modules/account/components/register"
-import Login from "@modules/account/components/login"
-
-const LoginTemplate = () => {
-  const [currentView, setCurrentView] = useState("sign-in")
-  
-  return (
-    <div className="w-full flex justify-start px-8 py-8">
-      {currentView === "sign-in" ? (
-        <Login setCurrentView={setCurrentView} />
-      ) : (
-        <Register setCurrentView={setCurrentView} />
-      )}
-    </div>
-  )
-}
-
-export default LoginTemplate
-```
-
-### Styling
-
-The component uses Tailwind CSS classes for layout:
-- `w-full`: Full width container
-- `flex`: Flex container
-- `justify-start`: Left alignment
-- `px-8`: Horizontal padding of 8 units
-- `py-8`: Vertical padding of 8 units
-
-### Child Components
-
-#### Login Component Example
-
-```tsx copy
-interface LoginProps {
-  setCurrentView: (view: "sign-in" | "register") => void
-}
-
-const Login = ({ setCurrentView }: LoginProps) => {
-  return (
-    <div>
-      <form>
-        {/* Login form fields */}
-      </form>
-      <button onClick={() => setCurrentView("register")}>
-        Create an account
-      </button>
-    </div>
-  )
-}
-```
-
-#### Register Component Example
-
-```tsx copy
-interface RegisterProps {
-  setCurrentView: (view: "sign-in" | "register") => void
-}
-
-const Register = ({ setCurrentView }: RegisterProps) => {
-  return (
-    <div>
-      <form>
-        {/* Registration form fields */}
-      </form>
-      <button onClick={() => setCurrentView("sign-in")}>
-        Already have an account? Sign in
-      </button>
-    </div>
-  )
-}
+import Summary from "@components/Summary"
 ```
 
 ## Props
 
-| Prop | Type | Description |
-|------|------|-------------|
-| setCurrentView | `(view: "sign-in" \| "register") => void` | Function to update the current view state |
+```tsx copy
+type SummaryProps = {
+  cart: HttpTypes.StoreCart & {
+    promotions: HttpTypes.StorePromotion[]
+  }
+}
+```
 
-## Key Features
+## Usage
 
-1. **Client Component**
-   - Marked with "use client" directive
-   - Handles client-side state
-   - Manages view transitions
+Here's a basic example of how to use the Summary component:
 
-2. **State Management**
-   - Uses React useState hook
-   - Toggles between login and register views
-   - Passes state setter to child components
+```tsx copy
+function CartPage() {
+  const cart = {
+    shipping_address: { address_1: "123 Street" },
+    email: "user@example.com",
+    shipping_methods: [],
+    promotions: []
+  }
 
-3. **Type Safety**
-   - TypeScript interfaces for props
-   - Enum for view states
-   - Strict type checking for state management
+  return <Summary cart={cart} />
+}
+```
+
+## Features
+
+### Checkout Step Detection
+
+The component automatically determines the appropriate checkout step based on cart state:
+
+```tsx copy
+function getCheckoutStep(cart: HttpTypes.StoreCart) {
+  if (!cart?.shipping_address?.address_1 || !cart.email) {
+    return "address"
+  } else if (cart?.shipping_methods?.length === 0) {
+    return "delivery"
+  } else {
+    return "payment"
+  }
+}
+```
+
+### Component Elements
+
+1. **Heading** 
+   - Displays "Summary" text
+   - Uses Medusa UI Heading component
+
+2. **Discount Code**
+   - Allows promo code entry
+   - Handles discount application
+
+3. **Cart Totals**
+   - Shows itemized costs
+   - Displays final total
+
+4. **Checkout Button**
+   - Full-width design
+   - Smart navigation to next step
+
+## Styling
+
+The component uses the following key styles:
+
+```css copy
+/* Container */
+.flex.flex-col.gap-y-4
+
+/* Heading */
+.text-[2rem].leading-[2.75rem]
+
+/* Button */
+.w-full.h-10.bg-[#008080]
+```
+
+## Component Structure
+
+```tsx copy
+const Summary = ({ cart }: SummaryProps) => {
+  const step = getCheckoutStep(cart)
+
+  return (
+    <div className="flex flex-col gap-y-4">
+      <Heading level="h2" className="text-[2rem] leading-[2.75rem]">
+        Summary
+      </Heading>
+      <DiscountCode cart={cart} />
+      <Divider />
+      <CartTotals totals={cart} />
+      <LocalizedClientLink
+        href={"/checkout?step=" + step}
+        data-testid="checkout-button"
+      >
+        <Button className="w-full h-10 bg-[#008080]">
+          Go to checkout
+        </Button>
+      </LocalizedClientLink>
+    </div>
+  )
+}
+```
+
+## States
+
+The component handles three main checkout states:
+
+1. **Address Collection**
+   - When shipping address or email is missing
+   - Redirects to address input
+
+2. **Delivery Selection**
+   - When shipping method isn't chosen
+   - Redirects to delivery options
+
+3. **Payment Processing**
+   - When all other info is complete
+   - Proceeds to payment
+
+## Testing
+
+The component includes test identifiers:
+
+```tsx copy
+<LocalizedClientLink
+  data-testid="checkout-button"
+  href={"/checkout?step=" + step}
+>
+```
+
+## Accessibility
+
+- Semantic heading structure
+- Proper ARIA attributes
+- Keyboard navigation support
+- Focus management
+
+## Dependencies
+
+- @medusajs/ui
+- @medusajs/types
+- Next.js
+- React
+
+## Best Practices
+
+1. Always provide complete cart data
+2. Handle loading states appropriately
+3. Maintain proper heading hierarchy
+4. Ensure keyboard accessibility
+5. Test all checkout paths
+
+## Browser Support
+
+- Modern browsers (Chrome, Firefox, Safari, Edge)
+- Requires JavaScript
+- Flexbox layout support needed
+
+## See Also
+
+- [Medusa UI Components](https://docs.medusajs.com/ui)
+- [Cart Management](https://docs.medusajs.com/modules/carts-and-checkout/cart)
+- [Checkout Flow](https://docs.medusajs.com/modules/carts-and-checkout)

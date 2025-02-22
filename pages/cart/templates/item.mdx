@@ -1,142 +1,208 @@
-# Login Template
+# Items Template
 
-The `LoginTemplate` is a client-side component that manages the display of either a login or registration form. It uses React's useState hook to toggle between these two views.
+A component that displays cart items in a table format with support for loading states and sorting.
 
-## Usage
+## Overview
 
-```tsx copy
-import LoginTemplate from './LoginTemplate'
+The `Items Template` component renders a table of cart items with headers for item details, quantity, price, and total. It includes skeleton loading states and sorting functionality.
 
-const AccountPage = () => {
-  return <LoginTemplate />
+## Technical Details
+
+### Import
+
+```javascript copy
+import repeat from "@lib/util/repeat"
+import { HttpTypes } from "@medusajs/types"
+import { Heading, Table } from "@medusajs/ui"
+import Item from "@modules/cart/components/item"
+import SkeletonLineItem from "@modules/skeletons/components/skeleton-line-item"
+```
+
+### Props
+
+```typescript copy
+type ItemsTemplateProps = {
+  cart?: HttpTypes.StoreCart
 }
 ```
 
-## Component Architecture
+| Prop | Type | Required | Description |
+|------|------|----------|-------------|
+| cart | HttpTypes.StoreCart | No | Cart object containing items and currency information |
 
-### View States
+## Component Structure
 
-The component uses an enum to define possible view states:
+### Base Layout
 
-```tsx copy
-export enum LOGIN_VIEW {
-  SIGN_IN = "sign-in",
-  REGISTER = "register",
+```jsx copy
+<div>
+  <div className="pb-3 flex items-center">
+    <Heading className="text-[2rem] leading-[2.75rem]">Cart</Heading>
+  </div>
+  <Table>
+    <TableHeader />
+    <TableBody />
+  </Table>
+</div>
+```
+
+### Table Headers
+
+```jsx copy
+<Table.Header className="!bg-transparent !border-t-0 !hover:bg-transparent !p-0">
+  <Table.Row className="!bg-transparent !border-none !hover:bg-transparent !p-0">
+    <Table.HeaderCell className="!pl-0">Item</Table.HeaderCell>
+    <Table.HeaderCell></Table.HeaderCell>
+    <Table.HeaderCell>Quantity</Table.HeaderCell>
+    <Table.HeaderCell className="hidden small:table-cell">
+      Price
+    </Table.HeaderCell>
+    <Table.HeaderCell className="!pr-0 text-right">
+      Total
+    </Table.HeaderCell>
+  </Table.Row>
+</Table.Header>
+```
+
+## Features
+
+### Item Sorting
+```javascript copy
+items.sort((a, b) => {
+  return (a.created_at ?? "") > (b.created_at ?? "") ? -1 : 1
+})
+```
+
+### Loading States
+```jsx copy
+{items ? (
+  // Render sorted items
+) : (
+  repeat(5).map((i) => <SkeletonLineItem key={i} />)
+)}
+```
+
+## Styling
+
+### Header Styles
+```css copy
+.text-[2rem] leading-[2.75rem]  /* Heading */
+.!bg-transparent !border-t-0 !hover:bg-transparent !p-0  /* Table Header */
+.!pl-0  /* First cell padding */
+.!pr-0 text-right  /* Last cell alignment */
+```
+
+### Responsive Design
+- Price column hidden on small screens: `hidden small:table-cell`
+- Flexible table layout
+- Consistent cell spacing
+
+## Usage Example
+
+### Basic Implementation
+
+```jsx copy
+import ItemsTemplate from "@modules/cart/templates/items"
+
+function CartPage() {
+  const cart = {
+    items: [
+      {
+        id: "item_1",
+        title: "Product 1",
+        quantity: 2,
+        // ... other item properties
+      }
+    ],
+    currency_code: "USD"
+  }
+
+  return <ItemsTemplate cart={cart} />
 }
 ```
 
-### State Management
+### With Loading State
 
-- Uses the `useState` hook to track current view
-- Default view is "sign-in"
-- State is managed through `setCurrentView` function passed to child components
-
-### Conditional Rendering
-
-The component conditionally renders either:
-- `<Login />` component when currentView is "sign-in"
-- `<Register />` component when currentView is "register"
-
-## Implementation Details
-
-### Component Structure
-
-```tsx copy
-"use client"
-
-import { useState } from "react"
-import Register from "@modules/account/components/register"
-import Login from "@modules/account/components/login"
-
-const LoginTemplate = () => {
-  const [currentView, setCurrentView] = useState("sign-in")
+```jsx copy
+function CartPage() {
+  const { cart, isLoading } = useCart()
   
-  return (
-    <div className="w-full flex justify-start px-8 py-8">
-      {currentView === "sign-in" ? (
-        <Login setCurrentView={setCurrentView} />
-      ) : (
-        <Register setCurrentView={setCurrentView} />
-      )}
-    </div>
-  )
-}
-
-export default LoginTemplate
-```
-
-### Styling
-
-The component uses Tailwind CSS classes for layout:
-- `w-full`: Full width container
-- `flex`: Flex container
-- `justify-start`: Left alignment
-- `px-8`: Horizontal padding of 8 units
-- `py-8`: Vertical padding of 8 units
-
-### Child Components
-
-#### Login Component Example
-
-```tsx copy
-interface LoginProps {
-  setCurrentView: (view: "sign-in" | "register") => void
-}
-
-const Login = ({ setCurrentView }: LoginProps) => {
-  return (
-    <div>
-      <form>
-        {/* Login form fields */}
-      </form>
-      <button onClick={() => setCurrentView("register")}>
-        Create an account
-      </button>
-    </div>
-  )
+  return <ItemsTemplate cart={isLoading ? undefined : cart} />
 }
 ```
 
-#### Register Component Example
+## Component States
 
-```tsx copy
-interface RegisterProps {
-  setCurrentView: (view: "sign-in" | "register") => void
-}
+### Loading State
+- Displays 5 skeleton items
+- Used when cart data is undefined
+- Maintains consistent layout during loading
 
-const Register = ({ setCurrentView }: RegisterProps) => {
-  return (
-    <div>
-      <form>
-        {/* Registration form fields */}
-      </form>
-      <button onClick={() => setCurrentView("sign-in")}>
-        Already have an account? Sign in
-      </button>
-    </div>
-  )
-}
+### Empty State
+- Handled by parent component
+- Table not rendered when no items
+
+### Populated State
+- Items sorted by creation date
+- Full table layout with all columns
+- Responsive price column
+
+## Accessibility
+
+### Semantic Structure
+- Uses semantic table elements
+- Proper heading hierarchy
+- Clear column headers
+- Responsive visibility
+
+### Testing Hooks
+```jsx copy
+// Example test
+it('renders cart items correctly', () => {
+  render(<ItemsTemplate cart={mockCart} />)
+  expect(screen.getByText('Cart')).toBeInTheDocument()
+  expect(screen.getAllByRole('row')).toHaveLength(mockCart.items.length + 1)
+})
 ```
 
-## Props
+## Dependencies
 
-| Prop | Type | Description |
-|------|------|-------------|
-| setCurrentView | `(view: "sign-in" \| "register") => void` | Function to update the current view state |
+### Components
+- `Heading` from @medusajs/ui
+- `Table` from @medusajs/ui
+- `Item` component for individual items
+- `SkeletonLineItem` for loading states
 
-## Key Features
+### Utilities
+- `repeat` utility for skeleton loading
+- Medusa types for cart data structure
 
-1. **Client Component**
-   - Marked with "use client" directive
-   - Handles client-side state
-   - Manages view transitions
+## Best Practices
 
-2. **State Management**
-   - Uses React useState hook
-   - Toggles between login and register views
-   - Passes state setter to child components
+1. Data Handling
+   - Sort items consistently
+   - Handle undefined cart gracefully
+   - Provide loading feedback
 
-3. **Type Safety**
-   - TypeScript interfaces for props
-   - Enum for view states
-   - Strict type checking for state management
+2. Styling
+   - Maintain transparent backgrounds
+   - Consistent cell spacing
+   - Responsive design considerations
+
+3. Performance
+   - Efficient sorting
+   - Conditional rendering
+   - Skeleton loading for perceived performance
+
+## Browser Compatibility
+
+- Modern browsers supported
+- Flexbox layout required
+- Table layout support needed
+- JavaScript enabled
+
+## See Also
+
+- [Medusa UI Table Documentation](https://docs.medusajs.com/ui/components/table)
+- [React Table Best Practices](https://react.dev/learn/thinking-in-react)
+- [Skeleton Loading Patterns](https://web.dev/patterns/loading/)
