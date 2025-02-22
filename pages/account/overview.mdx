@@ -1,0 +1,251 @@
+---
+title: "Overview"
+description: "A component for displaying customer profile overview including saved addresses and recent orders"
+---
+
+# Overview Component
+
+The `Overview` component displays a comprehensive summary of a customer's profile, including their profile completion status, saved addresses, and recent order history.
+
+## Installation
+
+```tsx copy
+import Overview from "@components/Overview"
+```
+
+## Props
+
+| Prop Name | Type | Description |
+|-----------|------|-------------|
+| `customer` | `HttpTypes.StoreCustomer \| null` | The customer profile data |
+| `orders` | `HttpTypes.StoreOrder[] \| null` | Array of customer orders |
+
+## Usage
+
+Basic implementation of the component:
+
+```tsx copy
+<Overview customer={customerData} orders={ordersData} />
+```
+
+## Implementation Example
+
+Here's a complete example showing how to use the Overview component:
+
+```tsx copy
+import { Overview } from "@components/Overview"
+import { useCustomer } from "@lib/hooks/use-customer"
+import { useOrders } from "@lib/hooks/use-orders"
+
+export default function CustomerDashboard() {
+  const { customer } = useCustomer()
+  const { orders, isLoading } = useOrders()
+  
+  if (isLoading) {
+    return <div>Loading dashboard...</div>
+  }
+  
+  return (
+    <div className="max-w-4xl mx-auto py-8">
+      <h1 className="text-2xl font-bold mb-6">Dashboard</h1>
+      <Overview customer={customer} orders={orders} />
+    </div>
+  )
+}
+```
+
+## Features
+
+### Profile Overview
+- Displays customer name and email
+- Shows profile completion percentage
+- Calculates completion based on key profile fields
+- Provides visual progress indicator
+
+### Quick Stats
+- Shows number of saved addresses
+- Displays total order count
+- Uses intuitive icons for visual representation
+- Responsive grid layout
+
+### Recent Orders
+- Lists up to 5 most recent orders
+- Shows order ID, date, and total
+- Displays order status
+- Handles empty state gracefully
+
+## Component Structure
+
+### Main Component
+
+```tsx copy
+const Overview = ({ customer, orders }) => {
+  const completion = getProfileCompletion(customer)
+  const recentOrders = orders?.slice(0, 5) || []
+
+  return (
+    <div className="space-y-6">
+      <WelcomeCard customer={customer} completion={completion} />
+      <QuickStats customer={customer} orders={orders} />
+      <RecentOrders orders={recentOrders} />
+    </div>
+  )
+}
+```
+
+### Profile Completion Calculator
+
+```tsx copy
+const getProfileCompletion = (customer: HttpTypes.StoreCustomer | null) => {
+  let count = 0
+  
+  if (!customer) return 0
+  
+  if (customer.email) count++
+  if (customer.first_name && customer.last_name) count++
+  if (customer.phone) count++
+  if (customer.addresses?.find((addr) => addr.is_default_billing)) count++
+  
+  return (count / 4) * 100
+}
+```
+
+## Usage with Loading State
+
+```tsx copy
+const DashboardOverview = () => {
+  const { customer, orders, isLoading } = useCustomerData()
+
+  if (isLoading) {
+    return (
+      <div className="space-y-6">
+        <div className="h-40 bg-gray-100 rounded-lg animate-pulse" />
+        <div className="grid grid-cols-2 gap-4">
+          <div className="h-24 bg-gray-100 rounded-lg animate-pulse" />
+          <div className="h-24 bg-gray-100 rounded-lg animate-pulse" />
+        </div>
+        <div className="h-64 bg-gray-100 rounded-lg animate-pulse" />
+      </div>
+    )
+  }
+
+  return <Overview customer={customer} orders={orders} />
+}
+```
+
+## Styling
+
+The component uses Tailwind CSS with shadcn/ui components for consistent styling:
+
+```tsx copy
+<Card>
+  <CardHeader>
+    <CardTitle>
+      Hello {customer?.first_name || 'Guest'}
+    </CardTitle>
+  </CardHeader>
+  <CardContent>
+    <div className="space-y-4">
+      <p className="text-sm text-gray-500">
+        Signed in as: {customer?.email}
+      </p>
+      <div className="space-y-2">
+        <div className="flex justify-between text-sm">
+          <span>Profile Completion</span>
+          <span>{completion}% Completed</span>
+        </div>
+        <Progress value={completion} className="h-2" />
+      </div>
+    </div>
+  </CardContent>
+</Card>
+```
+
+## Best Practices
+
+1. Handle null/undefined customer and orders data
+2. Implement proper loading states
+3. Use semantic HTML structure
+4. Maintain consistent spacing
+5. Follow responsive design patterns
+6. Implement proper error boundaries
+7. Use proper type checking for props
+
+## Accessibility
+
+The component follows accessibility best practices:
+
+- Semantic HTML structure
+- Proper heading hierarchy
+- Sufficient color contrast
+- Descriptive text labels
+- Keyboard navigation support
+- ARIA attributes where necessary
+
+## Testing
+
+Example test cases for the component:
+
+```tsx copy
+describe('Overview', () => {
+  it('renders welcome message with customer name', () => {
+    const mockCustomer = {
+      first_name: 'John',
+      email: 'john@example.com'
+    }
+    
+    render(<Overview customer={mockCustomer} orders={[]} />)
+    
+    expect(screen.getByText(/hello john/i)).toBeInTheDocument()
+    expect(screen.getByText(/john@example.com/i)).toBeInTheDocument()
+  })
+
+  it('calculates profile completion correctly', () => {
+    const mockCustomer = {
+      email: 'test@example.com',
+      first_name: 'John',
+      last_name: 'Doe',
+      phone: '+1234567890',
+      addresses: [{ is_default_billing: true }]
+    }
+    
+    render(<Overview customer={mockCustomer} orders={[]} />)
+    
+    expect(screen.getByText('100% Completed')).toBeInTheDocument()
+  })
+
+  it('displays empty state when no orders exist', () => {
+    render(<Overview customer={null} orders={[]} />)
+    
+    expect(screen.getByText(/no orders found/i)).toBeInTheDocument()
+  })
+})
+```
+
+## Error Handling
+
+```tsx copy
+const handleCustomerError = (error: unknown) => {
+  console.error('Error loading customer data:', error)
+  return (
+    <div className="text-red-600 text-center py-4">
+      An error occurred while loading your profile.
+      Please try again later.
+    </div>
+  )
+}
+```
+
+## Dependencies
+
+- React
+- shadcn/ui components (Card, Progress)
+- Lucide React icons
+- Tailwind CSS for styling
+
+## Related Components
+
+- Card: Used for content sections
+- Progress: For profile completion indicator
+- Lucide icons: For visual elements
+- Loading components: For handling loading states
