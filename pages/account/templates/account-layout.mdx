@@ -1,0 +1,138 @@
+---
+title: 'Account Layout'
+description: 'A layout component for account-related pages that provides a consistent structure with navigation and content areas'
+---
+
+# AccountLayout
+
+The `AccountLayout` component serves as a wrapper for account-related pages, providing a consistent layout structure with navigation and content areas. It's designed to be responsive and works with the Medusa e-commerce framework.
+
+## Component Overview
+
+The AccountLayout component creates a full-width container with a two-column layout on larger screens, featuring:
+- A navigation sidebar (only shown when a customer is logged in)
+- A main content area for child components
+- Responsive design that switches to a single column on mobile devices
+
+## Props
+
+| Prop | Type | Required | Description |
+|------|------|----------|-------------|
+| customer | `HttpTypes.StoreCustomer \| null` | Yes | The customer object from Medusa's store API. Used to display account navigation |
+| children | `React.ReactNode` | Yes | The content to be rendered in the main area of the layout |
+
+## Usage
+
+```tsx copy
+import AccountLayout from './AccountLayout'
+import { StoreCustomer } from '@medusajs/types'
+
+const AccountPage = ({ customer }: { customer: StoreCustomer }) => {
+  return (
+    <AccountLayout customer={customer}>
+      <div>Account content goes here</div>
+    </AccountLayout>
+  )
+}
+```
+
+## Implementation Details
+
+### Layout Structure
+
+The component uses a nested structure of flex and grid containers:
+
+1. Outer container:
+   - Uses `flex-1` for flexible sizing
+   - Applies padding on larger screens with `small:py-12`
+
+2. Inner container:
+   - Maximum width of `max-w-5xl`
+   - Centered with `mx-auto`
+   - White background
+   - Flex column layout
+
+3. Grid layout:
+   - Single column by default
+   - Two columns on larger screens using `small:grid-cols-[240px_1fr]`
+   - Fixed 240px sidebar width
+   - Flexible content area width
+
+### Responsive Design
+
+The layout adapts to different screen sizes:
+
+- **Mobile** (< small breakpoint):
+  - Single column layout
+  - No top/bottom padding
+  - Full width content
+
+- **Desktop** (≥ small breakpoint):
+  - Two column layout
+  - 12 units of padding top/bottom
+  - Fixed width sidebar
+
+### Navigation
+
+The `AccountNav` component is conditionally rendered based on the presence of a customer:
+- Only shown when `customer` prop is not null
+- Receives the customer object as a prop
+- Contained within the left column of the grid
+
+## Dependencies
+
+- React
+- UnderlineLink component from common modules
+- AccountNav component
+- Medusa types for customer data
+- Tailwind CSS for styling
+
+## Testing
+
+The component includes a data-testid attribute (`account-page`) for easy targeting in tests.
+
+## Examples
+
+### With Customer
+
+```tsx copy
+const LoggedInExample = () => {
+  const customer = {
+    id: "cust_123",
+    email: "user@example.com",
+    // ... other customer properties
+  }
+  
+  return (
+    <AccountLayout customer={customer}>
+      <h1>Welcome back!</h1>
+      <p>Your account details...</p>
+    </AccountLayout>
+  )
+}
+```
+
+### Without Customer
+
+```tsx copy
+const LoggedOutExample = () => {
+  return (
+    <AccountLayout customer={null}>
+      <h1>Please log in</h1>
+      <p>Login form goes here...</p>
+    </AccountLayout>
+  )
+}
+```
+
+## Best Practices
+
+1. Always provide a customer prop, even if null, to ensure proper rendering
+2. Use semantic HTML within the content area
+3. Ensure child components respect the layout's padding and width constraints
+4. Consider the responsive nature of the layout when designing child components
+
+## Related Components
+
+- AccountNav: Provides the navigation sidebar
+- UnderlineLink: Used within the navigation for interactive elements
