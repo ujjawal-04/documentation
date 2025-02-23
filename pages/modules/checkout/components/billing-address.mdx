@@ -1,0 +1,206 @@
+---
+title: 'Address Book'
+description: 'A component for managing user addresses, including display, addition, and modification functionality.'
+---
+
+# Address Book
+
+The `AddressBook` component manages the display and modification of a user's saved addresses. It allows users to add new addresses and edit existing ones.
+
+## Installation
+
+Ensure you have the component in your project:
+
+```tsx copy
+import AddressBook from "@components/AddressBook"
+```
+
+## Props
+
+| Prop Name | Type | Required | Description |
+|-----------|------|----------|-------------|
+| `customer` | `HttpTypes.StoreCustomer` | Yes | The logged-in customer data, including addresses |
+| `region` | `HttpTypes.StoreRegion` | Yes | The region context for address management |
+
+## Usage
+
+Here's a basic example of how to use the `AddressBook` component:
+
+```tsx copy
+<AddressBook customer={customerData} region={regionData} />
+```
+
+## Features
+
+### Address Management
+- **Displays Saved Addresses**: Lists all addresses stored in the customer's account
+- **Add New Address**: Integrates the `AddAddress` component to allow users to add a new address
+- **Edit Existing Addresses**: Uses `EditAddress` to provide an editing interface for each address
+
+### Responsive Design
+- **Desktop View**: Grid layout for optimal display
+- **Mobile View**: Adjusts layout for smaller screens
+- **Automatic Adaptation**: Ensures usability across devices
+
+## Implementation Example
+
+```tsx copy
+import { AddressBook } from "@components/AddressBook"
+import { useCustomer } from "@lib/hooks/use-customer"
+import { useRegion } from "@lib/hooks/use-region"
+
+export default function AccountAddresses() {
+  const { customer } = useCustomer()
+  const { region } = useRegion()
+
+  return (
+    <div className="w-full">
+      <div className="mb-8 flex flex-col gap-y-4">
+        <h1 className="text-2xl-semi">Shipping Addresses</h1>
+        <p className="text-base-regular">
+          View and update your shipping addresses, you can add as many as you like.
+        </p>
+      </div>
+      {customer && region ? (
+        <AddressBook customer={customer} region={region} />
+      ) : null}
+    </div>
+  )
+}
+```
+
+## Behavior
+
+The component implements the following behavior:
+
+### Address Display
+```tsx copy
+// Example of address mapping implementation
+{customer.addresses.map((address) => (
+  <EditAddress
+    key={address.id}
+    address={address}
+    region={region}
+    customer={customer}
+  />
+))}
+```
+
+### New Address Addition
+```tsx copy
+<AddAddress
+  region={region}
+  customer={customer}
+  className="bg-white p-4 rounded-lg"
+/>
+```
+
+## Styling
+
+The component uses Tailwind CSS for styling:
+
+```tsx copy
+// Example styling structure
+<div className="grid grid-cols-1 md:grid-cols-2 gap-4 p-4">
+  {/* Address components */}
+  <div className="bg-white rounded-lg shadow p-4">
+    {/* Individual address content */}
+  </div>
+</div>
+```
+
+### Style Features
+- Consistent spacing and padding
+- Hover and active states
+- Responsive layout adjustments
+- Clear visual hierarchy
+
+## Form Handling
+
+The component handles address forms with proper validation:
+
+```tsx copy
+// Example form implementation
+<form onSubmit={handleSubmit}>
+  <div className="grid grid-cols-1 gap-y-2">
+    <Input
+      label="Address"
+      name="address_1"
+      required
+      autoComplete="street-address"
+    />
+    <div className="grid grid-cols-2 gap-x-2">
+      <Input
+        label="Postal Code"
+        name="postal_code"
+        required
+        autoComplete="postal-code"
+      />
+      <Input
+        label="City"
+        name="city"
+        required
+        autoComplete="address-level2"
+      />
+    </div>
+  </div>
+</form>
+```
+
+## Best Practices
+
+1. Always provide the `customer` prop
+2. Use within authenticated routes
+3. Maintain a consistent address management structure
+4. Handle loading and error states appropriately
+5. Validate address data before submission
+6. Provide clear feedback for user actions
+7. Implement proper error handling
+
+## Accessibility
+
+The component follows accessibility best practices:
+
+- Semantic HTML structure
+- Keyboard navigation support
+- ARIA labels where appropriate
+- High contrast active states for visibility
+- Focus management for form elements
+- Clear error messaging
+- Screen reader friendly content structure
+
+## Error Handling
+
+```tsx copy
+const handleAddressSubmit = async (data) => {
+  try {
+    await updateAddress(data)
+    showNotification("Address updated successfully")
+  } catch (error) {
+    showNotification("Error updating address", "error")
+  }
+}
+```
+
+## Dependencies
+
+- React
+- Tailwind CSS for styling
+- Custom hooks for customer and region management
+- Form handling utilities
+- UI components (Input, Button, etc.)
+
+## Testing
+
+The component includes comprehensive test coverage:
+
+```tsx copy
+describe('AddressBook', () => {
+  it('renders existing addresses', () => {
+    render(<AddressBook customer={mockCustomer} region={mockRegion} />)
+    expect(screen.getAllByTestId('address-card')).toHaveLength(
+      mockCustomer.addresses.length
+    )
+  })
+})
+```

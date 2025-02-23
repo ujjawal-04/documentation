@@ -1,0 +1,268 @@
+---
+title: "Request Reset Password"
+description: "A component for handling password reset requests in a Next.js storefront"
+---
+
+# Request Reset Password
+
+The `RequestResetPassword` component provides users with a form to request a password reset link via email.
+
+## Installation
+
+```tsx copy
+import RequestResetPassword from "@components/RequestResetPassword"
+```
+
+## Features
+
+- **User Input for Email**: Accepts the user's email to send a reset link
+- **Validation**: Ensures the email field is not empty before submitting
+- **API Request Handling**: Sends a request to the Medusa backend to trigger a password reset email
+- **Loading State**: Displays a loading indicator while the request is being processed
+- **Success/Error Feedback**: Notifies users if the request was successful or if an error occurred
+- **Navigation Link**: Provides a link for users to log in if they remember their password
+
+## Usage
+
+Basic implementation of the component:
+
+```tsx copy
+<RequestResetPassword />
+```
+
+## Implementation Example
+
+Here's a complete example of how to implement the component:
+
+```tsx copy
+import { RequestResetPassword } from "@components/RequestResetPassword"
+import { Container } from "@components/ui"
+
+export default function ResetPasswordPage() {
+  return (
+    <Container className="py-8">
+      <div className="flex justify-center">
+        <div className="max-w-md w-full">
+          <h1 className="text-2xl font-bold mb-6">
+            Reset your password
+          </h1>
+          <RequestResetPassword />
+        </div>
+      </div>
+    </Container>
+  )
+}
+```
+
+## Component Structure
+
+### State Management
+
+```tsx copy
+const RequestResetPassword = () => {
+  const [loading, setLoading] = useState(false)
+  const [email, setEmail] = useState("")
+  const [message, setMessage] = useState("")
+
+  // Component logic here
+}
+```
+
+### Form Handler
+
+```tsx copy
+const handleSubmit = async (e: React.FormEvent) => {
+  e.preventDefault()
+  setLoading(true)
+  setMessage("")
+
+  try {
+    const response = await fetch(
+      `${BACKEND_URL}/auth/customer/emailpass/reset-password`,
+      {
+        credentials: "include",
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ identifier: email }),
+      }
+    )
+
+    if (response.ok) {
+      setMessage("Reset link sent to your email")
+      setEmail("")
+    } else {
+      setMessage("Error sending reset link")
+    }
+  } catch (error) {
+    setMessage("An error occurred")
+  } finally {
+    setLoading(false)
+  }
+}
+```
+
+### UI Implementation
+
+```tsx copy
+return (
+  <div className="w-full">
+    <form onSubmit={handleSubmit} className="space-y-4">
+      <div>
+        <label 
+          htmlFor="email" 
+          className="block text-sm font-medium text-gray-700"
+        >
+          Email
+        </label>
+        <input
+          id="email"
+          type="email"
+          value={email}
+          onChange={(e) => setEmail(e.target.value)}
+          required
+          className="mt-1 block w-full rounded-md border-gray-300 shadow-sm"
+          placeholder="Enter your email"
+        />
+      </div>
+
+      <button
+        type="submit"
+        disabled={loading}
+        className="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+      >
+        {loading ? "Sending..." : "Reset Password"}
+      </button>
+
+      {message && (
+        <div className="mt-4 text-sm text-center">
+          {message}
+        </div>
+      )}
+
+      <div className="mt-4 text-sm text-center">
+        <a
+          href="/login"
+          className="text-blue-600 hover:text-blue-500"
+        >
+          Remember your password? Log in
+        </a>
+      </div>
+    </form>
+  </div>
+)
+```
+
+## API Integration
+
+The component interacts with the Medusa backend:
+
+```tsx copy
+const BACKEND_URL = process.env.NEXT_PUBLIC_MEDUSA_BACKEND_URL
+
+// API request configuration
+const requestConfig = {
+  credentials: "include",
+  method: "POST",
+  headers: {
+    "Content-Type": "application/json"
+  },
+  body: JSON.stringify({ 
+    identifier: email 
+  })
+}
+
+// API call
+const response = await fetch(
+  `${BACKEND_URL}/auth/customer/emailpass/reset-password`,
+  requestConfig
+)
+```
+
+## Error Handling
+
+The component implements comprehensive error handling:
+
+```tsx copy
+const handleError = (error: unknown) => {
+  if (error instanceof Error) {
+    setMessage(error.message)
+  } else {
+    setMessage("An unexpected error occurred")
+  }
+  setLoading(false)
+}
+```
+
+## Best Practices
+
+1. Always validate email format before submission
+2. Provide clear feedback for all user actions
+3. Implement proper loading states
+4. Handle all potential error cases
+5. Follow security best practices for password reset
+6. Use appropriate form validation
+7. Maintain consistent error messaging
+
+## Accessibility
+
+The component follows accessibility best practices:
+
+- Semantic HTML structure
+- Proper form labeling
+- ARIA attributes
+- Keyboard navigation support
+- Clear error messages
+- Loading state indicators
+- Focus management
+
+## Testing
+
+Example test cases for the component:
+
+```tsx copy
+describe('RequestResetPassword', () => {
+  it('validates email input', () => {
+    render(<RequestResetPassword />)
+    
+    const submitButton = screen.getByRole('button', {
+      name: /reset password/i
+    })
+    
+    fireEvent.click(submitButton)
+    
+    expect(screen.getByText('Email is required')).toBeInTheDocument()
+  })
+
+  it('handles successful submission', async () => {
+    render(<RequestResetPassword />)
+    
+    const emailInput = screen.getByLabelText(/email/i)
+    fireEvent.change(emailInput, {
+      target: { value: 'test@example.com' }
+    })
+    
+    const submitButton = screen.getByRole('button')
+    fireEvent.click(submitButton)
+    
+    expect(await screen.findByText('Reset link sent to your email'))
+      .toBeInTheDocument()
+  })
+})
+```
+
+## Dependencies
+
+- React
+- Next.js
+- Tailwind CSS for styling
+- Medusa backend integration
+
+## Security Considerations
+
+- Rate limiting for reset requests
+- Secure token generation and validation
+- Proper error handling without information leakage
+- Secure communication with backend
+- Token expiration handling

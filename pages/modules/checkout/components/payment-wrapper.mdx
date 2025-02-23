@@ -1,0 +1,254 @@
+---
+title: "Profile Password"
+description: "Documentation for the ProfilePassword component, which allows users to update their passwords"
+---
+
+# Profile Password
+
+The `ProfilePassword` component provides functionality for users to update their account password within the account settings page.
+
+## Installation
+
+```tsx copy
+import ProfilePassword from "@components/profile/profile-password"
+```
+
+## Props
+
+| Prop Name | Type | Description |
+|-----------|------|-------------|
+| `customer` | `HttpTypes.StoreCustomer` | The current logged-in customer |
+
+## Usage
+
+Basic implementation of the component:
+
+```tsx copy
+<ProfilePassword customer={customerData} />
+```
+
+## Implementation Example
+
+Here's a complete example showing how to use the ProfilePassword component:
+
+```tsx copy
+import { ProfilePassword } from "@components/profile/profile-password"
+import { useCustomer } from "@lib/hooks/use-customer"
+import { toast } from "@medusajs/ui"
+
+export default function SecuritySettings() {
+  const { customer } = useCustomer()
+  
+  if (!customer) {
+    return <div>Loading...</div>
+  }
+  
+  return (
+    <div className="max-w-xl mx-auto py-8">
+      <h2 className="text-xl font-bold mb-4">Security Settings</h2>
+      <ProfilePassword customer={customer} />
+    </div>
+  )
+}
+```
+
+## Features
+
+### Password Management
+- Form for password updates
+- Old password verification
+- New password input
+- Password confirmation
+- Security-focused input fields
+
+### Form Validation
+- Password matching validation
+- Required field validation
+- Current password verification
+- Toast notifications for feedback
+
+### Security Measures
+- Masked password inputs
+- Secure form submission
+- No password storage in state
+- Proper error handling
+
+## Component Structure
+
+### Main Component
+
+```tsx copy
+const ProfilePassword = ({ customer }) => {
+  const [isEditing, setIsEditing] = useState(false)
+  const { state, action } = useActionState()
+
+  const handleSubmit = async (e) => {
+    e.preventDefault()
+    
+    // Currently displays placeholder toast
+    toast.info("Password updates coming soon!")
+    
+    // Future implementation will include:
+    // const formData = new FormData(e.target)
+    // await updatePassword({
+    //   old_password: formData.get("old_password"),
+    //   new_password: formData.get("new_password")
+    // })
+  }
+
+  return (
+    <AccountInfo label="Password">
+      {!isEditing ? (
+        <PasswordDisplay onEdit={() => setIsEditing(true)} />
+      ) : (
+        <PasswordForm 
+          onSubmit={handleSubmit}
+          onCancel={() => setIsEditing(false)}
+          state={state}
+        />
+      )}
+    </AccountInfo>
+  )
+}
+```
+
+### Password Form Component
+
+```tsx copy
+const PasswordForm = ({ onSubmit, onCancel, state }) => {
+  return (
+    <form onSubmit={onSubmit} className="space-y-4">
+      <Input
+        label="Current Password"
+        name="old_password"
+        type="password"
+        required
+        autoComplete="current-password"
+      />
+      <Input
+        label="New Password"
+        name="new_password"
+        type="password"
+        required
+        autoComplete="new-password"
+      />
+      <Input
+        label="Confirm New Password"
+        name="confirm_password"
+        type="password"
+        required
+        autoComplete="new-password"
+      />
+      <div className="flex justify-end space-x-2">
+        <button 
+          type="button" 
+          onClick={onCancel}
+          className="btn-secondary"
+        >
+          Cancel
+        </button>
+        <button 
+          type="submit"
+          className="btn-primary"
+          disabled={state.loading}
+        >
+          Update Password
+        </button>
+      </div>
+    </form>
+  )
+}
+```
+
+## Current Limitations
+
+1. Password update functionality not yet implemented
+2. No API integration for password changes
+3. Limited password strength validation
+4. Basic feedback mechanisms
+
+## Accessibility
+
+The component implements these accessibility features:
+
+- Proper password input types
+- Clear error messaging
+- Keyboard navigation support
+- ARIA labels for form fields
+- Focus management
+
+## Best Practices
+
+1. Secure password handling
+2. Clear validation feedback
+3. Proper form submission
+4. Input field masking
+5. Confirmation requirements
+6. Toast notifications
+7. Error state management
+
+## Testing
+
+Example test cases:
+
+```tsx copy
+describe('ProfilePassword', () => {
+  it('shows password form when edit is clicked', async () => {
+    render(<ProfilePassword customer={{}} />)
+    
+    await userEvent.click(screen.getByText('Change Password'))
+    expect(screen.getByLabelText('Current Password')).toBeInTheDocument()
+  })
+
+  it('validates password confirmation match', async () => {
+    render(<ProfilePassword customer={{}} />)
+    
+    await userEvent.click(screen.getByText('Change Password'))
+    await userEvent.type(screen.getByLabelText('New Password'), 'newpass123')
+    await userEvent.type(screen.getByLabelText('Confirm New Password'), 'newpass124')
+    await userEvent.click(screen.getByText('Update Password'))
+    
+    expect(screen.getByText('Passwords do not match')).toBeInTheDocument()
+  })
+})
+```
+
+## Dependencies
+
+- React
+- @medusajs/ui toast
+- AccountInfo component
+- Input component
+- Form validation utilities
+
+## Related Components
+
+- AccountInfo: Wrapper component
+- Input: Form input fields
+- Toast: Notification system
+- ProfileEmail: Email management
+- ProfileName: Name management
+
+## Future Enhancements
+
+1. Implement password update API integration
+2. Add password strength indicators
+3. Implement password history
+4. Add two-factor authentication
+5. Improve validation feedback
+6. Add password requirements display
+7. Implement password recovery flow
+
+## Security Considerations
+
+1. Secure password transmission
+2. Password strength requirements
+3. Rate limiting
+4. Account lockout protection
+5. Session management
+6. Audit logging
+7. Security headers
+
+---
+
+This component provides a foundation for secure password management within the account settings interface, ready to be extended with full functionality when API support is implemented.

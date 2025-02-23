@@ -1,0 +1,272 @@
+---
+title: "Profile Name"
+description: "The ProfileName component allows customers to update their first and last name"
+---
+
+# Profile Name
+
+The `ProfileName` component provides functionality for customers to view and update their first and last name in their account settings.
+
+## Installation
+
+```tsx copy
+import ProfileName from "../path-to/ProfileName"
+```
+
+## Props
+
+| Prop Name | Type | Description |
+|-----------|------|-------------|
+| `customer` | `HttpTypes.StoreCustomer` | The customer object containing user details |
+
+## Usage
+
+Basic implementation of the component:
+
+```tsx copy
+<ProfileName customer={customerData} />
+```
+
+## Implementation Example
+
+Here's a complete example showing how to use the ProfileName component:
+
+```tsx copy
+import { ProfileName } from "../path-to/ProfileName"
+import { useCustomer } from "@lib/hooks/use-customer"
+
+export default function AccountDetails() {
+  const { customer } = useCustomer()
+  
+  if (!customer) {
+    return <div>Loading...</div>
+  }
+  
+  return (
+    <div className="max-w-xl mx-auto py-8">
+      <h2 className="text-xl font-bold mb-4">Personal Details</h2>
+      <ProfileName customer={customer} />
+    </div>
+  )
+}
+```
+
+## Features
+
+### Name Display and Update
+- Shows current first and last name
+- Provides form for name updates
+- Handles form submission asynchronously
+- Displays success/error feedback
+
+### Form Management
+- Validates input fields
+- Manages submission state
+- Provides clear feedback
+- Handles error cases
+
+### State Handling
+- Uses useActionState for async operations
+- Manages loading states
+- Handles success and error cases
+- Provides user feedback
+
+## Component Structure
+
+### Main Component
+
+```tsx copy
+const ProfileName = ({ customer }) => {
+  const [isEditing, setIsEditing] = useState(false)
+  const { state, action } = useActionState()
+
+  const handleSubmit = async (e) => {
+    e.preventDefault()
+    const formData = new FormData(e.target)
+    
+    await action(async () => {
+      await updateCustomer({
+        first_name: formData.get("first_name"),
+        last_name: formData.get("last_name")
+      })
+      setIsEditing(false)
+    })
+  }
+
+  return (
+    <AccountInfo label="Name">
+      {!isEditing ? (
+        <NameDisplay 
+          firstName={customer.first_name}
+          lastName={customer.last_name}
+          onEdit={() => setIsEditing(true)}
+        />
+      ) : (
+        <NameForm 
+          firstName={customer.first_name}
+          lastName={customer.last_name}
+          onSubmit={handleSubmit}
+          onCancel={() => setIsEditing(false)}
+          state={state}
+        />
+      )}
+    </AccountInfo>
+  )
+}
+```
+
+### Name Form Component
+
+```tsx copy
+const NameForm = ({ firstName, lastName, onSubmit, onCancel, state }) => {
+  return (
+    <form onSubmit={onSubmit} className="space-y-4">
+      <div className="grid grid-cols-2 gap-4">
+        <Input
+          label="First Name"
+          name="first_name"
+          required
+          defaultValue={firstName}
+        />
+        <Input
+          label="Last Name"
+          name="last_name"
+          required
+          defaultValue={lastName}
+        />
+      </div>
+      <div className="flex justify-end space-x-2">
+        <button 
+          type="button" 
+          onClick={onCancel}
+          className="btn-secondary"
+        >
+          Cancel
+        </button>
+        <button 
+          type="submit"
+          className="btn-primary"
+          disabled={state.loading}
+        >
+          Save Changes
+        </button>
+      </div>
+    </form>
+  )
+}
+```
+
+## Usage with Loading State
+
+```tsx copy
+const NameSection = () => {
+  const { customer, isLoading } = useCustomer()
+
+  if (isLoading) {
+    return (
+      <div className="space-y-4">
+        <div className="h-8 bg-gray-100 rounded animate-pulse" />
+        <div className="h-12 bg-gray-100 rounded animate-pulse" />
+      </div>
+    )
+  }
+
+  return <ProfileName customer={customer} />
+}
+```
+
+## Accessibility
+
+The component implements these accessibility features:
+
+- Semantic HTML structure
+- Proper form labels
+- ARIA attributes
+- Keyboard navigation
+- Focus management
+- Clear error messaging
+
+## Best Practices
+
+1. Input validation
+2. Clear success/error feedback
+3. Proper loading states
+4. Form field labels
+5. Responsive design
+6. Keyboard accessibility
+7. Clean state management
+
+## Testing
+
+Example test cases:
+
+```tsx copy
+describe('ProfileName', () => {
+  it('displays current name', () => {
+    const mockCustomer = {
+      first_name: 'John',
+      last_name: 'Doe'
+    }
+    
+    render(<ProfileName customer={mockCustomer} />)
+    
+    expect(screen.getByText('John Doe')).toBeInTheDocument()
+  })
+
+  it('shows form when edit is clicked', async () => {
+    const mockCustomer = {
+      first_name: 'John',
+      last_name: 'Doe'
+    }
+    
+    render(<ProfileName customer={mockCustomer} />)
+    
+    await userEvent.click(screen.getByText('Edit'))
+    expect(screen.getByRole('form')).toBeInTheDocument()
+  })
+
+  it('submits form with updated values', async () => {
+    const mockCustomer = {
+      first_name: 'John',
+      last_name: 'Doe'
+    }
+    
+    render(<ProfileName customer={mockCustomer} />)
+    
+    await userEvent.click(screen.getByText('Edit'))
+    await userEvent.type(screen.getByLabelText('First Name'), 'Jane')
+    await userEvent.click(screen.getByText('Save Changes'))
+    
+    expect(await screen.findByText('Changes saved successfully')).toBeInTheDocument()
+  })
+})
+```
+
+## Dependencies
+
+- React
+- AccountInfo component
+- Input component
+- Form validation utilities
+- State management hooks
+
+## Related Components
+
+- AccountInfo: Wrapper component
+- Input: Form input fields
+- ProfileEmail: Email management
+- ProfileBillingAddress: Address management
+
+## Future Enhancements
+
+1. Add name format validation
+2. Implement character restrictions
+3. Add loading indicators
+4. Improve error messaging
+5. Add name history tracking
+6. Implement accessibility improvements
+7. Add name pronunciation guide
+
+---
+
+This component provides a straightforward way for customers to manage their name information while maintaining consistency with the account management interface.

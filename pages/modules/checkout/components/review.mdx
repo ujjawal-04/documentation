@@ -1,0 +1,271 @@
+---
+title: "Profile Phone"
+description: "A React component for updating a customer's phone number in their profile"
+---
+
+# Profile Phone
+
+The `ProfilePhone` component provides functionality for customers to view and update their phone number within their profile settings.
+
+## Installation
+
+```tsx copy
+import ProfilePhone from "@modules/account/components/profile-phone"
+```
+
+## Props
+
+| Prop Name | Type | Description |
+|-----------|------|-------------|
+| `customer` | `HttpTypes.StoreCustomer` | The customer object containing user data |
+
+## Usage
+
+Basic implementation of the component:
+
+```tsx copy
+<ProfilePhone customer={customerData} />
+```
+
+## Implementation Example
+
+Here's a complete example showing how to use the ProfilePhone component:
+
+```tsx copy
+import { ProfilePhone } from "@modules/account/components/profile-phone"
+import { useCustomer } from "@lib/hooks/use-customer"
+
+export default function ContactSection() {
+  const { customer } = useCustomer()
+  
+  if (!customer) {
+    return <div>Loading...</div>
+  }
+  
+  return (
+    <div className="max-w-xl mx-auto py-8">
+      <h2 className="text-xl font-bold mb-4">Contact Information</h2>
+      <ProfilePhone customer={customer} />
+    </div>
+  )
+}
+```
+
+## Component Implementation
+
+Here's the full implementation of the ProfilePhone component:
+
+```tsx copy
+import React, { useEffect, useActionState } from "react"
+import Input from "@modules/common/components/input"
+import AccountInfo from "../account-info"
+import { HttpTypes } from "@medusajs/types"
+import { updateCustomer } from "@lib/data/customer"
+
+const ProfilePhone: React.FC<{ customer: HttpTypes.StoreCustomer }> = ({ 
+  customer 
+}) => {
+  const [successState, setSuccessState] = React.useState(false)
+
+  const updateCustomerPhone = async (
+    _currentState: Record<string, unknown>,
+    formData: FormData
+  ) => {
+    const customer = {
+      phone: formData.get("phone") as string,
+    }
+
+    try {
+      await updateCustomer(customer)
+      return { success: true, error: null }
+    } catch (error: any) {
+      return { success: false, error: error.toString() }
+    }
+  }
+
+  const [state, formAction] = useActionState(updateCustomerPhone, {
+    error: false,
+    success: false,
+  })
+
+  const clearState = () => {
+    setSuccessState(false)
+  }
+
+  useEffect(() => {
+    setSuccessState(state.success)
+  }, [state])
+
+  return (
+    <form action={formAction} className="w-full">
+      <AccountInfo
+        label="Phone"
+        currentInfo={`${customer.phone}`}
+        isSuccess={successState}
+        isError={!!state.error}
+        errorMessage={state.error}
+        clearState={clearState}
+        data-testid="account-phone-editor"
+      >
+        <div className="grid grid-cols-1 gap-y-2">
+          <Input
+            label="Phone"
+            name="phone"
+            type="phone"
+            autoComplete="phone"
+            required
+            defaultValue={customer.phone ?? ""}
+            data-testid="phone-input"
+          />
+        </div>
+      </AccountInfo>
+    </form>
+  )
+}
+
+export default ProfilePhone
+```
+
+## Features
+
+### Phone Number Management
+- Displays current phone number
+- Provides form for updates
+- Handles form submission
+- Shows success/error feedback
+
+### State Management
+- Uses useActionState for form handling
+- Manages success and error states
+- Provides clear state feedback
+- Handles state clearing
+
+### Form Validation
+- Required field validation
+- Phone number format checking
+- Error message display
+- Success confirmation
+
+## Component Structure
+
+The component is built using several key elements:
+
+1. Form Container
+   - Handles form submission
+   - Manages action state
+   - Provides data-testid for testing
+
+2. AccountInfo Wrapper
+   - Displays current phone number
+   - Shows success/error states
+   - Provides clear state functionality
+
+3. Input Field
+   - Phone number input
+   - Autocomplete support
+   - Required field validation
+   - Default value handling
+
+## State Management
+
+```tsx copy
+const [state, formAction] = useActionState(updateCustomerPhone, {
+  error: false,
+  success: false,
+})
+
+const clearState = () => {
+  setSuccessState(false)
+}
+
+useEffect(() => {
+  setSuccessState(state.success)
+}, [state])
+```
+
+## Error Handling
+
+```tsx copy
+const updateCustomerPhone = async (
+  _currentState: Record<string, unknown>,
+  formData: FormData
+) => {
+  try {
+    await updateCustomer({ phone: formData.get("phone") as string })
+    return { success: true, error: null }
+  } catch (error: any) {
+    return { success: false, error: error.toString() }
+  }
+}
+```
+
+## Testing
+
+Example test cases:
+
+```tsx copy
+describe('ProfilePhone', () => {
+  it('displays current phone number', () => {
+    const mockCustomer = {
+      phone: '+1234567890'
+    }
+    
+    render(<ProfilePhone customer={mockCustomer} />)
+    
+    expect(screen.getByText('+1234567890')).toBeInTheDocument()
+  })
+
+  it('handles phone number update', async () => {
+    const mockCustomer = {
+      phone: '+1234567890'
+    }
+    
+    render(<ProfilePhone customer={mockCustomer} />)
+    
+    const input = screen.getByTestId('phone-input')
+    await userEvent.type(input, '+9876543210')
+    await userEvent.click(screen.getByText('Save'))
+    
+    expect(await screen.findByText('Changes saved successfully')).toBeInTheDocument()
+  })
+})
+```
+
+## Dependencies
+
+- React
+- Input component
+- AccountInfo component
+- useActionState hook
+- Customer update utilities
+
+## Related Components
+
+- AccountInfo: Wrapper component
+- Input: Form input
+- ProfileEmail: Email management
+- ProfileName: Name management
+
+## Future Enhancements
+
+1. Implement real-time phone number validation
+2. Add international phone number support
+3. Implement phone number verification
+4. Add format standardization
+5. Support multiple phone numbers
+6. Add phone type categorization (mobile/home/work)
+7. Implement SMS verification
+
+## Best Practices
+
+1. Phone number validation
+2. Clear error messaging
+3. Success feedback
+4. Proper input masking
+5. International format support
+6. Accessibility compliance
+7. Form field labels
+
+---
+
+This component provides a straightforward way for customers to manage their phone number information while maintaining consistency with the account management interface.
