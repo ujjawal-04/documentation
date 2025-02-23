@@ -1,254 +1,188 @@
----
-title: "Profile Password"
-description: "Documentation for the ProfilePassword component, which allows users to update their passwords"
----
+# Payment Wrapper
 
-# Profile Password
+The `Payment Wrapper` component is a client-side React component that conditionally wraps payment-related components with Stripe configuration when Stripe is the selected payment provider.
 
-The `ProfilePassword` component provides functionality for users to update their account password within the account settings page.
+## Overview
 
-## Installation
+```typescript copy
+"use client"
 
-```tsx copy
-import ProfilePassword from "@components/profile/profile-password"
+import { loadStripe } from "@stripe/stripe-js"
+import React from "react"
+import StripeWrapper from "./stripe-wrapper"
+import { HttpTypes } from "@medusajs/types"
+import { isStripe } from "@lib/constants"
 ```
 
-## Props
+## Environment Setup
 
-| Prop Name | Type | Description |
-|-----------|------|-------------|
-| `customer` | `HttpTypes.StoreCustomer` | The current logged-in customer |
-
-## Usage
-
-Basic implementation of the component:
-
-```tsx copy
-<ProfilePassword customer={customerData} />
+```typescript copy
+const stripeKey = process.env.NEXT_PUBLIC_STRIPE_KEY
+const stripePromise = stripeKey ? loadStripe(stripeKey) : null
 ```
 
-## Implementation Example
+## Props Interface
 
-Here's a complete example showing how to use the ProfilePassword component:
+```typescript copy
+type PaymentWrapperProps = {
+  cart: HttpTypes.StoreCart
+  children: React.ReactNode
+}
+```
 
-```tsx copy
-import { ProfilePassword } from "@components/profile/profile-password"
-import { useCustomer } from "@lib/hooks/use-customer"
-import { toast } from "@medusajs/ui"
+### cart
+- Type: `HttpTypes.StoreCart`
+- Required: Yes
+- Description: The cart object containing payment session information.
 
-export default function SecuritySettings() {
-  const { customer } = useCustomer()
-  
-  if (!customer) {
-    return <div>Loading...</div>
-  }
-  
-  return (
-    <div className="max-w-xl mx-auto py-8">
-      <h2 className="text-xl font-bold mb-4">Security Settings</h2>
-      <ProfilePassword customer={customer} />
-    </div>
+### children
+- Type: `React.ReactNode`
+- Required: Yes
+- Description: Child components to be rendered within the payment wrapper.
+
+## Implementation
+
+```typescript copy
+const PaymentWrapper: React.FC<PaymentWrapperProps> = ({ cart, children }) => {
+  const paymentSession = cart.payment_collection?.payment_sessions?.find(
+    (s) => s.status === "pending"
   )
+
+  if (
+    isStripe(paymentSession?.provider_id) &&
+    paymentSession &&
+    stripePromise
+  ) {
+    return (
+      <StripeWrapper
+        paymentSession={paymentSession}
+        stripeKey={stripeKey}
+        stripePromise={stripePromise}
+      >
+        {children}
+      </StripeWrapper>
+    )
+  }
+
+  return <div>{children}</div>
+}
+```
+
+## Usage Example
+
+```jsx copy
+import PaymentWrapper from "@modules/checkout/components/payment-wrapper"
+
+function CheckoutPage() {
+  const cart = {
+    payment_collection: {
+      payment_sessions: [
+        {
+          provider_id: "stripe",
+          status: "pending"
+        }
+      ]
+    }
+  }
+
+  return (
+    <PaymentWrapper cart={cart}>
+      <PaymentForm />
+    </PaymentWrapper>
+  )
+}
+```
+
+## Configuration
+
+### Environment Variables
+```env copy
+NEXT_PUBLIC_STRIPE_KEY=pk_test_your_stripe_publishable_key
+```
+
+### Stripe Setup
+```typescript copy
+// Initialize Stripe
+const stripePromise = stripeKey ? loadStripe(stripeKey) : null
+```
+
+## Conditional Rendering Logic
+
+The component implements the following logic for Stripe integration:
+
+1. Check for pending payment session:
+```typescript copy
+const paymentSession = cart.payment_collection?.payment_sessions?.find(
+  (s) => s.status === "pending"
+)
+```
+
+2. Verify Stripe conditions:
+```typescript copy
+if (
+  isStripe(paymentSession?.provider_id) &&
+  paymentSession &&
+  stripePromise
+) {
+  // Render StripeWrapper
 }
 ```
 
 ## Features
 
-### Password Management
-- Form for password updates
-- Old password verification
-- New password input
-- Password confirmation
-- Security-focused input fields
-
-### Form Validation
-- Password matching validation
-- Required field validation
-- Current password verification
-- Toast notifications for feedback
-
-### Security Measures
-- Masked password inputs
-- Secure form submission
-- No password storage in state
-- Proper error handling
-
-## Component Structure
-
-### Main Component
-
-```tsx copy
-const ProfilePassword = ({ customer }) => {
-  const [isEditing, setIsEditing] = useState(false)
-  const { state, action } = useActionState()
-
-  const handleSubmit = async (e) => {
-    e.preventDefault()
-    
-    // Currently displays placeholder toast
-    toast.info("Password updates coming soon!")
-    
-    // Future implementation will include:
-    // const formData = new FormData(e.target)
-    // await updatePassword({
-    //   old_password: formData.get("old_password"),
-    //   new_password: formData.get("new_password")
-    // })
-  }
-
-  return (
-    <AccountInfo label="Password">
-      {!isEditing ? (
-        <PasswordDisplay onEdit={() => setIsEditing(true)} />
-      ) : (
-        <PasswordForm 
-          onSubmit={handleSubmit}
-          onCancel={() => setIsEditing(false)}
-          state={state}
-        />
-      )}
-    </AccountInfo>
-  )
-}
-```
-
-### Password Form Component
-
-```tsx copy
-const PasswordForm = ({ onSubmit, onCancel, state }) => {
-  return (
-    <form onSubmit={onSubmit} className="space-y-4">
-      <Input
-        label="Current Password"
-        name="old_password"
-        type="password"
-        required
-        autoComplete="current-password"
-      />
-      <Input
-        label="New Password"
-        name="new_password"
-        type="password"
-        required
-        autoComplete="new-password"
-      />
-      <Input
-        label="Confirm New Password"
-        name="confirm_password"
-        type="password"
-        required
-        autoComplete="new-password"
-      />
-      <div className="flex justify-end space-x-2">
-        <button 
-          type="button" 
-          onClick={onCancel}
-          className="btn-secondary"
-        >
-          Cancel
-        </button>
-        <button 
-          type="submit"
-          className="btn-primary"
-          disabled={state.loading}
-        >
-          Update Password
-        </button>
-      </div>
-    </form>
-  )
-}
-```
-
-## Current Limitations
-
-1. Password update functionality not yet implemented
-2. No API integration for password changes
-3. Limited password strength validation
-4. Basic feedback mechanisms
-
-## Accessibility
-
-The component implements these accessibility features:
-
-- Proper password input types
-- Clear error messaging
-- Keyboard navigation support
-- ARIA labels for form fields
-- Focus management
-
-## Best Practices
-
-1. Secure password handling
-2. Clear validation feedback
-3. Proper form submission
-4. Input field masking
-5. Confirmation requirements
-6. Toast notifications
-7. Error state management
-
-## Testing
-
-Example test cases:
-
-```tsx copy
-describe('ProfilePassword', () => {
-  it('shows password form when edit is clicked', async () => {
-    render(<ProfilePassword customer={{}} />)
-    
-    await userEvent.click(screen.getByText('Change Password'))
-    expect(screen.getByLabelText('Current Password')).toBeInTheDocument()
-  })
-
-  it('validates password confirmation match', async () => {
-    render(<ProfilePassword customer={{}} />)
-    
-    await userEvent.click(screen.getByText('Change Password'))
-    await userEvent.type(screen.getByLabelText('New Password'), 'newpass123')
-    await userEvent.type(screen.getByLabelText('Confirm New Password'), 'newpass124')
-    await userEvent.click(screen.getByText('Update Password'))
-    
-    expect(screen.getByText('Passwords do not match')).toBeInTheDocument()
-  })
-})
-```
+1. Client-side rendering with "use client" directive
+2. Conditional Stripe integration
+3. Environment variable support
+4. Payment session validation
+5. Fallback rendering for non-Stripe payments
 
 ## Dependencies
 
-- React
-- @medusajs/ui toast
-- AccountInfo component
-- Input component
-- Form validation utilities
+- @stripe/stripe-js: Stripe JavaScript library
+- @medusajs/types: TypeScript types for Medusa
+- React: Core React library
+- Environment variables handling
+- StripeWrapper component
 
-## Related Components
+## Best Practices
 
-- AccountInfo: Wrapper component
-- Input: Form input fields
-- Toast: Notification system
-- ProfileEmail: Email management
-- ProfileName: Name management
+1. **Environment Configuration**
+   - Always use environment variables for Stripe keys
+   - Keep Stripe publishable key in NEXT_PUBLIC_ variables
+   - Never expose secret keys
 
-## Future Enhancements
+2. **Payment Session Handling**
+   - Validate payment session existence
+   - Check payment provider type
+   - Verify Stripe initialization
 
-1. Implement password update API integration
-2. Add password strength indicators
-3. Implement password history
-4. Add two-factor authentication
-5. Improve validation feedback
-6. Add password requirements display
-7. Implement password recovery flow
+3. **Error Prevention**
+   - Check for null/undefined values
+   - Validate Stripe configuration
+   - Provide fallback rendering
 
 ## Security Considerations
 
-1. Secure password transmission
-2. Password strength requirements
-3. Rate limiting
-4. Account lockout protection
-5. Session management
-6. Audit logging
-7. Security headers
+1. Use only publishable keys in client-side code
+2. Validate payment sessions
+3. Implement proper error handling
+4. Follow Stripe security guidelines
+5. Keep sensitive data server-side
 
----
+## Common Issues
 
-This component provides a foundation for secure password management within the account settings interface, ready to be extended with full functionality when API support is implemented.
+1. **Missing Stripe Key**
+   - Ensure NEXT_PUBLIC_STRIPE_KEY is set in environment
+   - Verify key format and validity
+   - Check environment variable loading
+
+2. **Payment Session Issues**
+   - Validate cart object structure
+   - Check payment session status
+   - Verify provider ID format
+
+## See Also
+
+- [Stripe.js Documentation](https://stripe.com/docs/js)
+- [Medusa Payment Documentation](https://docs.medusajs.com/modules/carts-and-checkout/payment)
+- [Next.js Environment Variables](https://nextjs.org/docs/basic-features/environment-variables)

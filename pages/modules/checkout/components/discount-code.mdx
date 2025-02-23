@@ -1,268 +1,244 @@
----
-title: "Request Reset Password"
-description: "A component for handling password reset requests in a Next.js storefront"
----
+# Discount Code
 
-# Request Reset Password
+The `Discount Code` component is a client-side React component that handles the application and display of promotion codes in a shopping cart. It provides functionality for adding and removing discount codes and displaying active promotions.
 
-The `RequestResetPassword` component provides users with a form to request a password reset link via email.
+## Overview
 
-## Installation
+```typescript copy
+"use client"
 
-```tsx copy
-import RequestResetPassword from "@components/RequestResetPassword"
+import { Badge, Heading, Input, Label, Text, Tooltip } from "@medusajs/ui"
+import React, { useActionState } from "react"
+import { applyPromotions, submitPromotionForm } from "@lib/data/cart"
+import { convertToLocale } from "@lib/util/money"
+import { InformationCircleSolid } from "@medusajs/icons"
+import { HttpTypes } from "@medusajs/types"
+import Trash from "@modules/common/icons/trash"
 ```
 
-## Features
+## Props
 
-- **User Input for Email**: Accepts the user's email to send a reset link
-- **Validation**: Ensures the email field is not empty before submitting
-- **API Request Handling**: Sends a request to the Medusa backend to trigger a password reset email
-- **Loading State**: Displays a loading indicator while the request is being processed
-- **Success/Error Feedback**: Notifies users if the request was successful or if an error occurred
-- **Navigation Link**: Provides a link for users to log in if they remember their password
-
-## Usage
-
-Basic implementation of the component:
-
-```tsx copy
-<RequestResetPassword />
+```typescript copy
+type DiscountCodeProps = {
+  cart: HttpTypes.StoreCart & {
+    promotions: HttpTypes.StorePromotion[]
+  }
+}
 ```
 
-## Implementation Example
+### cart
+- Type: `HttpTypes.StoreCart & { promotions: HttpTypes.StorePromotion[] }`
+- Required: Yes
+- Description: Cart object containing items and active promotions.
 
-Here's a complete example of how to implement the component:
+## State Management
 
-```tsx copy
-import { RequestResetPassword } from "@components/RequestResetPassword"
-import { Container } from "@components/ui"
+The component uses React's useState and useActionState hooks:
 
-export default function ResetPasswordPage() {
-  return (
-    <Container className="py-8">
-      <div className="flex justify-center">
-        <div className="max-w-md w-full">
-          <h1 className="text-2xl font-bold mb-6">
-            Reset your password
-          </h1>
-          <RequestResetPassword />
-        </div>
-      </div>
-    </Container>
+```typescript copy
+const [isOpen, setIsOpen] = React.useState(false)
+const [message, formAction] = useActionState(submitPromotionForm, null)
+```
+
+## Core Functions
+
+### Remove Promotion Code
+```typescript copy
+const removePromotionCode = async (code: string) => {
+  const validPromotions = promotions.filter(
+    (promotion) => promotion.code !== code
   )
+
+  await applyPromotions(
+    validPromotions.filter((p) => p.code === undefined).map((p) => p.code!)
+  )
+}
+```
+
+### Add Promotion Code
+```typescript copy
+const addPromotionCode = async (formData: FormData) => {
+  const code = formData.get("code")
+  if (!code) {
+    return
+  }
+  const input = document.getElementById("promotion-input") as HTMLInputElement
+  const codes = promotions
+    .filter((p) => p.code === undefined)
+    .map((p) => p.code!)
+  codes.push(code.toString())
+
+  await applyPromotions(codes)
+
+  if (input) {
+    input.value = ""
+  }
 }
 ```
 
 ## Component Structure
 
-### State Management
+### Discount Input Form
+```typescript copy
+<form action={(a) => addPromotionCode(a)} className="w-full mb-5">
+  <Label className="flex gap-x-1 my-2 items-center">
+    <button
+      onClick={() => setIsOpen(!isOpen)}
+      type="button"
+      className="txt-medium text-ui-fg-interactive hover:text-ui-fg-interactive-hover"
+      data-testid="add-discount-button"
+    >
+      Add gift card or discount code
+    </button>
+  </Label>
 
-```tsx copy
-const RequestResetPassword = () => {
-  const [loading, setLoading] = useState(false)
-  const [email, setEmail] = useState("")
-  const [message, setMessage] = useState("")
-
-  // Component logic here
-}
-```
-
-### Form Handler
-
-```tsx copy
-const handleSubmit = async (e: React.FormEvent) => {
-  e.preventDefault()
-  setLoading(true)
-  setMessage("")
-
-  try {
-    const response = await fetch(
-      `${BACKEND_URL}/auth/customer/emailpass/reset-password`,
-      {
-        credentials: "include",
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ identifier: email }),
-      }
-    )
-
-    if (response.ok) {
-      setMessage("Reset link sent to your email")
-      setEmail("")
-    } else {
-      setMessage("Error sending reset link")
-    }
-  } catch (error) {
-    setMessage("An error occurred")
-  } finally {
-    setLoading(false)
-  }
-}
-```
-
-### UI Implementation
-
-```tsx copy
-return (
-  <div className="w-full">
-    <form onSubmit={handleSubmit} className="space-y-4">
-      <div>
-        <label 
-          htmlFor="email" 
-          className="block text-sm font-medium text-gray-700"
-        >
-          Email
-        </label>
-        <input
-          id="email"
-          type="email"
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
-          required
-          className="mt-1 block w-full rounded-md border-gray-300 shadow-sm"
-          placeholder="Enter your email"
+  {isOpen && (
+    <>
+      <div className="flex w-full gap-x-2">
+        <Input
+          placeholder="Please enter code"
+          className="size-full"
+          id="promotion-input"
+          name="code"
+          type="text"
+          autoFocus={true}
+          data-testid="discount-input"
         />
-      </div>
-
-      <button
-        type="submit"
-        disabled={loading}
-        className="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
-      >
-        {loading ? "Sending..." : "Reset Password"}
-      </button>
-
-      {message && (
-        <div className="mt-4 text-sm text-center">
-          {message}
-        </div>
-      )}
-
-      <div className="mt-4 text-sm text-center">
-        <a
-          href="/login"
-          className="text-blue-600 hover:text-blue-500"
+        <SubmitButton
+          variant="secondary"
+          className="bg-gray-300 rounded-xl font-semibold"
+          data-testid="discount-apply-button"
         >
-          Remember your password? Log in
-        </a>
+          Apply
+        </SubmitButton>
       </div>
-    </form>
+      <ErrorMessage
+        error={message}
+        data-testid="discount-error-message"
+      />
+    </>
+  )}
+</form>
+```
+
+### Active Promotions Display
+```typescript copy
+{promotions.length > 0 && (
+  <div className="w-full flex items-center">
+    <div className="flex flex-col w-full">
+      <Heading className="txt-medium mb-2">
+        Promotion(s) applied:
+      </Heading>
+      {promotions.map((promotion) => (
+        <div
+          key={promotion.id}
+          className="flex items-center justify-between w-full max-w-full mb-2"
+          data-testid="discount-row"
+        >
+          {/* Promotion details */}
+        </div>
+      ))}
+    </div>
   </div>
-)
+)}
 ```
 
-## API Integration
+## Usage Example
 
-The component interacts with the Medusa backend:
+```jsx copy
+import DiscountCode from "@modules/checkout/components/discount-code"
 
-```tsx copy
-const BACKEND_URL = process.env.NEXT_PUBLIC_MEDUSA_BACKEND_URL
-
-// API request configuration
-const requestConfig = {
-  credentials: "include",
-  method: "POST",
-  headers: {
-    "Content-Type": "application/json"
-  },
-  body: JSON.stringify({ 
-    identifier: email 
-  })
-}
-
-// API call
-const response = await fetch(
-  `${BACKEND_URL}/auth/customer/emailpass/reset-password`,
-  requestConfig
-)
-```
-
-## Error Handling
-
-The component implements comprehensive error handling:
-
-```tsx copy
-const handleError = (error: unknown) => {
-  if (error instanceof Error) {
-    setMessage(error.message)
-  } else {
-    setMessage("An unexpected error occurred")
+function CheckoutPage() {
+  const cart = {
+    items: [],
+    promotions: [
+      {
+        id: "promo_1",
+        code: "SUMMER10",
+        is_automatic: false,
+        application_method: {
+          type: "percentage",
+          value: 10,
+          currency_code: "USD"
+        }
+      }
+    ]
   }
-  setLoading(false)
+
+  return (
+    <DiscountCode cart={cart} />
+  )
 }
 ```
 
-## Best Practices
+## Styling
 
-1. Always validate email format before submission
-2. Provide clear feedback for all user actions
-3. Implement proper loading states
-4. Handle all potential error cases
-5. Follow security best practices for password reset
-6. Use appropriate form validation
-7. Maintain consistent error messaging
-
-## Accessibility
-
-The component follows accessibility best practices:
-
-- Semantic HTML structure
-- Proper form labeling
-- ARIA attributes
-- Keyboard navigation support
-- Clear error messages
-- Loading state indicators
-- Focus management
+The component uses Tailwind CSS for styling:
+- Layout: `w-full`, `flex`, `flex-col`
+- Spacing: `gap-x-1`, `gap-x-2`, `mb-2`, `mb-5`
+- Colors: `bg-white`, `bg-gray-300`
+- Typography: `txt-medium`, `txt-small-plus`
+- Interactions: `hover:text-ui-fg-interactive-hover`
 
 ## Testing
 
-Example test cases for the component:
-
-```tsx copy
-describe('RequestResetPassword', () => {
-  it('validates email input', () => {
-    render(<RequestResetPassword />)
-    
-    const submitButton = screen.getByRole('button', {
-      name: /reset password/i
-    })
-    
-    fireEvent.click(submitButton)
-    
-    expect(screen.getByText('Email is required')).toBeInTheDocument()
-  })
-
-  it('handles successful submission', async () => {
-    render(<RequestResetPassword />)
-    
-    const emailInput = screen.getByLabelText(/email/i)
-    fireEvent.change(emailInput, {
-      target: { value: 'test@example.com' }
-    })
-    
-    const submitButton = screen.getByRole('button')
-    fireEvent.click(submitButton)
-    
-    expect(await screen.findByText('Reset link sent to your email'))
-      .toBeInTheDocument()
-  })
-})
+The component includes data-testid attributes for testing:
+```typescript copy
+data-testid="add-discount-button"
+data-testid="discount-input"
+data-testid="discount-apply-button"
+data-testid="discount-error-message"
+data-testid="discount-row"
+data-testid="discount-code"
+data-testid="remove-discount-button"
 ```
 
 ## Dependencies
 
-- React
-- Next.js
-- Tailwind CSS for styling
-- Medusa backend integration
+- @medusajs/ui: UI components (Badge, Heading, Input, Label, Text, Tooltip)
+- @medusajs/icons: Icon components
+- @medusajs/types: TypeScript types
+- @lib/data/cart: Cart utility functions
+- @lib/util/money: Currency conversion utilities
+- React hooks (useState, useActionState)
 
-## Security Considerations
+## Features
 
-- Rate limiting for reset requests
-- Secure token generation and validation
-- Proper error handling without information leakage
-- Secure communication with backend
-- Token expiration handling
+1. Add promotion codes
+2. Remove non-automatic promotion codes
+3. Display active promotions
+4. Show promotion values (percentage or fixed amount)
+5. Handle automatic promotions
+6. Form validation and error handling
+7. Responsive design
+
+## Error Handling
+
+- Form validation for empty codes
+- Error message display through ErrorMessage component
+- Input field clearing after submission
+- Proper error state management
+
+## Accessibility
+
+- Proper button and input labeling
+- Screen reader support with sr-only text
+- Keyboard navigation support
+- Focus management
+- ARIA attributes through UI components
+
+## Best Practices
+
+1. Clear user feedback for actions
+2. Proper form handling
+3. Type safety with TypeScript
+4. Separation of concerns
+5. Responsive design
+6. Error handling
+7. Accessibility compliance
+
+## See Also
+
+- [Medusa Documentation](https://docs.medusajs.com)
+- [React Forms Documentation](https://react.dev/reference/react-dom/components/input)
+- [Tailwind CSS Documentation](https://tailwindcss.com/docs)

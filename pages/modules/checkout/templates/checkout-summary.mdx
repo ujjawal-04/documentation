@@ -1,142 +1,219 @@
-# Login Template
+# Checkout Summary 
 
-The `LoginTemplate` is a client-side component that manages the display of either a login or registration form. It uses React's useState hook to toggle between these two views.
+A component that displays a comprehensive summary of the shopping cart, including items, totals, and discount code functionality. It provides a sticky positioning for better user experience during checkout.
+
+## Props
+
+| Prop | Type | Required | Description |
+|------|------|----------|-------------|
+| cart | any | Yes | The cart object containing items, totals, and other cart-related information |
+
+## Component Structure
+
+The CheckoutSummary combines several key features:
+1. Cart items preview
+2. Cart totals calculation
+3. Discount code application
+4. Sticky positioning for better UX
 
 ## Usage
 
 ```tsx copy
-import LoginTemplate from './LoginTemplate'
+import CheckoutSummary from "./components/CheckoutSummary"
 
-const AccountPage = () => {
-  return <LoginTemplate />
+const CheckoutPage = ({ cart }) => {
+  return (
+    <div className="checkout-container">
+      <CheckoutSummary cart={cart} />
+    </div>
+  )
 }
 ```
 
-## Component Architecture
-
-### View States
-
-The component uses an enum to define possible view states:
+## Layout Structure
 
 ```tsx copy
-export enum LOGIN_VIEW {
-  SIGN_IN = "sign-in",
-  REGISTER = "register",
-}
+<div className="sticky top-0 flex flex-col-reverse small:flex-col gap-y-8 py-8 small:py-0">
+  <div className="w-full bg-white flex flex-col">
+    {/* Content */}
+  </div>
+</div>
 ```
+
+## Sub-Components
+
+### Cart Header
+```tsx copy
+<Heading
+  level="h2"
+  className="flex flex-row text-3xl-regular items-baseline"
+>
+  In your Cart
+</Heading>
+```
+
+### Items Preview
+Displays cart items using the ItemsPreviewTemplate:
+```tsx copy
+<ItemsPreviewTemplate cart={cart} />
+```
+
+### Cart Totals
+Shows the cart total calculations:
+```tsx copy
+<CartTotals totals={cart} />
+```
+
+### Discount Code
+Provides discount code input functionality:
+```tsx copy
+<DiscountCode cart={cart} />
+```
+
+## Styling
+
+The component uses a combination of utility classes for:
+
+### Responsive Layout
+- Uses `small:` breakpoint for different layouts
+- Switches between `flex-col` and `flex-col-reverse` based on screen size
+
+### Positioning
+- Implements sticky positioning: `sticky top-0`
+- Maintains proper spacing with `gap-y-8`
+
+### Visual Separation
+- Uses `Divider` component for content separation
+- Applies consistent margin spacing
+
+## Dependencies
+
+### Components
+- `@medusajs/ui`: `Heading`
+- `@modules/cart/templates/preview`: `ItemsPreviewTemplate`
+- `@modules/checkout/components/discount-code`: `DiscountCode`
+- `@modules/common/components/cart-totals`: `CartTotals`
+- `@modules/common/components/divider`: `Divider`
+
+## Responsive Design
+
+The component implements responsive behavior:
+
+### Mobile View
+- Reversed column layout
+- Additional divider visibility
+- Modified padding
+
+### Desktop View
+- Standard column layout
+- Hidden top divider
+- Adjusted padding
+
+## Best Practices
+
+1. Cart Data Handling
+   - Validate cart data before rendering
+   - Handle empty cart states appropriately
+   - Update cart totals when items change
+
+2. Responsive Design
+   - Maintain readability across screen sizes
+   - Ensure sticky positioning works correctly
+   - Properly handle layout changes
+
+3. User Experience
+   - Keep totals visible during checkout
+   - Provide clear item preview
+   - Make discount code entry accessible
+
+## Component Features
+
+### Sticky Positioning
+- Keeps cart summary visible while scrolling
+- Improves user experience during checkout
+- Maintains context during form filling
+
+### Visual Hierarchy
+- Clear heading for cart contents
+- Separated sections with dividers
+- Organized display of information
+
+### Interactive Elements
+- Discount code application
+- Cart items preview
+- Totals calculation
+
+## Technical Considerations
+
+### Performance
+- Efficient rendering of cart items
+- Proper handling of cart updates
+- Optimized sticky positioning
+
+### Accessibility
+- Semantic heading structure
+- Proper ARIA attributes (inherited from sub-components)
+- Keyboard navigation support
 
 ### State Management
+- Cart state handled through props
+- Discount code state managed in sub-component
+- Updates reflected in totals
 
-- Uses the `useState` hook to track current view
-- Default view is "sign-in"
-- State is managed through `setCurrentView` function passed to child components
+## Related Components
 
-### Conditional Rendering
+- Main checkout form
+- Cart page
+- Individual cart item components
+- Payment summary components
 
-The component conditionally renders either:
-- `<Login />` component when currentView is "sign-in"
-- `<Register />` component when currentView is "register"
+## Testing Considerations
 
-## Implementation Details
+Key areas to test:
+1. Cart data rendering
+2. Responsive layout changes
+3. Sticky positioning behavior
+4. Discount code functionality
+5. Totals calculation accuracy
+6. Empty cart states
 
-### Component Structure
+## Future Improvements
 
+Potential enhancements:
+1. Type safety for cart prop
+2. Loading states for async operations
+3. Error handling for invalid cart data
+4. Animation for total updates
+5. Enhanced mobile experience
+6. Additional cart summary features
+
+## Examples
+
+### Basic Implementation
 ```tsx copy
-"use client"
-
-import { useState } from "react"
-import Register from "@modules/account/components/register"
-import Login from "@modules/account/components/login"
-
-const LoginTemplate = () => {
-  const [currentView, setCurrentView] = useState("sign-in")
-  
-  return (
-    <div className="w-full flex justify-start px-8 py-8">
-      {currentView === "sign-in" ? (
-        <Login setCurrentView={setCurrentView} />
-      ) : (
-        <Register setCurrentView={setCurrentView} />
-      )}
-    </div>
-  )
-}
-
-export default LoginTemplate
+<CheckoutSummary cart={{
+  items: [],
+  total: 0,
+  subtotal: 0,
+  discount_total: 0,
+  shipping_total: 0
+}} />
 ```
 
-### Styling
-
-The component uses Tailwind CSS classes for layout:
-- `w-full`: Full width container
-- `flex`: Flex container
-- `justify-start`: Left alignment
-- `px-8`: Horizontal padding of 8 units
-- `py-8`: Vertical padding of 8 units
-
-### Child Components
-
-#### Login Component Example
-
+### With Items and Discount
 ```tsx copy
-interface LoginProps {
-  setCurrentView: (view: "sign-in" | "register") => void
-}
-
-const Login = ({ setCurrentView }: LoginProps) => {
-  return (
-    <div>
-      <form>
-        {/* Login form fields */}
-      </form>
-      <button onClick={() => setCurrentView("register")}>
-        Create an account
-      </button>
-    </div>
-  )
-}
+<CheckoutSummary cart={{
+  items: [
+    {
+      id: "item_1",
+      title: "Product 1",
+      quantity: 2,
+      unit_price: 1000
+    }
+  ],
+  total: 2000,
+  subtotal: 2000,
+  discount_total: 200,
+  shipping_total: 500
+}} />
 ```
-
-#### Register Component Example
-
-```tsx copy
-interface RegisterProps {
-  setCurrentView: (view: "sign-in" | "register") => void
-}
-
-const Register = ({ setCurrentView }: RegisterProps) => {
-  return (
-    <div>
-      <form>
-        {/* Registration form fields */}
-      </form>
-      <button onClick={() => setCurrentView("sign-in")}>
-        Already have an account? Sign in
-      </button>
-    </div>
-  )
-}
-```
-
-## Props
-
-| Prop | Type | Description |
-|------|------|-------------|
-| setCurrentView | `(view: "sign-in" \| "register") => void` | Function to update the current view state |
-
-## Key Features
-
-1. **Client Component**
-   - Marked with "use client" directive
-   - Handles client-side state
-   - Manages view transitions
-
-2. **State Management**
-   - Uses React useState hook
-   - Toggles between login and register views
-   - Passes state setter to child components
-
-3. **Type Safety**
-   - TypeScript interfaces for props
-   - Enum for view states
-   - Strict type checking for state management

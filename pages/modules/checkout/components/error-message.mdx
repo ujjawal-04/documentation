@@ -1,282 +1,178 @@
----
-title: "Login"
-description: "A component for handling user authentication in a Next.js storefront"
----
+# Error Message 
 
-# Login
+The `Error Message` component is a simple React component that renders error messages in a consistent style. It conditionally renders an error message with predefined styling for error states.
 
-The `Login` component provides a user authentication interface for signing into an account.
+## Overview
 
-## Installation
-
-```tsx copy
-import Login from "@modules/account/components/Login"
+```typescript copy
+const ErrorMessage = ({ 
+  error, 
+  'data-testid': dataTestid 
+}: { 
+  error?: string | null, 
+  'data-testid'?: string 
+}) => {
+  // Component implementation
+}
 ```
 
 ## Props
 
-| Prop Name | Type | Description |
-|-----------|------|-------------|
-| `setCurrentView` | `(view: LOGIN_VIEW) => void` | Function to set the current login view state |
+### error
+- Type: `string | null | undefined`
+- Required: No
+- Description: The error message to display. If not provided or null, the component returns null.
 
-## Usage
+### data-testid
+- Type: `string`
+- Required: No
+- Description: Test identifier for automated testing purposes.
 
-Basic implementation of the component:
+## Implementation
 
-```tsx copy
-<Login setCurrentView={setViewFunction} />
-```
-
-## Implementation Example
-
-Here's a complete example showing how to use the Login component:
-
-```tsx copy
-import { Login } from "@modules/account/components/Login"
-import { useState } from "react"
-
-export type LOGIN_VIEW = "LOGIN" | "REGISTER" | "RESET_PASSWORD"
-
-export default function AccountPage() {
-  const [currentView, setCurrentView] = useState<LOGIN_VIEW>("LOGIN")
+```typescript copy
+const ErrorMessage = ({ error, 'data-testid': dataTestid }: { error?: string | null, 'data-testid'?: string }) => {
+  if (!error) {
+    return null
+  }
 
   return (
-    <div className="flex justify-center py-12">
-      <div className="max-w-md w-full bg-white shadow-lg rounded-lg p-8">
-        {currentView === "LOGIN" && (
-          <Login setCurrentView={setCurrentView} />
-        )}
-      </div>
+    <div className="pt-2 text-rose-500 text-small-regular" data-testid={dataTestid}>
+      <span>{error}</span>
+    </div>
+  )
+}
+
+export default ErrorMessage
+```
+
+## Usage Examples
+
+### Basic Usage
+```jsx copy
+import ErrorMessage from "@modules/common/components/error-message"
+
+function Form() {
+  return (
+    <ErrorMessage error="Invalid email address" />
+  )
+}
+```
+
+### With Test ID
+```jsx copy
+import ErrorMessage from "@modules/common/components/error-message"
+
+function Form() {
+  return (
+    <ErrorMessage 
+      error="Invalid input" 
+      data-testid="form-error" 
+    />
+  )
+}
+```
+
+### Conditional Error
+```jsx copy
+import ErrorMessage from "@modules/common/components/error-message"
+
+function Form() {
+  const [error, setError] = useState(null)
+
+  return (
+    <div>
+      <input 
+        type="email" 
+        onChange={(e) => {
+          if (!e.target.value.includes('@')) {
+            setError('Invalid email format')
+          } else {
+            setError(null)
+          }
+        }} 
+      />
+      <ErrorMessage error={error} />
     </div>
   )
 }
 ```
 
-## Features
+## Styling
 
-### Email and Password Authentication
-- Input validation for email format
-- Secure password handling
-- Error state management
-- Loading state during authentication
-
-### Error Handling
-- Displays user-friendly error messages
-- Handles network errors
-- Validates input before submission
-
-### Navigation Options
-- Registration redirect
-- Password reset link
-- Account access options
-
-## Component Structure
-
-### Form Implementation
-
-```tsx copy
-const LoginForm = ({ setCurrentView }) => {
-  const [email, setEmail] = useState("")
-  const [password, setPassword] = useState("")
-  const [error, setError] = useState<string | null>(null)
-  const [loading, setLoading] = useState(false)
-
-  return (
-    <form onSubmit={handleSubmit} className="space-y-4">
-      <div>
-        <label 
-          htmlFor="email" 
-          className="block text-sm font-medium text-gray-700"
-        >
-          Email
-        </label>
-        <input
-          id="email"
-          type="email"
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
-          required
-          className="mt-1 block w-full rounded-md border-gray-300"
-        />
-      </div>
-
-      <div>
-        <label 
-          htmlFor="password" 
-          className="block text-sm font-medium text-gray-700"
-        >
-          Password
-        </label>
-        <input
-          id="password"
-          type="password"
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
-          required
-          className="mt-1 block w-full rounded-md border-gray-300"
-        />
-      </div>
-
-      {error && (
-        <div className="text-red-600 text-sm">
-          {error}
-        </div>
-      )}
-
-      <button
-        type="submit"
-        disabled={loading}
-        className="w-full py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700"
-      >
-        {loading ? "Signing in..." : "Sign in"}
-      </button>
-    </form>
-  )
-}
-```
-
-### Navigation Links
-
-```tsx copy
-const NavigationLinks = ({ setCurrentView }) => {
-  return (
-    <div className="mt-4 flex items-center justify-between">
-      <button
-        onClick={() => setCurrentView("REGISTER")}
-        className="text-sm text-blue-600 hover:text-blue-500"
-      >
-        Join us
-      </button>
-      
-      <LocalizedClientLink
-        href="/request-reset-password"
-        className="text-sm text-blue-600 hover:text-blue-500"
-      >
-        Restore
-      </LocalizedClientLink>
-    </div>
-  )
-}
-```
-
-## Form Handling
-
-```tsx copy
-const handleSubmit = async (e: React.FormEvent) => {
-  e.preventDefault()
-  setLoading(true)
-  setError(null)
-
-  try {
-    const response = await authenticateUser({ email, password })
-    if (response.ok) {
-      // Handle successful login
-      router.push("/account")
-    } else {
-      setError("Invalid email or password")
-    }
-  } catch (error) {
-    setError("An error occurred. Please try again.")
-  } finally {
-    setLoading(false)
-  }
-}
-```
-
-## Error Handling
-
-```tsx copy
-const handleError = (error: unknown) => {
-  if (error instanceof AuthError) {
-    setError(error.message)
-  } else {
-    setError("An unexpected error occurred")
-  }
-  setLoading(false)
-}
-```
-
-## Best Practices
-
-1. Validate input fields before submission
-2. Provide clear feedback for all user actions
-3. Implement proper loading states
-4. Handle all potential error cases
-5. Use secure authentication methods
-6. Follow password security best practices
-7. Maintain consistent error messaging
-
-## Accessibility
-
-The component follows accessibility best practices:
-
-- Semantic HTML structure
-- Proper form labeling
-- ARIA attributes for dynamic content
-- Keyboard navigation support
-- Focus management
-- Loading state indicators
-- Error message announcements
+The component uses Tailwind CSS classes for consistent styling:
+- `pt-2`: Adds padding to the top of the error message
+- `text-rose-500`: Sets the text color to a rose/red shade
+- `text-small-regular`: Applies font sizing and weight
 
 ## Testing
 
-Example test cases for the component:
+The component supports testing through:
+- Optional `data-testid` prop for test selection
+- Conditional rendering based on error prop
+- Consistent DOM structure for reliable testing
 
-```tsx copy
-describe('Login', () => {
-  const mockSetCurrentView = jest.fn()
-
-  it('validates required fields', () => {
-    render(<Login setCurrentView={mockSetCurrentView} />)
-    
-    const submitButton = screen.getByRole('button', {
-      name: /sign in/i
-    })
-    
-    fireEvent.click(submitButton)
-    
-    expect(screen.getByText('Email is required')).toBeInTheDocument()
-    expect(screen.getByText('Password is required')).toBeInTheDocument()
+Example test:
+```javascript copy
+describe('ErrorMessage', () => {
+  it('renders error message when error is provided', () => {
+    render(<ErrorMessage error="Test error" data-testid="test-error" />)
+    expect(screen.getByTestId('test-error')).toHaveTextContent('Test error')
   })
 
-  it('handles successful login', async () => {
-    render(<Login setCurrentView={mockSetCurrentView} />)
-    
-    const emailInput = screen.getByLabelText(/email/i)
-    const passwordInput = screen.getByLabelText(/password/i)
-    
-    fireEvent.change(emailInput, {
-      target: { value: 'test@example.com' }
-    })
-    fireEvent.change(passwordInput, {
-      target: { value: 'password123' }
-    })
-    
-    const submitButton = screen.getByRole('button')
-    fireEvent.click(submitButton)
-    
-    // Assert redirect or success state
+  it('does not render when error is null', () => {
+    render(<ErrorMessage error={null} data-testid="test-error" />)
+    expect(screen.queryByTestId('test-error')).toBeNull()
   })
 })
 ```
 
-## Security Considerations
+## Best Practices
 
-- Implement rate limiting for login attempts
-- Use HTTPS for all authentication requests
-- Store passwords securely (hashing)
-- Implement session management
-- Handle token expiration
-- Protect against common vulnerabilities:
-  - Cross-Site Scripting (XSS)
-  - Cross-Site Request Forgery (CSRF)
-  - SQL Injection
-  - Brute Force Attacks
+1. **Conditional Rendering**
+   - Component returns null when no error is present
+   - Prevents unnecessary DOM elements when no error exists
 
-## Dependencies
+2. **Accessibility**
+   - Uses semantic HTML structure
+   - Provides clear error feedback
+   - Maintains readable color contrast
 
-- React
-- Next.js
-- Authentication services
-- Form handling utilities
-- Navigation components
+3. **Reusability**
+   - Consistent error styling across application
+   - Flexible error message support
+   - Optional test ID support
+
+## Performance
+
+The component is optimized for performance:
+- Simple conditional rendering
+- No unnecessary re-renders
+- Minimal DOM structure
+- No external dependencies
+
+## Design Considerations
+
+1. **Color Choice**
+   - Uses rose-500 for error state visibility
+   - Maintains adequate contrast for readability
+   - Follows common error color conventions
+
+2. **Layout**
+   - Top padding for spacing from previous elements
+   - Inline text display for natural text flow
+   - Consistent text sizing
+
+## Common Use Cases
+
+1. Form validation errors
+2. API error messages
+3. Input field errors
+4. Submit action failures
+5. Validation feedback
+
+## See Also
+
+- [React Conditional Rendering](https://react.dev/learn/conditional-rendering)
+- [Tailwind CSS Colors](https://tailwindcss.com/docs/customizing-colors)
+- [Accessibility in React](https://react.dev/learn/accessibility)

@@ -1,262 +1,268 @@
----
-title: "Order Card"
-description: "A component for displaying order information in a card format"
----
+# Payment
 
-# Order Card
+The `Payment` component is a client-side React component that handles payment method selection and processing in a checkout flow. It supports multiple payment providers, including Stripe and gift cards.
 
-The `OrderCard` component displays an overview of a customer's order, including order details, purchased items, and a link to view more details.
+## Overview
 
-## Installation
+```typescript copy
+"use client"
 
-```tsx copy
-import OrderCard from "@components/OrderCard"
+import { RadioGroup } from "@headlessui/react"
+import { isStripe as isStripeFunc, paymentInfoMap } from "@lib/constants"
+import { initiatePaymentSession } from "@lib/data/cart"
+import { CheckCircleSolid, CreditCard } from "@medusajs/icons"
+import { Button, Container, Heading, Text, clx } from "@medusajs/ui"
 ```
 
 ## Props
 
-| Prop Name | Type | Description |
-|-----------|------|-------------|
-| `order` | `HttpTypes.StoreOrder` | The order object containing details and items |
-
-## Usage
-
-Basic implementation of the component:
-
-```tsx copy
-<OrderCard order={orderData} />
+```typescript copy
+type PaymentProps = {
+  cart: any  // Cart object containing payment sessions and methods
+  availablePaymentMethods: any[]  // Array of available payment methods
+}
 ```
 
-## Implementation Example
+## State Management
 
-Here's a complete example showing how to use the OrderCard component:
+The component manages several pieces of state:
 
-```tsx copy
-import { OrderCard } from "@components/OrderCard"
-import { useOrders } from "@lib/hooks/use-orders"
+```typescript copy
+const [isLoading, setIsLoading] = useState(false)
+const [error, setError] = useState<string | null>(null)
+const [cardBrand, setCardBrand] = useState<string | null>(null)
+const [cardComplete, setCardComplete] = useState(false)
+const [selectedPaymentMethod, setSelectedPaymentMethod] = useState(
+  activeSession?.provider_id ?? ""
+)
+```
 
-export default function OrderHistory() {
-  const { orders } = useOrders()
+## Core Functions
+
+### Set Payment Method
+```typescript copy
+const setPaymentMethod = async (method: string) => {
+  setIsLoading(true)
+  setError(null)
+  setSelectedPaymentMethod(method)
   
-  return (
-    <div className="space-y-4">
-      {orders.map((order) => (
-        <OrderCard key={order.id} order={order} />
-      ))}
+  await initiatePaymentSession(cart, {
+    provider_id: method,
+  }).catch((err: any) => {
+    setError(err.message)
+  }).finally(() => {
+    setIsLoading(false)
+  })
+}
+```
+
+### Handle Submit
+```typescript copy
+const handleSubmit = async () => {
+  setIsLoading(true)
+  try {
+    const shouldInputCard =
+      isStripeFunc(selectedPaymentMethod) && !activeSession
+
+    const checkActiveSession =
+      activeSession?.provider_id === selectedPaymentMethod
+
+    if (!checkActiveSession) {
+      await initiatePaymentSession(cart, {
+        provider_id: selectedPaymentMethod,
+      })
+    }
+
+    if (!shouldInputCard) {
+      return router.push(
+        pathname + "?" + createQueryString("step", "review"),
+        {
+          scroll: false,
+        }
+      )
+    }
+  } catch (err: any) {
+    setError(err.message)
+  } finally {
+    setIsLoading(false)
+  }
+}
+```
+
+## UI States
+
+### Payment Selection View
+```typescript copy
+<RadioGroup
+  value={selectedPaymentMethod}
+  onChange={(value: string) => setPaymentMethod(value)}
+>
+  {availablePaymentMethods.map((paymentMethod) => (
+    <div key={paymentMethod.id}>
+      {isStripeFunc(paymentMethod.id) ? (
+        <StripeCardContainer
+          paymentMethods={availablePaymentMethods}
+          loading={isLoading}
+          cart={cart}
+          paymentProviderId={paymentMethod.id}
+          selectedPaymentOptionId={selectedPaymentMethod}
+          paymentInfoMap={paymentInfoMap}
+          setCardBrand={setCardBrand}
+          setError={setError}
+          setCardComplete={setCardComplete}
+        />
+      ) : (
+        <PaymentContainer
+          paymentMethods={availablePaymentMethods}
+          loading={isLoading}
+          cart={cart}
+          paymentInfoMap={paymentInfoMap}
+          paymentProviderId={paymentMethod.id}
+          selectedPaymentOptionId={selectedPaymentMethod}
+        />
+      )}
     </div>
+  ))}
+</RadioGroup>
+```
+
+### Payment Summary View
+```typescript copy
+<div className="flex items-start gap-x-1 w-full">
+  <div className="flex flex-col w-1/3">
+    <Text className="txt-medium-plus text-ui-fg-base mb-1">
+      Payment method
+    </Text>
+    <Text
+      className="txt-medium text-ui-fg-subtle"
+      data-testid="payment-method-summary"
+    >
+      {paymentInfoMap[activeSession?.provider_id]?.title ||
+        activeSession?.provider_id}
+    </Text>
+  </div>
+  {/* Payment details section */}
+</div>
+```
+
+## Usage Example
+
+```jsx copy
+import Payment from "@modules/checkout/components/payment"
+
+function CheckoutPage() {
+  const cart = {
+    payment_collection: {
+      payment_sessions: [
+        {
+          provider_id: "stripe",
+          status: "pending"
+        }
+      ]
+    },
+    gift_cards: []
+  }
+
+  const availablePaymentMethods = [
+    {
+      id: "stripe",
+      name: "Credit Card"
+    },
+    {
+      id: "paypal",
+      name: "PayPal"
+    }
+  ]
+
+  return (
+    <Payment 
+      cart={cart}
+      availablePaymentMethods={availablePaymentMethods}
+    />
   )
 }
 ```
 
 ## Features
 
-### Order Overview Display
-- Order number
-- Creation date
-- Total amount
-- Item count
-
-### Item Preview
-- Thumbnail images
-- Product titles
-- Quantities
-- Support for multiple items
-
-### Navigation
-- Link to detailed order view
-- Localized routing support
-
-## Component Structure
-
-### Main Card Layout
-
-```tsx copy
-const OrderCard = ({ order }) => {
-  const { formatAmount } = useFormatPrice()
-  
-  return (
-    <div className="bg-white rounded-lg shadow p-6">
-      <div className="flex justify-between items-start">
-        <div>
-          <h3 className="text-lg font-medium">
-            Order #{order.display_id}
-          </h3>
-          <p className="text-gray-500">
-            {new Date(order.created_at).toLocaleDateString()}
-          </p>
-        </div>
-        <div className="text-right">
-          <p className="font-medium">
-            {formatAmount({
-              amount: order.total,
-              currency: order.currency_code
-            })}
-          </p>
-          <p className="text-gray-500">
-            {order.items.length} items
-          </p>
-        </div>
-      </div>
-      
-      <ItemPreview items={order.items} />
-      
-      <ViewDetailsButton orderId={order.id} />
-    </div>
-  )
-}
-```
-
-### Item Preview Grid
-
-```tsx copy
-const ItemPreview = ({ items }) => {
-  const displayItems = items.slice(0, 3)
-  const remainingItems = items.length - 3
-
-  return (
-    <div className="mt-4">
-      <div className="grid grid-cols-3 gap-4">
-        {displayItems.map((item) => (
-          <div key={item.id} className="relative">
-            <div className="aspect-square rounded-md overflow-hidden">
-              <img
-                src={item.thumbnail}
-                alt={item.title}
-                className="object-cover w-full h-full"
-              />
-            </div>
-            <div className="absolute top-0 right-0 bg-white rounded-full px-2 py-1 text-sm">
-              x{item.quantity}
-            </div>
-          </div>
-        ))}
-      </div>
-      
-      {remainingItems > 0 && (
-        <p className="mt-2 text-gray-500 text-sm">
-          +{remainingItems} more items
-        </p>
-      )}
-    </div>
-  )
-}
-```
-
-### View Details Button
-
-```tsx copy
-const ViewDetailsButton = ({ orderId }) => {
-  return (
-    <LocalizedClientLink
-      href={`/account/orders/${orderId}`}
-      className="mt-4 block w-full text-center py-2 px-4 border border-gray-300 rounded-md text-sm font-medium hover:bg-gray-50"
-    >
-      View Order Details
-    </LocalizedClientLink>
-  )
-}
-```
-
-## Date Formatting
-
-```tsx copy
-const formatDate = (date: string) => {
-  return new Date(date).toLocaleDateString('en-US', {
-    month: 'long',
-    day: 'numeric',
-    year: 'numeric'
-  })
-}
-```
-
-## Price Formatting
-
-```tsx copy
-const formatPrice = (amount: number, currency: string) => {
-  return new Intl.NumberFormat('en-US', {
-    style: 'currency',
-    currency: currency
-  }).format(amount / 100)
-}
-```
-
-## Best Practices
-
-1. Use proper image optimization techniques
-2. Implement loading states for data fetching
-3. Handle missing or invalid data gracefully
-4. Ensure responsive design across screen sizes
-5. Maintain consistent date and price formatting
-6. Use proper error boundaries
-7. Implement proper type checking
-
-## Accessibility
-
-The component follows accessibility best practices:
-
-- Semantic HTML structure
-- Proper image alt text
-- ARIA labels where needed
-- Keyboard navigation support
-- Sufficient color contrast
-- Focus management
+1. Multiple payment method support
+2. Stripe integration
+3. Gift card handling
+4. Payment session management
+5. Error handling
+6. Loading states
+7. Edit mode
+8. Responsive design
 
 ## Testing
 
-Example test cases for the component:
-
-```tsx copy
-describe('OrderCard', () => {
-  const mockOrder = {
-    id: 'order_123',
-    display_id: '123',
-    created_at: '2024-02-22T12:00:00Z',
-    total: 10000,
-    currency_code: 'USD',
-    items: [
-      {
-        id: 'item_1',
-        title: 'Test Product',
-        thumbnail: '/test.jpg',
-        quantity: 2
-      }
-    ]
-  }
-
-  it('displays order information correctly', () => {
-    render(<OrderCard order={mockOrder} />)
-    
-    expect(screen.getByText('Order #123')).toBeInTheDocument()
-    expect(screen.getByText('$100.00')).toBeInTheDocument()
-    expect(screen.getByText('1 items')).toBeInTheDocument()
-  })
-
-  it('handles multiple items correctly', () => {
-    const orderWithManyItems = {
-      ...mockOrder,
-      items: Array(5).fill(mockOrder.items[0])
-    }
-    
-    render(<OrderCard order={orderWithManyItems} />)
-    
-    expect(screen.getByText('+2 more items')).toBeInTheDocument()
-  })
-})
+The component includes data-testid attributes for testing:
+```typescript copy
+data-testid="edit-payment-button"
+data-testid="payment-method-summary"
+data-testid="payment-details-summary"
+data-testid="payment-method-error-message"
 ```
 
-## Error Handling
+## Conditional Logic
 
-```tsx copy
-const handleMissingImage = (e: React.SyntheticEvent<HTMLImageElement>) => {
-  e.currentTarget.src = '/placeholder-image.jpg'
-}
+### Gift Card Handling
+```typescript copy
+const paidByGiftcard =
+  cart?.gift_cards && cart?.gift_cards?.length > 0 && cart?.total === 0
+
+{paidByGiftcard && (
+  <div className="flex flex-col w-1/3">
+    <Text className="txt-medium-plus text-ui-fg-base mb-1">
+      Payment method
+    </Text>
+    <Text
+      className="txt-medium text-ui-fg-subtle"
+      data-testid="payment-method-summary"
+    >
+      Gift card
+    </Text>
+  </div>
+)}
+```
+
+### Payment Ready State
+```typescript copy
+const paymentReady =
+  (activeSession && cart?.shipping_methods.length !== 0) || paidByGiftcard
 ```
 
 ## Dependencies
 
-- React
-- Next.js
-- Date formatting utilities
-- Price formatting utilities
-- Image optimization components
-- Navigation components
+- @headlessui/react: UI components
+- @medusajs/icons: Icon components
+- @medusajs/ui: UI components and utilities
+- @lib/constants: Payment method utilities
+- @lib/data/cart: Cart management functions
+- next/navigation: Next.js routing utilities
+- React hooks (useState, useEffect, useCallback)
+
+## Styling
+
+The component uses Tailwind CSS classes:
+- Layout: `flex`, `flex-col`, `w-1/3`
+- Spacing: `gap-x-1`, `gap-x-2`, `mb-6`
+- Colors: `bg-white`
+- Typography: `text-3xl-regular`, `txt-medium-plus`
+- States: `opacity-50`, `pointer-events-none`
+
+## Best Practices
+
+1. Handle loading states
+2. Provide error feedback
+3. Support multiple payment methods
+4. Clear payment flow
+5. Responsive design
+6. Accessibility support
+7. Test coverage
+
+## See Also
+
+- [Medusa Payment Documentation](https://docs.medusajs.com/modules/carts-and-checkout/payment)
+- [Stripe Documentation](https://stripe.com/docs)
+- [Headless UI RadioGroup](https://headlessui.com/react/radio-group)

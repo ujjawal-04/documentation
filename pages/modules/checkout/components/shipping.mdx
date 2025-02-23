@@ -1,286 +1,190 @@
----
-title: "Register"
-description: "Documentation for the Register component, which handles user registration"
----
+# Shipping
 
-# Register
-
-The `Register` component provides a comprehensive registration form for users to create a Power Peptides member profile, handling user input collection and submission.
-
-## Installation
-
-```tsx copy
-import Register from "@modules/account/components/register"
-```
+A client-side component that handles the delivery step in a checkout process, allowing users to select shipping methods and managing the shipping price calculations.
 
 ## Props
 
-| Prop Name | Type | Description |
-|-----------|------|-------------|
-| `setCurrentView` | `(view: LOGIN_VIEW) => void` | Function to switch between login views |
-
-## Usage
-
-Basic implementation of the component:
-
-```tsx copy
-<Register setCurrentView={handleViewChange} />
-```
-
-## Implementation Example
-
-Here's a complete example showing how to use the Register component:
-
-```tsx copy
-import { Register } from "@modules/account/components/register"
-import { useState } from "react"
-
-export type LOGIN_VIEW = "SIGN_IN" | "REGISTER"
-
-export default function AuthenticationFlow() {
-  const [currentView, setCurrentView] = useState<LOGIN_VIEW>("REGISTER")
-  
-  return (
-    <div className="max-w-md mx-auto py-8">
-      <div className="bg-white p-6 rounded-lg shadow-sm">
-        {currentView === "REGISTER" ? (
-          <Register setCurrentView={setCurrentView} />
-        ) : (
-          <SignIn setCurrentView={setCurrentView} />
-        )}
-      </div>
-    </div>
-  )
-}
-```
-
-## Component Structure
-
-### Main Component
-
-```tsx copy
-const Register: React.FC<{
-  setCurrentView: (view: LOGIN_VIEW) => void
-}> = ({ setCurrentView }) => {
-  const [state, formAction] = useActionState(signup, {
-    error: null,
-    success: false,
-  })
-
-  return (
-    <div className="flex flex-col items-center">
-      <h1 className="text-2xl font-bold mb-6">
-        Create a Power Peptides Account
-      </h1>
-      <form action={formAction} className="w-full space-y-4">
-        <div className="grid grid-cols-2 gap-4">
-          <Input
-            label="First Name"
-            name="first_name"
-            required
-            autoComplete="given-name"
-          />
-          <Input
-            label="Last Name"
-            name="last_name"
-            required
-            autoComplete="family-name"
-          />
-        </div>
-        <Input
-          label="Email"
-          name="email"
-          type="email"
-          required
-          autoComplete="email"
-        />
-        <Input
-          label="Phone"
-          name="phone"
-          type="tel"
-          autoComplete="tel"
-        />
-        <Input
-          label="Password"
-          name="password"
-          type="password"
-          required
-          autoComplete="new-password"
-        />
-        {state.error && (
-          <ErrorMessage error={state.error} />
-        )}
-        <div className="text-sm text-gray-500">
-          By creating an account, you agree to our{" "}
-          <Link href="/privacy-policy" className="text-blue-600 hover:underline">
-            Privacy Policy
-          </Link>{" "}
-          and{" "}
-          <Link href="/terms" className="text-blue-600 hover:underline">
-            Terms of Use
-          </Link>
-        </div>
-        <button
-          type="submit"
-          className="w-full btn-primary"
-          disabled={state.loading}
-        >
-          Create Account
-        </button>
-      </form>
-      <div className="mt-4 text-center">
-        <span className="text-gray-600">Already have an account?</span>{" "}
-        <button
-          onClick={() => setCurrentView("SIGN_IN")}
-          className="text-blue-600 hover:underline"
-        >
-          Sign In
-        </button>
-      </div>
-    </div>
-  )
-}
-```
+| Prop | Type | Required | Description |
+|------|------|----------|-------------|
+| cart | HttpTypes.StoreCart | Yes | The current cart object containing shipping methods and address information |
+| availableShippingMethods | HttpTypes.StoreCartShippingOption[] \| null | Yes | Array of available shipping options |
 
 ## Features
 
-### Form Fields
-- First Name input
-- Last Name input
-- Email input
-- Phone number input (optional)
-- Password input
-
-### Form Management
-- Handles form submission
-- Manages loading states
-- Displays error messages
-- Provides success feedback
-
-### Navigation
-- Switch to sign-in view
-- Links to legal documents
-- Clear call-to-action buttons
+- Dynamic shipping method selection
+- Handles both flat-rate and calculated shipping prices
+- Real-time price calculations
+- Error handling and loading states
+- Step-based navigation
+- Responsive UI with accessibility features
 
 ## State Management
 
-```tsx copy
-const signup = async (
-  _currentState: Record<string, unknown>,
-  formData: FormData
-) => {
-  try {
-    await signupCustomer({
-      first_name: formData.get("first_name") as string,
-      last_name: formData.get("last_name") as string,
-      email: formData.get("email") as string,
-      password: formData.get("password") as string,
-      phone: formData.get("phone") as string || undefined,
-    })
-    return { success: true, error: null }
-  } catch (error: any) {
-    return { success: false, error: error.toString() }
-  }
-}
-```
+The component manages several pieces of state:
 
-## Error Handling
-
-```tsx copy
-const ErrorMessage = ({ error }: { error: string }) => (
-  <div className="text-red-600 text-sm p-2 bg-red-50 rounded">
-    {error}
-  </div>
+```typescript copy
+const [isLoading, setIsLoading] = useState(false)
+const [isLoadingPrices, setIsLoadingPrices] = useState(true)
+const [calculatedPricesMap, setCalculatedPricesMap] = useState<Record<string, number>>({})
+const [error, setError] = useState<string | null>(null)
+const [shippingMethodId, setShippingMethodId] = useState<string | null>(
+  cart.shipping_methods?.at(-1)?.shipping_option_id || null
 )
 ```
 
-## Accessibility
+## Navigation
 
-The component implements these accessibility features:
+The component uses Next.js navigation hooks for managing the checkout flow:
 
-- Semantic HTML structure
-- Proper form labels
-- ARIA attributes
-- Keyboard navigation
-- Error announcements
-- Focus management
+```typescript copy
+const searchParams = useSearchParams()
+const router = useRouter()
+const pathname = usePathname()
+```
 
-## Best Practices
-
-1. Input validation
-2. Clear error messaging
-3. Loading state handling
-4. Password security
-5. Form field labels
-6. Privacy compliance
-7. Responsive design
-
-## Testing
-
-Example test cases:
+## Usage
 
 ```tsx copy
-describe('Register', () => {
-  it('submits form with valid data', async () => {
-    const mockSetView = jest.fn()
-    
-    render(<Register setCurrentView={mockSetView} />)
-    
-    await userEvent.type(screen.getByLabelText('First Name'), 'John')
-    await userEvent.type(screen.getByLabelText('Last Name'), 'Doe')
-    await userEvent.type(screen.getByLabelText('Email'), 'john@example.com')
-    await userEvent.type(screen.getByLabelText('Password'), 'password123')
-    await userEvent.click(screen.getByText('Create Account'))
-    
-    expect(await screen.findByText('Account created successfully')).toBeInTheDocument()
-  })
+import { Shipping } from "./components/Shipping"
+import { HttpTypes } from "@medusajs/types"
 
-  it('shows error message on invalid submission', async () => {
-    render(<Register setCurrentView={jest.fn()} />)
-    
-    await userEvent.click(screen.getByText('Create Account'))
-    
-    expect(await screen.findByText('Please fill in all required fields')).toBeInTheDocument()
-  })
+const CheckoutPage = ({
+  cart,
+  shippingMethods
+}: {
+  cart: HttpTypes.StoreCart
+  shippingMethods: HttpTypes.StoreCartShippingOption[]
+}) => {
+  return (
+    <Shipping 
+      cart={cart}
+      availableShippingMethods={shippingMethods}
+    />
+  )
+}
+```
+
+## Component States
+
+### Loading State
+The component handles two types of loading states:
+1. Overall component loading during shipping method updates
+2. Price calculation loading for calculated shipping rates
+
+### Error Handling
+Errors are managed through the error state and displayed using the ErrorMessage component:
+
+```tsx copy
+<ErrorMessage 
+  error={error}
+  data-testid="delivery-option-error-message"
+/>
+```
+
+## UI Components
+
+The component uses several UI components from various libraries:
+
+- `@headlessui/react`: RadioGroup, Radio
+- `@medusajs/ui`: Button, Heading, Text
+- `@medusajs/icons`: CheckCircleSolid, Loader
+- Custom components: ErrorMessage, Divider, MedusaRadio
+
+## Price Handling
+
+The component handles two types of shipping prices:
+
+1. Flat-rate pricing:
+```tsx copy
+convertToLocale({
+  amount: option.amount!,
+  currency_code: cart?.currency_code,
 })
 ```
 
+2. Calculated pricing:
+```tsx copy
+convertToLocale({
+  amount: calculatedPricesMap[option.id],
+  currency_code: cart?.currency_code,
+})
+```
+
+## Styling
+
+The component uses Tailwind CSS classes for styling:
+
+- Conditional styling using `clx` utility
+- Interactive states (hover, disabled)
+- Responsive layout
+- Custom color schemes
+
+### Example styling:
+```tsx copy
+className={clx(
+  "flex items-center justify-between text-small-regular cursor-pointer py-4 border rounded-rounded px-8 mb-2 hover:shadow-borders-interactive-with-active",
+  {
+    "border-ui-border-interactive": option.id === shippingMethodId,
+    "hover:shadow-brders-none cursor-not-allowed": isDisabled,
+  }
+)}
+```
+
+## Events
+
+### handleSubmit
+Processes the shipping method selection and advances to the payment step.
+
+### handleSetShippingMethod
+Updates the selected shipping method and clears any existing errors.
+
+### handleEdit
+Allows users to modify their delivery selection when viewing in collapsed state.
+
+## Side Effects
+
+The component uses two main useEffect hooks:
+
+1. Price calculation effect:
+   - Triggers when available shipping methods change
+   - Calculates prices for shipping options
+   - Updates the calculatedPricesMap state
+
+2. Error clearing effect:
+   - Clears errors when the delivery step becomes active
+
+## Testing
+
+The component includes several data-testid attributes for testing:
+
+- `delivery-options-container`
+- `delivery-option-radio`
+- `delivery-option-error-message`
+- `submit-delivery-option-button`
+- `edit-delivery-button`
+
 ## Dependencies
 
-- React
-- Input component
-- ErrorMessage component
-- Link component
-- useActionState hook
-- Customer signup utilities
+- `@headlessui/react`
+- `@medusajs/icons`
+- `@medusajs/types`
+- `@medusajs/ui`
+- `next/navigation`
+- Custom utility functions from `@lib`
 
-## Related Components
+## Best Practices
 
-- SignIn: Login form
-- Input: Form inputs
-- ErrorMessage: Error display
-- Link: Navigation component
+1. Always provide both required props (cart and availableShippingMethods)
+2. Handle both flat-rate and calculated shipping prices
+3. Implement proper error handling
+4. Use within a checkout flow where cart data is available
+5. Ensure proper setup of price calculation endpoints
+6. Handle loading states appropriately
 
-## Future Enhancements
+## Accessibility
 
-1. Add password strength indicator
-2. Implement social login options
-3. Add email verification
-4. Improve validation feedback
-5. Add terms acceptance checkbox
-6. Implement reCAPTCHA
-7. Add progressive form completion
-
-## Security Considerations
-
-1. Password security
-2. Data encryption
-3. CSRF protection
-4. Rate limiting
-5. Input sanitization
-6. Privacy compliance
-7. Session management
-
----
-
-This component provides a secure and user-friendly registration process while maintaining compliance with privacy requirements and security best practices.
+- Uses semantic HTML
+- Implements ARIA attributes through RadioGroup
+- Provides visual feedback for interactive elements
+- Handles disabled states appropriately
+- Includes proper focus management

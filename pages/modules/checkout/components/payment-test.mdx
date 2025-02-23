@@ -1,272 +1,126 @@
----
-title: "Profile Name"
-description: "The ProfileName component allows customers to update their first and last name"
----
+# Payment Test
 
-# Profile Name
+The `Payment Test` component is a simple React component that displays a warning badge for test payment environments. It uses the Medusa UI Badge component to create a consistent, visually distinct notification.
 
-The `ProfileName` component provides functionality for customers to view and update their first and last name in their account settings.
+## Overview
 
-## Installation
+```typescript copy
+import { Badge } from "@medusajs/ui"
 
-```tsx copy
-import ProfileName from "../path-to/ProfileName"
+const PaymentTest = ({ className }: { className?: string }) => {
+  return (
+    <Badge color="orange" className={className}>
+      <span className="font-semibold">Attention:</span> For testing purposes
+      only.
+    </Badge>
+  )
+}
+
+export default PaymentTest
 ```
 
 ## Props
 
-| Prop Name | Type | Description |
-|-----------|------|-------------|
-| `customer` | `HttpTypes.StoreCustomer` | The customer object containing user details |
+### className
+- Type: `string`
+- Required: No
+- Description: Optional CSS class name to be applied to the Badge component for custom styling.
 
-## Usage
+## Usage Examples
 
-Basic implementation of the component:
+### Basic Usage
+```jsx copy
+import PaymentTest from "@modules/checkout/components/payment-test"
 
-```tsx copy
-<ProfileName customer={customerData} />
-```
-
-## Implementation Example
-
-Here's a complete example showing how to use the ProfileName component:
-
-```tsx copy
-import { ProfileName } from "../path-to/ProfileName"
-import { useCustomer } from "@lib/hooks/use-customer"
-
-export default function AccountDetails() {
-  const { customer } = useCustomer()
-  
-  if (!customer) {
-    return <div>Loading...</div>
-  }
-  
+function CheckoutPage() {
   return (
-    <div className="max-w-xl mx-auto py-8">
-      <h2 className="text-xl font-bold mb-4">Personal Details</h2>
-      <ProfileName customer={customer} />
+    <div>
+      <h2>Payment Methods</h2>
+      <PaymentTest />
     </div>
   )
 }
 ```
 
-## Features
+### With Custom Styling
+```jsx copy
+import PaymentTest from "@modules/checkout/components/payment-test"
 
-### Name Display and Update
-- Shows current first and last name
-- Provides form for name updates
-- Handles form submission asynchronously
-- Displays success/error feedback
-
-### Form Management
-- Validates input fields
-- Manages submission state
-- Provides clear feedback
-- Handles error cases
-
-### State Handling
-- Uses useActionState for async operations
-- Manages loading states
-- Handles success and error cases
-- Provides user feedback
-
-## Component Structure
-
-### Main Component
-
-```tsx copy
-const ProfileName = ({ customer }) => {
-  const [isEditing, setIsEditing] = useState(false)
-  const { state, action } = useActionState()
-
-  const handleSubmit = async (e) => {
-    e.preventDefault()
-    const formData = new FormData(e.target)
-    
-    await action(async () => {
-      await updateCustomer({
-        first_name: formData.get("first_name"),
-        last_name: formData.get("last_name")
-      })
-      setIsEditing(false)
-    })
-  }
-
+function CheckoutPage() {
   return (
-    <AccountInfo label="Name">
-      {!isEditing ? (
-        <NameDisplay 
-          firstName={customer.first_name}
-          lastName={customer.last_name}
-          onEdit={() => setIsEditing(true)}
-        />
-      ) : (
-        <NameForm 
-          firstName={customer.first_name}
-          lastName={customer.last_name}
-          onSubmit={handleSubmit}
-          onCancel={() => setIsEditing(false)}
-          state={state}
-        />
-      )}
-    </AccountInfo>
+    <div>
+      <h2>Payment Methods</h2>
+      <PaymentTest className="mt-4 mb-2" />
+    </div>
   )
 }
 ```
 
-### Name Form Component
+### In Payment Form
+```jsx copy
+import PaymentTest from "@modules/checkout/components/payment-test"
 
-```tsx copy
-const NameForm = ({ firstName, lastName, onSubmit, onCancel, state }) => {
+function PaymentForm() {
   return (
-    <form onSubmit={onSubmit} className="space-y-4">
-      <div className="grid grid-cols-2 gap-4">
-        <Input
-          label="First Name"
-          name="first_name"
-          required
-          defaultValue={firstName}
-        />
-        <Input
-          label="Last Name"
-          name="last_name"
-          required
-          defaultValue={lastName}
-        />
-      </div>
-      <div className="flex justify-end space-x-2">
-        <button 
-          type="button" 
-          onClick={onCancel}
-          className="btn-secondary"
-        >
-          Cancel
-        </button>
-        <button 
-          type="submit"
-          className="btn-primary"
-          disabled={state.loading}
-        >
-          Save Changes
-        </button>
+    <form>
+      <PaymentTest className="mb-4" />
+      <div className="payment-fields">
+        {/* Payment form fields */}
       </div>
     </form>
   )
 }
 ```
 
-## Usage with Loading State
+## Styling
 
-```tsx copy
-const NameSection = () => {
-  const { customer, isLoading } = useCustomer()
+The component uses:
+- Medusa UI Badge component with orange color scheme
+- Tailwind CSS for font weight (`font-semibold`)
+- Optional custom className for additional styling
 
-  if (isLoading) {
-    return (
-      <div className="space-y-4">
-        <div className="h-8 bg-gray-100 rounded animate-pulse" />
-        <div className="h-12 bg-gray-100 rounded animate-pulse" />
-      </div>
-    )
-  }
+## Features
 
-  return <ProfileName customer={customer} />
-}
-```
-
-## Accessibility
-
-The component implements these accessibility features:
-
-- Semantic HTML structure
-- Proper form labels
-- ARIA attributes
-- Keyboard navigation
-- Focus management
-- Clear error messaging
-
-## Best Practices
-
-1. Input validation
-2. Clear success/error feedback
-3. Proper loading states
-4. Form field labels
-5. Responsive design
-6. Keyboard accessibility
-7. Clean state management
-
-## Testing
-
-Example test cases:
-
-```tsx copy
-describe('ProfileName', () => {
-  it('displays current name', () => {
-    const mockCustomer = {
-      first_name: 'John',
-      last_name: 'Doe'
-    }
-    
-    render(<ProfileName customer={mockCustomer} />)
-    
-    expect(screen.getByText('John Doe')).toBeInTheDocument()
-  })
-
-  it('shows form when edit is clicked', async () => {
-    const mockCustomer = {
-      first_name: 'John',
-      last_name: 'Doe'
-    }
-    
-    render(<ProfileName customer={mockCustomer} />)
-    
-    await userEvent.click(screen.getByText('Edit'))
-    expect(screen.getByRole('form')).toBeInTheDocument()
-  })
-
-  it('submits form with updated values', async () => {
-    const mockCustomer = {
-      first_name: 'John',
-      last_name: 'Doe'
-    }
-    
-    render(<ProfileName customer={mockCustomer} />)
-    
-    await userEvent.click(screen.getByText('Edit'))
-    await userEvent.type(screen.getByLabelText('First Name'), 'Jane')
-    await userEvent.click(screen.getByText('Save Changes'))
-    
-    expect(await screen.findByText('Changes saved successfully')).toBeInTheDocument()
-  })
-})
-```
+1. Visual warning indicator
+2. Consistent styling through Medusa UI
+3. Customizable through className prop
+4. Clear attention-grabbing message
+5. Semantic HTML structure
 
 ## Dependencies
 
-- React
-- AccountInfo component
-- Input component
-- Form validation utilities
-- State management hooks
+- @medusajs/ui: Badge component
+
+## Best Practices
+
+1. **Placement**
+   - Place near payment-related elements
+   - Position where it's immediately visible
+   - Don't hide or obscure important form elements
+
+2. **Usage**
+   - Use in test/development environments
+   - Include in payment method selection areas
+   - Display before payment processing
+
+3. **Styling**
+   - Maintain the orange warning color
+   - Ensure text remains readable
+   - Keep adequate spacing around the badge
+
+## Accessibility
+
+- Uses semantic HTML
+- Maintains color contrast for readability
+- Clear, concise warning message
 
 ## Related Components
 
-- AccountInfo: Wrapper component
-- Input: Form input fields
-- ProfileEmail: Email management
-- ProfileBillingAddress: Address management
+- Badge from @medusajs/ui
+- Payment form components
+- Error message components
 
-## Future Enhancements
+## See Also
 
-1. Add name format validation
-2. Implement character restrictions
-3. Add loading indicators
-4. Improve error messaging
-5. Add name history tracking
-6. Implement accessibility improvements
-7. Add name pronunciation guide
-
----
-
-This component provides a straightforward way for customers to manage their name information while maintaining consistency with the account management interface.
+- [Medusa UI Badge Documentation](https://docs.medusajs.com/ui/components/badge)
+- [Medusa Payment Testing Guide](https://docs.medusajs.com/modules/carts-and-checkout/payment)

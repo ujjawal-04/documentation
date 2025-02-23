@@ -1,282 +1,242 @@
----
-title: "Profile Email"
-description: "Documentation for the ProfileEmail component in the customer profile section"
----
+# Payment Container 
 
-# Profile Email
+A set of React components that handle the display and interaction of payment methods in a checkout flow. Includes both a base PaymentContainer and a specialized StripeCardContainer.
 
-The `ProfileEmail` component provides functionality for displaying and managing a customer's email address within their profile section.
+## Payment Container
 
-## Installation
+### Overview
 
-```tsx copy
-import ProfileEmail from "../path/to/ProfileEmail"
+```typescript copy
+import { Radio as RadioGroupOption } from "@headlessui/react"
+import { Text, clx } from "@medusajs/ui"
+import Radio from "@modules/common/components/radio"
 ```
 
-## Props
+### Props Interface
 
-| Prop Name | Type | Description |
-|-----------|------|-------------|
-| `customer` | `HttpTypes.StoreCustomer` | The customer object containing email information |
-
-## Usage
-
-Basic implementation of the component:
-
-```tsx copy
-<ProfileEmail customer={customerData} />
+```typescript copy
+type PaymentContainerProps = {
+  paymentMethods: any[]
+  loading?: boolean
+  cart: any
+  paymentProviderId: string
+  selectedPaymentOptionId: string | null
+  disabled?: boolean
+  paymentInfoMap: Record<string, { 
+    title: string
+    icon: JSX.Element 
+  }>
+  children?: React.ReactNode
+}
 ```
 
-## Implementation Example
+### Component Structure
 
-Here's a complete example showing how to use the ProfileEmail component:
-
-```tsx copy
-import { ProfileEmail } from "../path/to/ProfileEmail"
-import { useCustomer } from "@lib/hooks/use-customer"
-
-export default function EmailSection() {
-  const { customer } = useCustomer()
-  
-  if (!customer) {
-    return <div>Loading...</div>
-  }
+```typescript copy
+const PaymentContainer: React.FC<PaymentContainerProps> = ({
+  paymentMethods,
+  loading,
+  cart,
+  paymentProviderId,
+  selectedPaymentOptionId,
+  paymentInfoMap,
+  disabled = false,
+  children,
+}) => {
+  const isSelected = selectedPaymentOptionId === paymentProviderId
   
   return (
-    <div className="max-w-xl mx-auto py-8">
-      <h2 className="text-xl font-bold mb-4">Email Settings</h2>
-      <ProfileEmail customer={customer} />
-    </div>
+    <RadioGroupOption>
+      {/* Component implementation */}
+    </RadioGroupOption>
+  )
+}
+```
+
+### Styling
+
+The component uses dynamic Tailwind CSS classes:
+
+```typescript copy
+className={clx(
+  "flex flex-col gap-y-4 p-6 border transition-all duration-200",
+  {
+    "border-green-500 bg-gray-100": isSelected,
+    "border-gray-300 bg-white hover:shadow-md": !isSelected,
+    "rounded-t-lg": paymentProviderId === paymentMethods[0].id,
+    "rounded-b-lg": paymentProviderId === paymentMethods[paymentMethods.length - 1].id,
+  }
+)}
+```
+
+### Usage Example
+
+```jsx copy
+import PaymentContainer from "@modules/checkout/components/payment-container"
+
+function CheckoutPage() {
+  const paymentMethods = [
+    { id: "stripe", title: "Credit Card" },
+    { id: "manual", title: "Bank Transfer" }
+  ]
+  
+  const paymentInfoMap = {
+    stripe: { 
+      title: "Credit Card",
+      icon: <CreditCardIcon />
+    }
+  }
+
+  return (
+    <PaymentContainer
+      paymentMethods={paymentMethods}
+      cart={cart}
+      paymentProviderId="stripe"
+      selectedPaymentOptionId="stripe"
+      paymentInfoMap={paymentInfoMap}
+    />
+  )
+}
+```
+
+## StripeCardContainer
+
+### Overview
+
+An extension of PaymentContainer that handles Stripe-specific card input functionality.
+
+```typescript copy
+export const StripeCardContainer = ({
+  // Props
+}) => {
+  const stripeReady = useContext(StripeContext)
+  // Implementation
+}
+```
+
+### Props Interface
+
+```typescript copy
+type StripeCardContainerProps = Omit<PaymentContainerProps, "children"> & {
+  setCardBrand: (brand: string) => void
+  setError: (error: string | null) => void
+  setCardComplete: (complete: boolean) => void
+}
+```
+
+### Stripe Card Options
+
+```typescript copy
+const useOptions: StripeCardElementOptions = useMemo(() => ({
+  style: {
+    base: {
+      fontFamily: "Inter, sans-serif",
+      color: "#424270",
+      "::placeholder": {
+        color: "rgb(107 114 128)",
+      },
+    },
+  },
+  classes: {
+    base: "pt-3 pb-1 block w-full h-11 px-4 mt-0 bg-ui-bg-field border rounded-md appearance-none focus:outline-none focus:ring-0 focus:shadow-borders-interactive-with-active border-ui-border-base hover:bg-ui-bg-field-hover transition-all duration-300 ease-in-out",
+  },
+}), [])
+```
+
+### Card Element Integration
+
+```typescript copy
+<CardElement
+  options={useOptions as StripeCardElementOptions}
+  onChange={(e) => {
+    setCardBrand(
+      e.brand && e.brand.charAt(0).toUpperCase() + e.brand.slice(1)
+    )
+    setError(e.error?.message || null)
+    setCardComplete(e.complete)
+  }}
+/>
+```
+
+### Usage Example
+
+```jsx copy
+import { StripeCardContainer } from "@modules/checkout/components/payment-container"
+
+function StripeCheckout() {
+  const [cardBrand, setCardBrand] = useState("")
+  const [error, setError] = useState(null)
+  const [isComplete, setIsComplete] = useState(false)
+
+  return (
+    <StripeCardContainer
+      paymentMethods={paymentMethods}
+      cart={cart}
+      paymentProviderId="stripe"
+      selectedPaymentOptionId="stripe"
+      paymentInfoMap={paymentInfoMap}
+      setCardBrand={setCardBrand}
+      setError={setError}
+      setCardComplete={setIsComplete}
+    />
   )
 }
 ```
 
 ## Features
 
-### Email Display
-- Shows current email address
-- Provides clear visual indication of current email
-- Maintains consistent styling with profile section
+1. Radio group-based payment method selection
+2. Loading state handling
+3. Dynamic styling based on selection state
+4. Stripe card input integration
+5. Error handling
+6. Card brand detection
+7. Completion status tracking
 
-### Email Management
-- Form for updating email (placeholder functionality)
-- Validation for email format
-- Success and error state handling
+## States
 
-### State Management
-- Tracks form submission state
-- Provides feedback on action success/failure
-- Handles loading states appropriately
-
-## Component Structure
-
-### Main Component
-
-```tsx copy
-const ProfileEmail = ({ customer }) => {
-  const [isEditing, setIsEditing] = useState(false)
-  const { state, action } = useActionState()
-
-  const handleSubmit = async (e) => {
-    e.preventDefault()
-    // Email update functionality placeholder
-    // Will be implemented when supported by MedusaJS
-  }
-
-  return (
-    <AccountInfo label="Email">
-      {!isEditing ? (
-        <EmailDisplay 
-          email={customer.email} 
-          onEdit={() => setIsEditing(true)} 
-        />
-      ) : (
-        <EmailForm 
-          currentEmail={customer.email}
-          onSubmit={handleSubmit}
-          onCancel={() => setIsEditing(false)}
-          state={state}
-        />
-      )}
-    </AccountInfo>
-  )
-}
+### Selection State
+```typescript copy
+const isSelected = selectedPaymentOptionId === paymentProviderId
 ```
 
-### Email Form Component
-
-```tsx copy
-const EmailForm = ({ currentEmail, onSubmit, onCancel, state }) => {
-  return (
-    <form onSubmit={onSubmit} className="space-y-4">
-      <Input
-        label="Email"
-        name="email"
-        type="email"
-        required
-        defaultValue={currentEmail}
-        className="bg-teal-100"
-      />
-      <div className="flex justify-end space-x-2">
-        <button 
-          type="button" 
-          onClick={onCancel}
-          className="btn-secondary"
-        >
-          Cancel
-        </button>
-        <button 
-          type="submit"
-          className="btn-primary"
-          disabled={state.loading}
-        >
-          Save Changes
-        </button>
-      </div>
-    </form>
-  )
-}
+### Loading State
+```typescript copy
+{loading && isSelected && <span><Spinner /></span>}
 ```
 
-## State Management
-
-```tsx copy
-const useActionState = () => {
-  const [state, setState] = useState({
-    loading: false,
-    error: null,
-    success: false
-  })
-
-  const action = async (callback) => {
-    setState({ loading: true, error: null, success: false })
-    try {
-      await callback()
-      setState({ loading: false, error: null, success: true })
-    } catch (error) {
-      setState({ loading: false, error: error.message, success: false })
-    }
-  }
-
-  return { state, action }
-}
-```
-
-## Usage with Loading State
-
-```tsx copy
-const EmailSection = () => {
-  const { customer, isLoading } = useCustomer()
-
-  if (isLoading) {
-    return (
-      <div className="space-y-4">
-        <div className="h-8 bg-gray-100 rounded animate-pulse" />
-        <div className="h-12 bg-gray-100 rounded animate-pulse" />
-      </div>
-    )
-  }
-
-  return <ProfileEmail customer={customer} />
-}
-```
-
-## Styling
-
-The component uses consistent styling with the profile section:
-
-```tsx copy
-<div className="rounded-lg border p-4">
-  <div className="flex items-center justify-between">
-    <span className="text-gray-700">{customer.email}</span>
-    <button 
-      onClick={onEdit}
-      className="text-blue-600 hover:text-blue-700"
-    >
-      Edit
-    </button>
-  </div>
-</div>
-```
-
-## Accessibility
-
-The component implements these accessibility features:
-
-- Proper form labels
-- ARIA attributes for state changes
-- Keyboard navigation support
-- Clear error messaging
-- Focus management
-
-## Best Practices
-
-1. Email format validation
-2. Clear success/error feedback
-3. Proper loading states
-4. Form field labels
-5. Responsive design
-6. Keyboard accessibility
-7. Clean state management
-
-## Known Limitations
-
-1. Email updates are currently not supported by MedusaJS backend
-2. Placeholder implementation for future functionality
-3. Limited to single email address per customer
-
-## Testing
-
-Example test cases:
-
-```tsx copy
-describe('ProfileEmail', () => {
-  it('displays current email', () => {
-    const mockCustomer = {
-      email: 'test@example.com'
-    }
-    
-    render(<ProfileEmail customer={mockCustomer} />)
-    
-    expect(screen.getByText('test@example.com')).toBeInTheDocument()
-  })
-
-  it('shows form when edit is clicked', async () => {
-    const mockCustomer = {
-      email: 'test@example.com'
-    }
-    
-    render(<ProfileEmail customer={mockCustomer} />)
-    
-    await userEvent.click(screen.getByText('Edit'))
-    expect(screen.getByRole('form')).toBeInTheDocument()
-  })
-})
+### Stripe Ready State
+```typescript copy
+const stripeReady = useContext(StripeContext)
 ```
 
 ## Dependencies
 
-- React
-- AccountInfo component
-- Input component
-- Form validation utilities
-- State management hooks
+- @headlessui/react: Radio component
+- @medusajs/ui: UI components and utilities
+- @stripe/react-stripe-js: Stripe React components
+- @stripe/stripe-js: Stripe JS library
+- React hooks (useContext, useMemo)
 
-## Related Components
+## Testing
 
-- AccountInfo: Wrapper component
-- Input: Form input field
-- EmailDisplay: Shows current email
-- EmailForm: Handles email editing
+Both components support testing through data-testid attributes:
+```typescript copy
+data-testid="submit-order-button"
+```
 
-## Future Enhancements
+## Best Practices
 
-1. Implement email update functionality when supported by MedusaJS
-2. Add email verification flow
-3. Support multiple email addresses
-4. Add email preferences management
-5. Implement notification settings
+1. Proper error handling
+2. Loading state management
+3. Responsive design
+4. Accessibility support
+5. Type safety
+6. Component composition
+7. Style encapsulation
 
----
+## See Also
 
-This component provides a foundation for email management within the customer profile section, ready to be extended with full functionality when supported by the backend.
+- [Stripe Elements Documentation](https://stripe.com/docs/stripe-js)
+- [Headless UI Documentation](https://headlessui.com)
+- [Medusa Payment Documentation](https://docs.medusajs.com/modules/carts-and-checkout/payment)

@@ -1,206 +1,270 @@
----
-title: 'Address Book'
-description: 'A component for managing user addresses, including display, addition, and modification functionality.'
----
+# Billing Address
 
-# Address Book
+The `Billing Address` component is a React component that renders a form for collecting billing address information. It provides a comprehensive set of input fields for address details with proper validation and state management.
 
-The `AddressBook` component manages the display and modification of a user's saved addresses. It allows users to add new addresses and edit existing ones.
+## Overview
 
-## Installation
+```typescript copy
+import { HttpTypes } from "@medusajs/types"
+import Input from "@modules/common/components/input"
+import React, { useState } from "react"
+import CountrySelect from "../country-select"
+import Checkbox from "@modules/common/components/checkbox"
 
-Ensure you have the component in your project:
-
-```tsx copy
-import AddressBook from "@components/AddressBook"
+const BillingAddress = ({ cart }: { cart: HttpTypes.StoreCart | null }) => {
+  // Component implementation
+}
 ```
 
 ## Props
 
-| Prop Name | Type | Required | Description |
-|-----------|------|----------|-------------|
-| `customer` | `HttpTypes.StoreCustomer` | Yes | The logged-in customer data, including addresses |
-| `region` | `HttpTypes.StoreRegion` | Yes | The region context for address management |
-
-## Usage
-
-Here's a basic example of how to use the `AddressBook` component:
-
-```tsx copy
-<AddressBook customer={customerData} region={regionData} />
-```
-
-## Features
-
-### Address Management
-- **Displays Saved Addresses**: Lists all addresses stored in the customer's account
-- **Add New Address**: Integrates the `AddAddress` component to allow users to add a new address
-- **Edit Existing Addresses**: Uses `EditAddress` to provide an editing interface for each address
-
-### Responsive Design
-- **Desktop View**: Grid layout for optimal display
-- **Mobile View**: Adjusts layout for smaller screens
-- **Automatic Adaptation**: Ensures usability across devices
-
-## Implementation Example
-
-```tsx copy
-import { AddressBook } from "@components/AddressBook"
-import { useCustomer } from "@lib/hooks/use-customer"
-import { useRegion } from "@lib/hooks/use-region"
-
-export default function AccountAddresses() {
-  const { customer } = useCustomer()
-  const { region } = useRegion()
-
-  return (
-    <div className="w-full">
-      <div className="mb-8 flex flex-col gap-y-4">
-        <h1 className="text-2xl-semi">Shipping Addresses</h1>
-        <p className="text-base-regular">
-          View and update your shipping addresses, you can add as many as you like.
-        </p>
-      </div>
-      {customer && region ? (
-        <AddressBook customer={customer} region={region} />
-      ) : null}
-    </div>
-  )
+```typescript copy
+type BillingAddressProps = {
+  cart: HttpTypes.StoreCart | null
 }
 ```
 
-## Behavior
+### cart
+- Type: `HttpTypes.StoreCart | null`
+- Required: Yes
+- Description: The current cart object containing existing billing address information, if any.
 
-The component implements the following behavior:
+## State Management
 
-### Address Display
-```tsx copy
-// Example of address mapping implementation
-{customer.addresses.map((address) => (
-  <EditAddress
-    key={address.id}
-    address={address}
-    region={region}
-    customer={customer}
-  />
-))}
+The component uses React's useState hook to manage form data:
+
+```typescript copy
+const [formData, setFormData] = useState<any>({
+  "billing_address.first_name": cart?.billing_address?.first_name || "",
+  "billing_address.last_name": cart?.billing_address?.last_name || "",
+  "billing_address.address_1": cart?.billing_address?.address_1 || "",
+  "billing_address.company": cart?.billing_address?.company || "",
+  "billing_address.postal_code": cart?.billing_address?.postal_code || "",
+  "billing_address.city": cart?.billing_address?.city || "",
+  "billing_address.country_code": cart?.billing_address?.country_code || "US",
+  "billing_address.province": cart?.billing_address?.province || "",
+  "billing_address.phone": cart?.billing_address?.phone || "",
+})
 ```
 
-### New Address Addition
-```tsx copy
-<AddAddress
-  region={region}
-  customer={customer}
-  className="bg-white p-4 rounded-lg"
+## Event Handlers
+
+```typescript copy
+const handleChange = (
+  e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
+) => {
+  setFormData({
+    ...formData,
+    [e.target.name]: e.target.value,
+  })
+}
+```
+
+## Form Structure
+
+The component renders a form with the following fields:
+
+### Country Selection
+```typescript copy
+<CountrySelect
+  aria-label="Country"
+  name="billing_address.country_code"
+  autoComplete="country"
+  region={cart?.region}
+  value={formData["billing_address.country_code"]}
+  onChange={handleChange}
+  required
+  data-testid="billing-country-select"
 />
+```
+
+### Personal Information
+```typescript copy
+<div className="grid grid-cols-2 gap-4">
+  <div>
+    <Input
+      label="First name"
+      type="text"
+      name="billing_address.first_name"
+      value={formData["billing_address.first_name"]}
+      onChange={handleChange}
+      required
+      data-testid="billing-first-name-input"
+    />
+  </div>
+  <div>
+    <Input
+      label="Last name"
+      type="text"
+      name="billing_address.last_name"
+      value={formData["billing_address.last_name"]}
+      onChange={handleChange}
+      required
+      data-testid="billing-last-name-input"
+    />
+  </div>
+</div>
+```
+
+### Company Information
+```typescript copy
+<Input
+  label="Company"
+  type="text"
+  name="billing_address.company"
+  value={formData["billing_address.company"]}
+  onChange={handleChange}
+  data-testid="billing-company-input"
+/>
+```
+
+### Address Details
+```typescript copy
+<Input
+  label="Address"
+  type="text"
+  name="billing_address.address_1"
+  value={formData["billing_address.address_1"]}
+  onChange={handleChange}
+  required
+  data-testid="billing-address-input"
+/>
+
+<Input
+  label="Apartment, suite, etc."
+  type="text"
+  name="billing_address.address_2"
+  value={formData["billing_address.address_2"]}
+  onChange={handleChange}
+/>
+```
+
+### Location Information
+```typescript copy
+<div className="grid md:grid-cols-3 grid-cols-2 gap-4">
+  <div className="col-span-2 md:col-span-1">
+    <Input
+      label="City"
+      type="text"
+      name="billing_address.city"
+      value={formData["billing_address.city"]}
+      onChange={handleChange}
+      required
+      data-testid="billing-city-input"
+    />
+  </div>
+  <div>
+    <Input
+      label="State / Province"
+      type="text"
+      name="billing_address.province"
+      value={formData["billing_address.province"]}
+      onChange={handleChange}
+      required
+      data-testid="billing-province-input"
+    />
+  </div>
+  <div>
+    <Input
+      label="Postal Code"
+      type="text"
+      name="billing_address.postal_code"
+      value={formData["billing_address.postal_code"]}
+      onChange={handleChange}
+      required
+      data-testid="billing-postal-input"
+    />
+  </div>
+</div>
+```
+
+### Contact Information
+```typescript copy
+<Input
+  label="Phone"
+  type="tel"
+  name="billing_address.phone"
+  value={formData["billing_address.phone"]}
+  onChange={handleChange}
+  data-testid="billing-phone-input"
+/>
+```
+
+## Usage Example
+
+```jsx copy
+import BillingAddress from "@modules/checkout/components/billing-address"
+
+function CheckoutPage() {
+  const cart = {
+    billing_address: {
+      first_name: "John",
+      last_name: "Doe",
+      address_1: "123 Main St",
+      city: "Boston",
+      postal_code: "02101",
+      country_code: "US",
+      province: "MA",
+      phone: "+1234567890"
+    }
+  }
+
+  return (
+    <BillingAddress cart={cart} />
+  )
+}
 ```
 
 ## Styling
 
 The component uses Tailwind CSS for styling:
+- Layout: `max-w-[800px]`, `mx-auto`, `space-y-4`
+- Grid system: `grid`, `grid-cols-2`, `grid-cols-3`
+- Responsive design: `md:grid-cols-3`, `md:col-span-1`
+- Spacing: `gap-4`
 
-```tsx copy
-// Example styling structure
-<div className="grid grid-cols-1 md:grid-cols-2 gap-4 p-4">
-  {/* Address components */}
-  <div className="bg-white rounded-lg shadow p-4">
-    {/* Individual address content */}
-  </div>
-</div>
-```
+## Testing
 
-### Style Features
-- Consistent spacing and padding
-- Hover and active states
-- Responsive layout adjustments
-- Clear visual hierarchy
-
-## Form Handling
-
-The component handles address forms with proper validation:
-
-```tsx copy
-// Example form implementation
-<form onSubmit={handleSubmit}>
-  <div className="grid grid-cols-1 gap-y-2">
-    <Input
-      label="Address"
-      name="address_1"
-      required
-      autoComplete="street-address"
-    />
-    <div className="grid grid-cols-2 gap-x-2">
-      <Input
-        label="Postal Code"
-        name="postal_code"
-        required
-        autoComplete="postal-code"
-      />
-      <Input
-        label="City"
-        name="city"
-        required
-        autoComplete="address-level2"
-      />
-    </div>
-  </div>
-</form>
-```
-
-## Best Practices
-
-1. Always provide the `customer` prop
-2. Use within authenticated routes
-3. Maintain a consistent address management structure
-4. Handle loading and error states appropriately
-5. Validate address data before submission
-6. Provide clear feedback for user actions
-7. Implement proper error handling
-
-## Accessibility
-
-The component follows accessibility best practices:
-
-- Semantic HTML structure
-- Keyboard navigation support
-- ARIA labels where appropriate
-- High contrast active states for visibility
-- Focus management for form elements
-- Clear error messaging
-- Screen reader friendly content structure
-
-## Error Handling
-
-```tsx copy
-const handleAddressSubmit = async (data) => {
-  try {
-    await updateAddress(data)
-    showNotification("Address updated successfully")
-  } catch (error) {
-    showNotification("Error updating address", "error")
-  }
-}
+The component includes data-testid attributes for testing:
+```typescript copy
+data-testid="billing-country-select"
+data-testid="billing-first-name-input"
+data-testid="billing-last-name-input"
+data-testid="billing-company-input"
+data-testid="billing-address-input"
+data-testid="billing-city-input"
+data-testid="billing-province-input"
+data-testid="billing-postal-input"
+data-testid="billing-phone-input"
 ```
 
 ## Dependencies
 
-- React
-- Tailwind CSS for styling
-- Custom hooks for customer and region management
-- Form handling utilities
-- UI components (Input, Button, etc.)
+- @medusajs/types: TypeScript types for cart and address data
+- Input: Custom input component
+- CountrySelect: Custom country selection component
+- Checkbox: Custom checkbox component
+- React hooks (useState)
 
-## Testing
+## Accessibility
 
-The component includes comprehensive test coverage:
+- Required field indication
+- Proper input labels
+- ARIA labels for country select
+- Semantic HTML structure
+- Proper input types (text, tel)
+- Form autocomplete support
 
-```tsx copy
-describe('AddressBook', () => {
-  it('renders existing addresses', () => {
-    render(<AddressBook customer={mockCustomer} region={mockRegion} />)
-    expect(screen.getAllByTestId('address-card')).toHaveLength(
-      mockCustomer.addresses.length
-    )
-  })
-})
-```
+## Responsive Design
+
+The component implements responsive design through Tailwind CSS:
+- Default grid layout for mobile (2 columns)
+- Enhanced grid layout for medium screens and up (3 columns)
+- Flexible width constraints
+- Responsive spacing
+
+## See Also
+
+- [Medusa Documentation](https://docs.medusajs.com)
+- [React Forms Documentation](https://react.dev/reference/react-dom/components/input)
+- [Tailwind CSS Grid](https://tailwindcss.com/docs/grid-template-columns)

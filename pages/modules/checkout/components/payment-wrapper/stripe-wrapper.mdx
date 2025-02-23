@@ -1,0 +1,214 @@
+# Stripe Wrapper
+
+The `Stripe Wrapper` component is a client-side React component that provides Stripe integration configuration and context for payment processing. It wraps Stripe Elements and handles initialization validation.
+
+## Overview
+
+```typescript copy
+"use client"
+
+import { Stripe, StripeElementsOptions } from "@stripe/stripe-js"
+import { Elements } from "@stripe/react-stripe-js"
+import { HttpTypes } from "@medusajs/types"
+import { createContext } from "react"
+```
+
+## Context
+
+```typescript copy
+export const StripeContext = createContext(false)
+```
+
+The component exports a React context that indicates whether Stripe is properly initialized.
+
+## Props Interface
+
+```typescript copy
+type StripeWrapperProps = {
+  paymentSession: HttpTypes.StorePaymentSession
+  stripeKey?: string
+  stripePromise: Promise<Stripe | null> | null
+  children: React.ReactNode
+}
+```
+
+### paymentSession
+- Type: `HttpTypes.StorePaymentSession`
+- Required: Yes
+- Description: Payment session containing Stripe client secret and configuration.
+
+### stripeKey
+- Type: `string`
+- Required: No
+- Description: Stripe publishable key from environment variables.
+
+### stripePromise
+- Type: `Promise<Stripe | null> | null`
+- Required: Yes
+- Description: Initialized Stripe instance promise.
+
+### children
+- Type: `React.ReactNode`
+- Required: Yes
+- Description: Child components to be wrapped with Stripe Elements.
+
+## Implementation
+
+```typescript copy
+const StripeWrapper: React.FC<StripeWrapperProps> = ({
+  paymentSession,
+  stripeKey,
+  stripePromise,
+  children,
+}) => {
+  const options: StripeElementsOptions = {
+    clientSecret: paymentSession!.data?.client_secret as string | undefined,
+  }
+
+  // Validation and rendering logic
+  return (
+    <StripeContext.Provider value={true}>
+      <Elements options={options} stripe={stripePromise}>
+        {children}
+      </Elements>
+    </StripeContext.Provider>
+  )
+}
+```
+
+## Error Handling
+
+The component implements thorough validation with descriptive error messages:
+
+```typescript copy
+// Stripe key validation
+if (!stripeKey) {
+  throw new Error(
+    "Stripe key is missing. Set NEXT_PUBLIC_STRIPE_KEY environment variable."
+  )
+}
+
+// Stripe promise validation
+if (!stripePromise) {
+  throw new Error(
+    "Stripe promise is missing. Make sure you have provided a valid Stripe key."
+  )
+}
+
+// Client secret validation
+if (!paymentSession?.data?.client_secret) {
+  throw new Error(
+    "Stripe client secret is missing. Cannot initialize Stripe."
+  )
+}
+```
+
+## Usage Example
+
+```jsx copy
+import StripeWrapper from "@modules/checkout/components/stripe-wrapper"
+import { loadStripe } from "@stripe/stripe-js"
+
+function CheckoutPage() {
+  const stripeKey = process.env.NEXT_PUBLIC_STRIPE_KEY
+  const stripePromise = loadStripe(stripeKey)
+  
+  const paymentSession = {
+    data: {
+      client_secret: "pi_secret_key"
+    }
+  }
+
+  return (
+    <StripeWrapper
+      paymentSession={paymentSession}
+      stripeKey={stripeKey}
+      stripePromise={stripePromise}
+    >
+      <PaymentForm />
+    </StripeWrapper>
+  )
+}
+```
+
+## Using the Context
+
+```jsx copy
+import { useContext } from 'react'
+import { StripeContext } from './stripe-wrapper'
+
+function PaymentComponent() {
+  const stripeReady = useContext(StripeContext)
+
+  if (!stripeReady) {
+    return <div>Loading Stripe...</div>
+  }
+
+  return <div>Payment form...</div>
+}
+```
+
+## Configuration
+
+### Environment Variables
+```env copy
+NEXT_PUBLIC_STRIPE_KEY=pk_test_your_stripe_publishable_key
+```
+
+### Stripe Elements Options
+```typescript copy
+const options: StripeElementsOptions = {
+  clientSecret: paymentSession!.data?.client_secret as string | undefined,
+}
+```
+
+## Features
+
+1. Client-side rendering
+2. Stripe Elements integration
+3. Context provider for Stripe status
+4. Comprehensive error validation
+5. Type-safe props
+6. Environment variable support
+
+## Dependencies
+
+- @stripe/stripe-js: Core Stripe JavaScript library
+- @stripe/react-stripe-js: React components for Stripe
+- @medusajs/types: TypeScript types for Medusa
+- React: Core React library and context API
+
+## Best Practices
+
+1. **Error Handling**
+   - Validate all required props
+   - Provide clear error messages
+   - Check for missing configuration
+
+2. **Security**
+   - Use environment variables for keys
+   - Never expose secret keys
+   - Validate client secrets
+
+3. **Context Usage**
+   - Check Stripe readiness state
+   - Handle loading states
+   - Provide fallback UI
+
+## Common Issues
+
+1. **Missing Stripe Key**
+   - Ensure environment variable is set
+   - Check key format
+   - Verify key validity
+
+2. **Client Secret Issues**
+   - Validate payment session structure
+   - Check client secret format
+   - Verify session initialization
+
+## See Also
+
+- [Stripe Elements Documentation](https://stripe.com/docs/stripe-js)
+- [React Stripe.js Documentation](https://stripe.com/docs/stripe-js/react)
+- [Medusa Payment Documentation](https://docs.medusajs.com/modules/carts-and-checkout/payment)

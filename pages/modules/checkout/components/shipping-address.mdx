@@ -1,255 +1,199 @@
----
-title: "Transfer Request Form Component"
-description: "Documentation for the Transfer Request Form component which enables users to request order transfers to their account"
----
+# Shipping Address
 
-# Transfer Request Form Component
+A client-side component that renders a comprehensive shipping address form with validation, terms acceptance, and billing address linking functionality.
 
-The `TransferRequestForm` component allows users to claim and transfer orders to their account by submitting an order ID. It provides a simple interface with clear feedback for success and error states.
+## Props
 
-## Installation
+| Prop | Type | Required | Description |
+|------|------|----------|-------------|
+| customer | HttpTypes.StoreCustomer \| null | Yes | Customer information |
+| cart | HttpTypes.StoreCart \| null | Yes | Current cart data with existing shipping details |
+| checked | boolean | Yes | Controls if billing address is same as shipping |
+| terms | boolean | Yes | Controls terms and conditions acceptance |
+| toggleTerms | () => void | Yes | Handler for toggling terms acceptance |
+| onChange | () => void | Yes | Handler for form field changes |
 
-```tsx copy
-import TransferRequestForm from "@modules/account/components/transfer-request-form"
+## Form Fields
+
+The component manages the following address fields:
+
+```typescript copy
+type FormData = {
+  "shipping_address.first_name": string
+  "shipping_address.last_name": string
+  "shipping_address.address_1": string
+  "shipping_address.address_2": string
+  "shipping_address.company": string
+  "shipping_address.postal_code": string
+  "shipping_address.city": string
+  "shipping_address.country_code": string
+  "shipping_address.province": string
+  "shipping_address.phone": string
+  email: string
+}
 ```
 
 ## Usage
 
-Basic implementation of the component:
-
 ```tsx copy
-<TransferRequestForm />
-```
+import { ShippingAddress } from "./components/ShippingAddress"
 
-## Implementation Example
-
-Here's a complete example showing how to use the Transfer Request Form component:
-
-```tsx copy
-import { Input } from "@medusajs/ui"
-import { CheckCircleMiniSolid, XCircleSolid } from "@medusajs/icons"
-import { useState } from "react"
-import { useActionState } from "@lib/hooks/use-action-state"
-import { requestTransfer } from "@lib/services/order"
-
-export default function TransferRequestForm() {
-  const [showSuccess, setShowSuccess] = useState(false)
-  const [state, formAction] = useActionState(requestTransfer, {
-    error: null,
-    order: null,
-  })
+const CheckoutPage = () => {
+  const [termsAccepted, setTermsAccepted] = useState(false)
+  const [sameAsBilling, setSameAsBilling] = useState(true)
 
   return (
-    <div className="w-full max-w-xl">
-      <form action={formAction} className="flex flex-col gap-y-1 sm:items-end">
-        <div className="flex flex-col gap-y-2 w-full">
-          <Input 
-            className="w-full" 
-            name="order_id" 
-            placeholder="Order ID" 
-          />
-          <SubmitButton 
-            variant="secondary" 
-            className="w-fit whitespace-nowrap self-end"
-          >
-            Request transfer
-          </SubmitButton>
-        </div>
-      </form>
-
-      {showSuccess && (
-        <div className="flex justify-between p-4 bg-neutral-50 shadow-borders-base w-full self-stretch items-center">
-          <div className="flex gap-x-2 items-center">
-            <CheckCircleMiniSolid className="w-4 h-4 text-emerald-500" />
-            <div className="flex flex-col gap-y-1">
-              <Text className="text-medium-pl text-neutral-950">
-                Transfer for order {state.order?.id} requested
-              </Text>
-              <Text className="text-base-regular text-neutral-600">
-                Transfer request email sent to {state.order?.email}
-              </Text>
-            </div>
-          </div>
-          <IconButton 
-            variant="transparent" 
-            className="h-fit" 
-            onClick={() => setShowSuccess(false)}
-          >
-            <XCircleSolid className="w-4 h-4 text-neutral-500" />
-          </IconButton>
-        </div>
-      )}
-    </div>
+    <ShippingAddress
+      customer={currentCustomer}
+      cart={currentCart}
+      checked={sameAsBilling}
+      terms={termsAccepted}
+      toggleTerms={() => setTermsAccepted(!termsAccepted)}
+      onChange={() => setSameAsBilling(!sameAsBilling)}
+    />
   )
 }
 ```
 
-## Features
+## State Management
 
-### Transfer Request Flow
-- Order ID input
-- Transfer request submission
-- Success confirmation
-- Email notification
-- Dismissible notifications
+The component uses React's useState hook to manage form data:
 
-### Form Management
-- Form submission handling
-- Loading state management
-- Success state handling
-- Error state handling
-
-### User Experience
-- Clear input field
-- Responsive design
-- Visual feedback
-- Success messages
-- Dismissible notifications
-
-## Component Structure
-
-### Main Form Component
-```tsx copy
-<form action={formAction} className="flex flex-col gap-y-1 sm:items-end">
-  <div className="flex flex-col gap-y-2 w-full">
-    <Input 
-      className="w-full" 
-      name="order_id" 
-      placeholder="Order ID" 
-    />
-    <SubmitButton 
-      variant="secondary" 
-      className="w-fit whitespace-nowrap self-end"
-    >
-      Request transfer
-    </SubmitButton>
-  </div>
-</form>
+```typescript copy
+const [formData, setFormData] = useState({
+  "shipping_address.first_name": cart?.shipping_address?.first_name || "",
+  // ... other fields initialized from cart data
+})
 ```
 
-### Success Message Component
+## Event Handlers
+
+### handleChange
+Handles input changes for all form fields:
+
+```typescript copy
+const handleChange = (
+  e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
+) => {
+  setFormData({
+    ...formData,
+    [e.target.name]: e.target.value,
+  })
+}
+```
+
+## Form Layout
+
+The component uses a responsive grid layout with different configurations for various sections:
+
+1. Name Fields (2-column grid):
 ```tsx copy
-<div className="flex justify-between p-4 bg-neutral-50 shadow-borders-base w-full self-stretch items-center">
-  <div className="flex gap-x-2 items-center">
-    <CheckCircleMiniSolid className="w-4 h-4 text-emerald-500" />
-    <div className="flex flex-col gap-y-1">
-      <Text className="text-medium-pl text-neutral-950">
-        Transfer for order {state.order?.id} requested
-      </Text>
-      <Text className="text-base-regular text-neutral-600">
-        Transfer request email sent to {state.order?.email}
-      </Text>
-    </div>
-  </div>
-  <IconButton 
-    variant="transparent" 
-    className="h-fit" 
-    onClick={() => setShowSuccess(false)}
-  >
-    <XCircleSolid className="w-4 h-4 text-neutral-500" />
-  </IconButton>
+<div className="grid grid-cols-2 gap-4">
+  <Input label="First name" ... />
+  <Input label="Last name" ... />
 </div>
 ```
 
-## State Management
-
+2. Address Fields (3-column grid for city/state/zip):
 ```tsx copy
-const [showSuccess, setShowSuccess] = useState(false)
-const [state, formAction] = useActionState(requestTransfer, {
-  error: null,
-  order: null,
-})
+<div className="grid md:grid-cols-3 grid-cols-2 gap-4">
+  <div className="col-span-2 md:col-span-1">
+    <Input label="City" ... />
+  </div>
+  {/* State and ZIP inputs */}
+</div>
 ```
 
-## Dependencies
+## Components Used
 
-- @medusajs/ui
-  - Input
-  - Text
-  - IconButton
-- @medusajs/icons
-  - CheckCircleMiniSolid
-  - XCircleSolid
-- React (useState)
-- useActionState hook
+The component integrates several custom components:
+
+- `CountrySelect`: For country selection with region support
+- `Input`: Reusable input component with labels
+- `Checkbox`: For terms acceptance and billing address linking
+
+## Required Fields
+
+The following fields are marked as required:
+- First name
+- Last name
+- Address line 1
+- City
+- State/Province
+- ZIP/Postal code
+- Email
+- Country
+- Terms acceptance
+
+## Special Features
+
+### Terms and Conditions
+Includes a detailed terms acceptance checkbox with age verification and professional use disclaimer:
+```tsx copy
+<Checkbox
+  checked={terms}
+  onChange={toggleTerms}
+  label={<div>
+    By making this purchase, I confirm I am at least 21 years old...
+  </div>}
+  required
+/>
+```
+
+### Billing Address Link
+Provides option to use shipping address as billing address:
+```tsx copy
+<Checkbox
+  label="Billing address same as shipping address"
+  checked={checked}
+  onChange={onChange}
+/>
+```
+
+## Styling
+
+The component uses Tailwind CSS for styling:
+
+- Responsive grid layouts
+- Spacing utilities
+- Maximum width constraints
+- Flexible gap spacing
+- Custom colors for interactive elements
 
 ## Testing
 
-Example test cases:
+The component includes several data-testid attributes for testing:
 
-```tsx copy
-describe('TransferRequestForm', () => {
-  it('submits order transfer request', async () => {
-    render(<TransferRequestForm />)
-    
-    await userEvent.type(screen.getByPlaceholderText(/order id/i), 'order_123')
-    await userEvent.click(screen.getByText(/request transfer/i))
-    
-    expect(screen.getByText(/transfer for order order_123 requested/i)).toBeInTheDocument()
-  })
-
-  it('displays success message with email', async () => {
-    render(<TransferRequestForm />)
-    
-    await userEvent.type(screen.getByPlaceholderText(/order id/i), 'order_123')
-    await userEvent.click(screen.getByText(/request transfer/i))
-    
-    expect(screen.getByText(/transfer request email sent to/i)).toBeInTheDocument()
-  })
-
-  it('allows dismissing success message', async () => {
-    render(<TransferRequestForm />)
-    
-    // Submit form
-    await userEvent.type(screen.getByPlaceholderText(/order id/i), 'order_123')
-    await userEvent.click(screen.getByText(/request transfer/i))
-    
-    // Dismiss message
-    await userEvent.click(screen.getByRole('button', { name: /close/i }))
-    
-    expect(screen.queryByText(/transfer request email sent to/i)).not.toBeInTheDocument()
-  })
-})
-```
-
-## Best Practices
-
-1. Input validation
-2. Clear success feedback
-3. Loading state handling
-4. Error messaging
-5. Responsive design
-6. Accessibility compliance
-7. User feedback
+- `shipping-country-select`
+- `billing-first-name-input`
+- `billing-last-name-input`
+- `billing-company-input`
+- `billing-address-input`
+- `billing-postal-input`
+- `shipping-phone-Input`
+- `terms-checkbox`
+- `billing-address-checkbox`
 
 ## Accessibility
 
-The component implements these accessibility features:
+- Uses semantic HTML structure
+- Includes proper label associations
+- Provides appropriate ARIA labels
+- Maintains keyboard navigation support
+- Uses proper input types for different fields
 
-- Proper form labels
-- ARIA attributes
-- Keyboard navigation
-- Focus management
-- Clear error states
-- Dismissible notifications
+## Best Practices
 
-## Future Enhancements
+1. Initialize form data from existing cart data when available
+2. Validate required fields appropriately
+3. Handle phone numbers with tel input type
+4. Use appropriate autocomplete attributes
+5. Implement responsive design for different screen sizes
+6. Maintain clear error states (through parent component)
 
-1. Add order validation
-2. Implement email verification
-3. Add request tracking
-4. Improve error messages
-5. Add request history
-6. Implement status checking
-7. Add batch transfer requests
+## Dependencies
 
-## Related Components
-
-- OrderLookup
-- OrderHistory 
-- AccountDetails
-- NotificationSystem
-
----
-
-This component provides a straightforward way for users to request order transfers while maintaining a clean and user-friendly interface.
+- `@medusajs/types`
+- React
+- Custom components from `@modules/common/components`
+- Tailwind CSS for styling

@@ -1,194 +1,228 @@
----
-title: 'AccountNav'
-description: 'A navigation component for managing user account sections and authentication state.'
----
+# Addresses
 
-# AccountNav Component
+The `Addresses` component is a client-side React component that handles shipping and billing address management in a checkout flow. It provides functionality for displaying, editing, and managing both shipping and billing addresses.
 
-The `AccountNav` component provides navigation for users to manage their account settings, including profile information, addresses, orders, and logout functionality. It adapts its layout for both mobile and desktop views.
+## Overview
 
-## Installation
+```typescript copy
+// @ts-nocheck
+"use client"
 
-First, ensure you have the component in your project:
-
-```tsx copy
-import AccountNav from "@components/AccountNav"
+import { setAddresses } from "@lib/data/cart"
+import compareAddresses from "@lib/util/compare-addresses"
+import { CheckCircleSolid } from "@medusajs/icons"
+import { HttpTypes } from "@medusajs/types"
+import { Heading, Text, useToggleState } from "@medusajs/ui"
+import Divider from "@modules/common/components/divider"
+import Spinner from "@modules/common/icons/spinner"
+import { usePathname, useRouter, useSearchParams } from "next/navigation"
+import { useActionState } from "react"
+import BillingAddress from "../billing_address"
+import ErrorMessage from "../error-message"
+import ShippingAddress from "../shipping-address"
+import { SubmitButton } from "../submit-button"
 ```
 
 ## Props
 
-| Prop Name | Type | Required | Description |
-|-----------|------|----------|-------------|
-| `customer` | `HttpTypes.StoreCustomer \| null` | Yes | The currently logged-in customer's data |
+The component accepts the following props:
 
-## Usage
-
-Here's a basic example of how to use the AccountNav component:
-
-```tsx copy
-import AccountNav from "@components/AccountNav"
-
-const MyAccountPage = ({ customer }) => {
-  return (
-    <div>
-      <AccountNav customer={customer} />
-      {/* Rest of your account page content */}
-    </div>
-  )
+```typescript copy
+type AddressesProps = {
+  cart: HttpTypes.StoreCart | null
+  customer: HttpTypes.StoreCustomer | null
 }
+```
+
+### cart
+- Type: `HttpTypes.StoreCart | null`
+- Required: Yes
+- Description: The current cart object containing shipping and billing address information.
+
+### customer
+- Type: `HttpTypes.StoreCustomer | null`
+- Required: Yes
+- Description: The current customer object containing customer information.
+
+## Component Structure
+
+```typescript copy
+const Addresses = ({
+  cart,
+  customer,
+}: {
+  cart: HttpTypes.StoreCart | null
+  customer: HttpTypes.StoreCustomer | null
+}) => {
+  // Component implementation
+}
+```
+
+## State Management
+
+The component uses several state management hooks:
+
+```typescript copy
+const searchParams = useSearchParams()
+const router = useRouter()
+const pathname = usePathname()
+
+const isOpen = searchParams.get("step") === "address"
+
+const { state: sameAsBilling, toggle: toggleSameAsBilling } = useToggleState(
+  cart?.shipping_address && cart?.billing_address
+    ? compareAddresses(cart?.shipping_address, cart?.billing_address)
+    : true
+)
+
+const { state: termsCheck, toggle: toggleTermsCheck } = useToggleState(false)
+
+const [message, formAction] = useActionState(setAddresses, null)
 ```
 
 ## Features
 
-### Responsive Design
-- **Desktop View**: Full navigation menu with all options visible
-- **Mobile View**: Condensed navigation with appropriate layout adjustments
-- Automatic adaptation based on screen size
-
-### Navigation Options
-- Profile settings
-- Address management
-- Order history 
-- Logout functionality
-
-### Active State Handling
-- Visual indication of current section
-- Uses `clx` utility for conditional styling
-- Highlights active navigation item
-
-## Subcomponents
-
-### AccountNavLink
-
-A helper component used internally to create consistent navigation links.
-
-#### Props
-
-| Prop Name | Type | Required | Description |
-|-----------|------|----------|-------------|
-| `href` | `string` | Yes | Destination URL for the link |
-| `route` | `string` | Yes | Current route pathname |
-| `children` | `React.ReactNode` | Yes | Content to display inside the link |
-| `data-testid` | `string` | No | Test identifier for the link |
-
-#### Example Usage
-
-```tsx copy
-<AccountNavLink 
-  href="/account/orders" 
-  route={route}
-  data-testid="account-nav-orders"
->
-  Orders
-</AccountNavLink>
+### Address Editing
+```typescript copy
+const handleEdit = () => {
+  router.push(pathname + "?step=address")
+}
 ```
 
-## Behavior
+### Form Structure
+```typescript copy
+<form action={formAction}>
+  <div className="pb-8">
+    <ShippingAddress
+      customer={customer}
+      checked={sameAsBilling}
+      terms={termsCheck}
+      toggleTerms={toggleTermsCheck}
+      onChange={toggleSameAsBilling}
+      cart={cart}
+    />
+    {/* Billing address section */}
+  </div>
+</form>
+```
 
-### Authentication Flow
-- Checks for customer data to determine authentication state
-- Provides logout functionality through `signout` function
-- Handles country code for region-specific logout behavior
-
-### Navigation States
-1. **Default State**
-   - Displays user name when on `/account`
-   - Shows all available navigation options
-
-2. **Active Link**
-   - Highlights current section
-   - Provides visual feedback for user location
-
-3. **Mobile State**
-   - Collapses into mobile-friendly layout
-   - Maintains all functionality in compressed format
-
-## Styling
-
-The component uses Tailwind CSS for styling:
-
-```tsx copy
-// Example of styled link
-<div className={clx(
-  "text-sm flex items-center gap-x-2 px-4 py-2 rounded-rounded",
-  {
-    "text-ui-fg-base hover:text-ui-fg-base": href !== route,
-    "bg-ui-bg-subtle font-semibold": href === route,
-  }
-)}>
-  {children}
+### Address Display
+When not in edit mode, addresses are displayed in a three-column layout:
+```typescript copy
+<div className="flex items-start gap-x-8">
+  <div className="flex items-start gap-x-1 w-full">
+    <div className="flex flex-col w-1/3" data-testid="shipping-address-summary">
+      {/* Shipping address display */}
+    </div>
+    <div className="flex flex-col w-1/3" data-testid="shipping-contact-summary">
+      {/* Contact information display */}
+    </div>
+    <div className="flex flex-col w-1/3" data-testid="billing-address-summary">
+      {/* Billing address display */}
+    </div>
+  </div>
 </div>
 ```
 
-### Style Features
-- Consistent spacing and padding
-- Hover and active states
-- Responsive layout adjustments
-- Clear visual hierarchy
+## Usage Example
 
-## Dependencies
+```jsx copy
+import Addresses from "@modules/checkout/components/addresses"
 
-- Next.js for routing
-- Tailwind CSS for styling
-- `clx` utility for conditional classes
-- Various icon components (`ChevronDown`, `User`, etc.)
+function CheckoutPage() {
+  const cart = {
+    shipping_address: {
+      first_name: "John",
+      last_name: "Doe",
+      address_1: "123 Main St",
+      city: "Boston",
+      postal_code: "02101",
+      country_code: "US",
+      phone: "+1234567890"
+    },
+    billing_address: {/* ... */},
+    email: "john@example.com"
+  }
 
-## Examples
+  const customer = {
+    // Customer details
+  }
 
-### Basic Implementation
-
-```tsx copy
-function AccountPage() {
-  const { customer } = useCustomer()
-  
   return (
-    <div className="flex flex-col">
-      <AccountNav customer={customer} />
-      <div className="account-content">
-        {/* Account page content */}
-      </div>
-    </div>
+    <Addresses 
+      cart={cart}
+      customer={customer}
+    />
   )
 }
 ```
 
-### With Custom Styling
+## Styling
 
-```tsx copy
-<AccountNav 
-  customer={customer}
-  className="custom-nav-class"
-  data-testid="account-navigation"
-/>
-```
+The component uses Tailwind CSS for styling with custom classes:
+
+- Background: `bg-white`
+- Button colors: `bg-[#008080]`, `hover:bg-[#3c9696]`
+- Text styles: `text-3xl-regular`, `txt-medium`, `txt-medium-plus`
+- Layout: Flexbox and width utilities (`w-1/3`, `gap-x-8`, etc.)
 
 ## Testing
 
-The component includes data-testid attributes for easy testing:
+The component includes several data-testid attributes for testing:
 
-```tsx copy
-// Example test
-it('should highlight active link', () => {
-  render(<AccountNav customer={mockCustomer} />)
-  const activeLink = screen.getByTestId('account-nav-orders')
-  expect(activeLink).toHaveClass('bg-ui-bg-subtle')
-})
+```typescript copy
+data-testid="edit-address-button"
+data-testid="submit-address-button"
+data-testid="address-error-message"
+data-testid="shipping-address-summary"
+data-testid="shipping-contact-summary"
+data-testid="billing-address-summary"
 ```
 
-## Best Practices
+## Dependencies
 
-1. Always provide the customer prop
-2. Use within authenticated routes
-3. Place at the top of account-related pages
-4. Maintain consistent navigation structure
-5. Handle loading and error states appropriately
+- @medusajs/ui: UI components and hooks
+- @medusajs/icons: Icon components
+- @medusajs/types: TypeScript types
+- next/navigation: Next.js routing utilities
+- React hooks and components
+
+## State and Navigation
+
+The component manages several states:
+- Edit mode through URL parameters (`?step=address`)
+- Same billing/shipping address toggle
+- Terms acceptance
+- Form submission state
+- Error messages
 
 ## Accessibility
 
-The component follows accessibility best practices:
-
 - Semantic HTML structure
-- Keyboard navigation support
-- ARIA labels where appropriate
-- Focus management
-- High contrast active states
+- ARIA attributes through Medusa UI components
+- Clear error messaging
+- Proper heading hierarchy
+
+## Loading States
+
+The component shows a spinner when cart data is loading:
+```typescript copy
+{!cart && (
+  <div>
+    <Spinner />
+  </div>
+)}
+```
+
+## Error Handling
+
+Errors are displayed using the ErrorMessage component:
+```typescript copy
+<ErrorMessage error={message} data-testid="address-error-message" />
+```
+
+## See Also
+
+- [Medusa Documentation](https://docs.medusajs.com)
+- [Next.js Navigation](https://nextjs.org/docs/app/api-reference/functions/use-router)
+- [Tailwind CSS](https://tailwindcss.com/docs)

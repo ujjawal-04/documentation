@@ -1,183 +1,132 @@
----
-title: 'AccountInfo'
-description: 'A reusable account information component that handles edit states, success/error messages, and form submission.'
----
+# Address Select
 
-# AccountInfo
+The `Address Select` component creates a dropdown list for selecting shipping addresses. It uses the Headless UI Listbox component to create an accessible address selection interface with a custom design.
 
-The `AccountInfo` component is designed to display and edit account-related information. It provides a consistent interface for viewing current information, editing it, and handling success/error states.
+## Overview
 
-## Features
-
-- Toggle between view and edit modes
-- Built-in success and error state handling
-- Customizable form content
-- Loading state during form submission
-- Accessible disclosure panels
-- Responsive design
+The `Address Select` component allows users to select from a list of previously saved addresses. It displays address details in a dropdown format and supports keyboard navigation and screen readers.
 
 ## Props
 
-| Prop | Type | Required | Description |
-|------|------|----------|-------------|
-| `label` | `string` | Yes | The label for the account information field |
-| `currentInfo` | `string \| React.ReactNode` | Yes | The current value to display |
-| `isSuccess` | `boolean` | No | Indicates if the update was successful |
-| `isError` | `boolean` | No | Indicates if an error occurred |
-| `errorMessage` | `string` | No | Custom error message (defaults to "An error occurred, please try again") |
-| `clearState` | `function` | Yes | Function to clear the current state |
-| `children` | `React.ReactNode` | No | Content to render in the edit form |
-| `data-testid` | `string` | No | Test ID for the component |
+The component accepts the following props:
 
-## Usage
+### addresses
+- Type: `HttpTypes.StoreCustomerAddress[]`
+- Required: Yes
+- Description: An array of address objects containing customer address information.
 
-```tsx copy
-import AccountInfo from '@/components/AccountInfo'
+### addressInput
+- Type: `HttpTypes.StoreCartAddress | null`
+- Required: Yes
+- Description: The currently selected address in the cart, or null if no address is selected.
 
-export default function ProfilePage() {
-  const [isSuccess, setIsSuccess] = useState(false)
-  const [isError, setIsError] = useState(false)
-  
-  const clearState = () => {
-    setIsSuccess(false)
-    setIsError(false)
-  }
+### onSelect
+- Type: `(address: HttpTypes.StoreCartAddress | undefined, email?: string) => void`
+- Required: Yes
+- Description: Callback function that is called when a new address is selected.
 
-  return (
-    <AccountInfo
-      label="Email"
-      currentInfo="user@example.com"
-      isSuccess={isSuccess}
-      isError={isError}
-      clearState={clearState}
-    >
-      <form>
-        <input
-          type="email"
-          name="email"
-          placeholder="Enter new email"
-          className="w-full p-2 border rounded"
-        />
-      </form>
-    </AccountInfo>
-  )
+## Address Object Structure
+
+Each address object in the `addresses` array should contain the following properties:
+
+```typescript copy
+{
+  id: string
+  first_name: string
+  last_name: string
+  company?: string
+  address_1: string
+  address_2?: string
+  city: string
+  postal_code: string
+  province?: string
+  country_code: string
 }
 ```
-
-## Styling
-
-The component uses Tailwind CSS for styling and includes:
-
-- Custom teal-colored buttons (`bg-[#008080]`)
-- Hover states for buttons
-- Smooth transitions for disclosure panels
-- Responsive width adjustments
-- Consistent text styles and spacing
-
-## States
-
-### View Mode
-- Displays the current information
-- Shows an "Edit" button
-- No form fields visible
-
-### Edit Mode
-- Displays the form fields (provided as children)
-- Shows "Cancel" and "Save changes" buttons
-- Cancel returns to view mode
-- Save triggers form submission
-
-### Success State
-- Shows a green badge with success message
-- Automatically closes edit mode
-- Success message fades out
-
-### Error State
-- Shows a red badge with error message
-- Keeps edit mode open
-- Allows retry
-
-### Loading State
-- Shows loading indicator on save button
-- Prevents multiple submissions
-
-## Accessibility
-
-The component uses the Headless UI Disclosure component for accessible expanding/collapsing sections and includes:
-
-- Proper ARIA attributes
-- Keyboard navigation support
-- Clear visual states
-- Test IDs for testing
 
 ## Examples
 
 ### Basic Usage
 
-```tsx copy
-<AccountInfo
-  label="Username"
-  currentInfo="johndoe"
-  clearState={() => {}}
->
-  <input
-    type="text"
-    placeholder="Enter new username"
-    className="w-full p-2 border rounded"
-  />
-</AccountInfo>
+```jsx copy
+import AddressSelect from "@modules/common/components/address-select"
+
+function ShippingForm() {
+  const addresses = [
+    {
+      id: "addr_1",
+      first_name: "John",
+      last_name: "Doe",
+      address_1: "123 Main St",
+      city: "Boston",
+      postal_code: "02101",
+      country_code: "US"
+    }
+  ]
+
+  const handleAddressSelect = (address) => {
+    // Handle address selection
+    console.log("Selected address:", address)
+  }
+
+  return (
+    <AddressSelect
+      addresses={addresses}
+      addressInput={null}
+      onSelect={handleAddressSelect}
+    />
+  )
+}
 ```
 
-### With Custom Error Message
+## Features
 
-```tsx copy
-<AccountInfo
-  label="Password"
-  currentInfo="********"
-  errorMessage="Password must be at least 8 characters"
-  clearState={() => {}}
->
-  <input
-    type="password"
-    placeholder="Enter new password"
-    className="w-full p-2 border rounded"
-  />
-</AccountInfo>
-```
+- Accessible dropdown menu using Headless UI
+- Keyboard navigation support
+- Visual feedback for selected address
+- Optional company name display
+- Formatted address display including:
+  - Full name
+  - Street address (with optional second line)
+  - City and postal code
+  - Province (if provided)
+  - Country code
 
-### With React Node as Current Info
+## Styling
 
-```tsx copy
-<AccountInfo
-  label="Status"
-  currentInfo={<Badge color="green">Active</Badge>}
-  clearState={() => {}}
->
-  <select className="w-full p-2 border rounded">
-    <option value="active">Active</option>
-    <option value="inactive">Inactive</option>
-  </select>
-</AccountInfo>
-```
+The component uses Tailwind CSS classes for styling and includes:
+
+- Hover states for address options
+- Focus states for keyboard navigation
+- Custom radio button indicators
+- Transition animations for dropdown
 
 ## Dependencies
 
-- @headlessui/react
-- @medusajs/ui
-- react
-- react-dom
+- @headlessui/react: For accessible dropdown functionality
+- @medusajs/icons: For chevron icons
+- @medusajs/ui: For utility functions
+- @medusajs/types: For TypeScript types
 
-## Technical Details
+## Accessibility
 
-The component uses several React hooks:
+The component implements several accessibility features:
 
-- `useToggleState` - Custom hook for managing edit state
-- `useFormStatus` - React hook for form submission state
-- `useEffect` - For handling success state changes
+- ARIA attributes via Headless UI
+- Keyboard navigation support
+- Focus management
+- Screen reader announcements for selection changes
 
-The component also implements:
+## Browser Support
 
-- Debounced state clearing (100ms timeout)
-- Automatic closure on successful update
-- Dynamic height transitions
-- Consistent spacing and alignment
+This component relies on modern JavaScript features and React. It should work in all modern browsers that support:
+
+- CSS Grid
+- CSS Flexbox
+- CSS Transitions
+- Modern JavaScript (ES6+)
+
+## See Also
+
+- [Headless UI Listbox Documentation](https://headlessui.dev/react/listbox)
+- [Medusa UI Documentation](https://docs.medusajs.com/ui)

@@ -1,291 +1,241 @@
----
-title: "Profile Billing Address"
-description: "A React component for displaying and updating a user's billing address"
----
+# Payment Button
 
-# Profile Billing Address
+The `Payment Button` component is a client-side React component that handles different types of payment processing in a checkout flow. It supports multiple payment providers including Stripe, Manual, Zelle, and Crypto payments.
 
-The `ProfileBillingAddress` component provides functionality for users to view and manage their billing address information, including adding a new address or updating an existing one.
+## Overview
 
-## Installation
+```typescript copy
+"use client"
 
-```tsx copy
-import ProfileBillingAddress from "@modules/account/components/profile-billing-address"
+import { isCrypto, isManual, isStripe, isZelle } from "@lib/constants"
+import { placeOrder, retrieveCart } from "@lib/data/cart"
+import { HttpTypes } from "@medusajs/types"
+import { Button } from "@medusajs/ui"
+import { useElements, useStripe } from "@stripe/react-stripe-js"
 ```
 
 ## Props
 
-| Prop Name | Type | Description |
-|-----------|------|-------------|
-| `customer` | `HttpTypes.StoreCustomer` | The customer object containing user details and addresses |
-| `regions` | `HttpTypes.StoreRegion[]` | Array of available regions and their corresponding countries |
-
-## Usage
-
-Basic implementation of the component:
-
-```tsx copy
-<ProfileBillingAddress customer={customerData} regions={regions} />
-```
-
-## Implementation Example
-
-Here's a complete example showing how to use the ProfileBillingAddress component:
-
-```tsx copy
-import ProfileBillingAddress from "@modules/account/components/profile-billing-address"
-import { useCustomer } from "@lib/hooks/use-customer"
-import { useRegions } from "@lib/hooks/use-regions"
-
-export default function BillingAddressPage() {
-  const { customer } = useCustomer()
-  const { regions } = useRegions()
-  
-  if (!customer || !regions) {
-    return <div>Loading...</div>
-  }
-  
-  return (
-    <div className="max-w-2xl mx-auto py-8">
-      <h1 className="text-2xl font-bold mb-4">Billing Address</h1>
-      <ProfileBillingAddress 
-        customer={customer} 
-        regions={regions} 
-      />
-    </div>
-  )
+```typescript copy
+type PaymentButtonProps = {
+  cart: HttpTypes.StoreCart
+  "data-testid": string
 }
 ```
-
-## Features
-
-### Address Display
-- Shows current billing address if it exists
-- Displays "No billing address" when none is set
-- Formats address details in a clear, readable manner
-
-### Address Management
-- Allows adding new billing address
-- Supports updating existing address
-- Validates required fields
-- Provides country selection based on available regions
-
-### Form Handling
-- Real-time field validation
-- Success and error state management
-- Optimized re-rendering with useMemo
-- Proper form submission handling
 
 ## Component Structure
 
-### Main Component
+The main component acts as a router to specific payment implementations based on the payment provider:
 
-```tsx copy
-const ProfileBillingAddress = ({ customer, regions }) => {
-  const [isEditing, setIsEditing] = useState(false)
-  const [formState, setFormState] = useState(initialState)
-  
-  const defaultAddress = useMemo(() => 
-    customer.addresses.find(addr => addr.is_default_billing),
-    [customer.addresses]
-  )
-
-  return (
-    <div className="space-y-4">
-      {!isEditing ? (
-        <AddressDisplay 
-          address={defaultAddress} 
-          onEdit={() => setIsEditing(true)} 
-        />
-      ) : (
-        <AddressForm 
-          address={defaultAddress}
-          regions={regions}
-          onSubmit={handleSubmit}
-          onCancel={() => setIsEditing(false)}
-        />
-      )}
-    </div>
-  )
-}
-```
-
-### Address Form Component
-
-```tsx copy
-const AddressForm = ({ address, regions, onSubmit, onCancel }) => {
-  const countries = useMemo(() => 
-    regions.flatMap(region => 
-      region.countries.map(country => ({
-        value: country.iso_2,
-        label: country.display_name
-      }))
-    ),
-    [regions]
-  )
-
-  return (
-    <form onSubmit={handleSubmit} className="space-y-4">
-      <Input
-        label="First Name"
-        name="first_name"
-        required
-        defaultValue={address?.first_name}
-      />
-      <Input
-        label="Last Name"
-        name="last_name"
-        required
-        defaultValue={address?.last_name}
-      />
-      <Input
-        label="Address"
-        name="address_1"
-        required
-        defaultValue={address?.address_1}
-      />
-      <NativeSelect
-        label="Country"
-        name="country_code"
-        required
-        options={countries}
-        defaultValue={address?.country_code}
-      />
-      <div className="flex justify-end space-x-2">
-        <button type="button" onClick={onCancel}>
-          Cancel
-        </button>
-        <button type="submit">
-          Save Changes
-        </button>
-      </div>
-    </form>
-  )
-}
-```
-
-## Usage with Loading State
-
-```tsx copy
-const BillingAddressSection = () => {
-  const { customer, isLoading } = useCustomer()
-  const { regions } = useRegions()
-
-  if (isLoading) {
-    return (
-      <div className="space-y-4">
-        <div className="h-12 bg-gray-100 rounded animate-pulse" />
-        <div className="h-32 bg-gray-100 rounded animate-pulse" />
-      </div>
-    )
+```typescript copy
+const PaymentButton: React.FC<PaymentButtonProps> = ({
+  cart,
+  "data-testid": dataTestId,
+}) => {
+  if(!cart) {
+    return notFound()
   }
 
-  return <ProfileBillingAddress customer={customer} regions={regions} />
+  const paymentSession = cart.payment_collection?.payment_sessions?.[0]
+
+  switch (true) {
+    case isStripe(paymentSession?.provider_id):
+      return <StripePaymentButton /*...*/ />
+    case isManual(paymentSession?.provider_id):
+      return <ManualTestPaymentButton /*...*/ />
+    case isZelle(paymentSession?.provider_id):
+      return <ManualTestPaymentButton /*...*/ />
+    case isCrypto(paymentSession?.provider_id):
+      return <ManualTestPaymentButton /*...*/ />
+    default:
+      return <Button disabled>Select a payment method</Button>
+  }
 }
 ```
 
-## Events
+## Sub-Components
 
-The component handles several key events:
+### StripePaymentButton
 
-1. **Form Submission**: 
-   - Triggers address update/creation
-   - Handles validation
-   - Shows success/error feedback
+Handles Stripe-specific payment processing:
 
-2. **Edit Toggle**:
-   - Switches between display and edit modes
-   - Preserves current address data
+```typescript copy
+const StripePaymentButton = ({
+  cart,
+  notReady,
+  "data-testid": dataTestId,
+}: {
+  cart: HttpTypes.StoreCart
+  notReady: boolean
+  "data-testid"?: string
+}) => {
+  const [submitting, setSubmitting] = useState(false)
+  const [errorMessage, setErrorMessage] = useState<string | null>(null)
+  const stripe = useStripe()
+  const elements = useElements()
+  const card = elements?.getElement("card")
 
-3. **Country Selection**:
-   - Updates available regions
-   - Validates country-specific fields
+  // Implementation details for Stripe payment processing
+}
+```
 
-## Accessibility
+#### Stripe Payment Processing
+```typescript copy
+const handlePayment = async () => {
+  setSubmitting(true)
 
-The component implements these accessibility features:
+  if (!stripe || !elements || !card || !cart) {
+    setSubmitting(false)
+    return
+  }
 
-- Semantic HTML structure
-- ARIA labels for form inputs
-- Error message announcements
-- Keyboard navigation support
-- Focus management
-- Clear success/error states
+  await stripe
+    .confirmCardPayment(session?.data.client_secret as string, {
+      payment_method: {
+        card: card,
+        billing_details: {
+          // Billing details structure
+        },
+      },
+    })
+    .then(({ error, paymentIntent }) => {
+      // Handle payment result
+    })
+}
+```
 
-## Best Practices
+### ManualTestPaymentButton
 
-1. Form validation on both client and server side
-2. Optimized rendering with useMemo
-3. Clear error messaging
-4. Responsive design
-5. Proper type checking
-6. Loading state handling
-7. Clean form reset after submission
+Handles manual, Zelle, and crypto payments:
+
+```typescript copy
+const ManualTestPaymentButton = ({ 
+  notReady 
+}: { 
+  notReady: boolean 
+}) => {
+  const [submitting, setSubmitting] = useState(false)
+  const [errorMessage, setErrorMessage] = useState<string | null>(null)
+
+  // Implementation for manual payment processing
+}
+```
+
+## Validation
+
+The component implements several validation checks:
+
+```typescript copy
+const notReady =
+  !cart ||
+  !cart.shipping_address ||
+  !cart.billing_address ||
+  !cart.email ||
+  (cart.shipping_methods?.length ?? 0) < 1
+```
+
+## Usage Example
+
+```jsx copy
+import PaymentButton from "@modules/checkout/components/payment-button"
+
+function CheckoutPage() {
+  const cart = {
+    shipping_address: { /* ... */ },
+    billing_address: { /* ... */ },
+    email: "customer@example.com",
+    shipping_methods: [{ /* ... */ }],
+    payment_collection: {
+      payment_sessions: [{
+        provider_id: "stripe",
+        status: "pending"
+      }]
+    }
+  }
+
+  return (
+    <PaymentButton 
+      cart={cart}
+      data-testid="payment-button"
+    />
+  )
+}
+```
+
+## Error Handling
+
+Both payment handlers include error management:
+
+```typescript copy
+const [errorMessage, setErrorMessage] = useState<string | null>(null)
+
+// Error handling in payment processing
+.catch((err) => {
+  setErrorMessage(err.message)
+})
+.finally(() => {
+  setSubmitting(false)
+})
+```
 
 ## Testing
 
-Example test cases:
-
-```tsx copy
-describe('ProfileBillingAddress', () => {
-  it('displays existing billing address', () => {
-    const mockCustomer = {
-      addresses: [{
-        id: '123',
-        is_default_billing: true,
-        first_name: 'John',
-        last_name: 'Doe'
-      }]
-    }
-    
-    render(
-      <ProfileBillingAddress 
-        customer={mockCustomer} 
-        regions={[]} 
-      />
-    )
-    
-    expect(screen.getByText('John Doe')).toBeInTheDocument()
-  })
-
-  it('shows form when edit is clicked', async () => {
-    const mockCustomer = {
-      addresses: [{
-        is_default_billing: true,
-        first_name: 'John'
-      }]
-    }
-    
-    render(
-      <ProfileBillingAddress 
-        customer={mockCustomer} 
-        regions={[]} 
-      />
-    )
-    
-    await userEvent.click(screen.getByText('Edit'))
-    expect(screen.getByRole('form')).toBeInTheDocument()
-  })
-})
+The component includes data-testid attributes for testing:
+```typescript copy
+data-testid="stripe-payment-error-message"
+data-testid="manual-payment-error-message"
+data-testid="submit-order-button"
 ```
 
 ## Dependencies
 
-- React
-- Input component
-- NativeSelect component
-- AccountInfo component
-- Form validation utilities
-- HTTP client for API calls
+- @medusajs/ui: UI components
+- @medusajs/types: TypeScript types
+- @stripe/react-stripe-js: Stripe React components and hooks
+- @lib/constants: Payment method utilities
+- @lib/data/cart: Cart management functions
+- React hooks (useState)
+- next/navigation: Next.js utilities
 
-## Related Components
+## States
 
-- AccountInfo: Wrapper component
-- Input: Form input fields
-- NativeSelect: Country selector
-- AddressDisplay: Shows formatted address
-- AddressForm: Handles address editing
+The component manages several states:
 
----
+1. Loading State:
+```typescript copy
+const [submitting, setSubmitting] = useState(false)
+```
 
-This component simplifies billing address management while maintaining a consistent user experience across the account settings interface.
+2. Error State:
+```typescript copy
+const [errorMessage, setErrorMessage] = useState<string | null>(null)
+```
+
+3. Payment Ready State:
+```typescript copy
+const disabled = !stripe || !elements ? true : false
+```
+
+## Best Practices
+
+1. Validation before payment
+2. Error handling and display
+3. Loading state management
+4. Payment method type checking
+5. Proper error messaging
+6. Type safety with TypeScript
+7. Testing support
+
+## Security Considerations
+
+1. Payment session validation
+2. Secure handling of payment credentials
+3. Error message sanitization
+4. Input validation
+5. Proper use of Stripe Elements
+
+## See Also
+
+- [Stripe Elements Documentation](https://stripe.com/docs/stripe-js)
+- [Medusa Payment Documentation](https://docs.medusajs.com/modules/carts-and-checkout/payment)
+- [React Testing Library](https://testing-library.com/docs/react-testing-library/intro/)

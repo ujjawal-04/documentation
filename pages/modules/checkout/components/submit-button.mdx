@@ -1,274 +1,120 @@
----
-title: "Reset Password"
-description: "Documentation for the Reset Password component, which allows users to reset their password using an email token"
----
+# Submit Button
 
-# Reset Password
-
-The `ResetPassword` component implements the password reset flow, enabling users to securely change their password using a token received via email.
-
-## Installation
-
-```tsx copy
-import ResetPassword from "../path-to-component"
-```
+A client-side button component that integrates with React's Form Status API to handle loading states during form submissions.
 
 ## Props
 
-This component is self-contained and does not accept any props. It retrieves necessary data from URL query parameters.
+| Prop | Type | Required | Default | Description |
+|------|------|----------|---------|-------------|
+| children | React.ReactNode | Yes | - | The content to be rendered inside the button |
+| variant | "primary" \| "secondary" \| "transparent" \| "danger" \| null | No | "primary" | The visual style variant of the button |
+| className | string | No | undefined | Additional CSS classes to apply to the button |
+| data-testid | string | No | undefined | Test identifier for the button element |
+
+## Features
+
+- Automatic loading state management using `useFormStatus`
+- Integration with Medusa UI Button component
+- Support for multiple visual variants
+- Test ID support for automated testing
 
 ## Usage
 
-Basic implementation of the component:
-
 ```tsx copy
-import ResetPassword from "../path-to-component"
+// Basic usage
+import { SubmitButton } from "./components/SubmitButton"
 
-export default function PasswordResetPage() {
-  return <ResetPassword />
-}
-```
-
-## Component Implementation
-
-Here's the complete implementation of the Reset Password component:
-
-```tsx copy
-"use client"
-
-import { useState } from "react"
-import { useSearchParams, useRouter } from "next/navigation"
-import LocalizedClientLink from "@modules/common/components/localized-client-link"
-
-export default function ResetPassword() {
-  const [loading, setLoading] = useState(false)
-  const [password, setPassword] = useState("")
-  const [confirmPassword, setConfirmPassword] = useState("")
-  const searchParams = useSearchParams()
-  const router = useRouter()
-
-  const BACKEND_URL = process.env.MEDUSA_BACKEND_URL || "http://localhost:9000"
-  const token = searchParams.get("token")
-  const email = searchParams.get("email")
-
-  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault()
-
-    if (!password || !confirmPassword) {
-      alert("Both password fields are required")
-      return
-    }
-
-    if (password !== confirmPassword) {
-      alert("Passwords do not match")
-      return
-    }
-
-    setLoading(true)
-
-    try {
-      const response = await fetch(
-        `${BACKEND_URL}/auth/customer/emailpass/update?token=${token}`,
-        {
-          credentials: "include",
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({ email, password }),
-        }
-      )
-
-      const data = await response.json()
-
-      if (data.success) {
-        alert("Password reset successfully!")
-        router.push("/account")
-      } else {
-        alert("Couldn't reset password. Try again.")
-      }
-    } catch (error) {
-      alert("An error occurred. Please try again.")
-    } finally {
-      setLoading(false)
-    }
-  }
-
+const MyForm = () => {
   return (
-    <div className="flex justify-center items-center min-h-screen bg-gray-100">
-      <form onSubmit={handleSubmit} className="bg-white p-6 rounded-lg shadow-md w-96">
-        <h2 className="text-xl font-semibold text-center mb-4">
-          Forgot Password?
-        </h2>
-        <label className="block text-sm font-medium text-gray-700">
-          New Password
-        </label>
-        <input
-          type="password"
-          placeholder="Enter new password"
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
-          className="w-full mt-1 p-2 border rounded-md focus:ring focus:ring-blue-300"
-          required
-        />
-        <label className="block text-sm font-medium text-gray-700 mt-3">
-          Confirm Password
-        </label>
-        <input
-          type="password"
-          placeholder="Confirm new password"
-          value={confirmPassword}
-          onChange={(e) => setConfirmPassword(e.target.value)}
-          className="w-full mt-1 p-2 border rounded-md focus:ring focus:ring-blue-300"
-          required
-        />
-        <button
-          type="submit"
-          disabled={loading}
-          className="w-full mt-4 bg-blue-600 text-white py-2 rounded-md hover:bg-blue-700 disabled:bg-gray-400"
-        >
-          {loading ? "Resetting..." : "Reset Password"}
-        </button>
-        <p className="mt-4 text-center text-sm">
-          <LocalizedClientLink 
-            href="/account" 
-            className="text-blue-600 hover:underline"
-          >
-            Back to Account
-          </LocalizedClientLink>
-        </p>
-      </form>
-    </div>
+    <form action="/api/submit">
+      <SubmitButton>
+        Submit Form
+      </SubmitButton>
+    </form>
+  )
+}
+
+// With custom styling and variant
+const StyledForm = () => {
+  return (
+    <form action="/api/submit">
+      <SubmitButton 
+        variant="secondary"
+        className="mt-4 w-full"
+        data-testid="submit-form-button"
+      >
+        Save Changes
+      </SubmitButton>
+    </form>
   )
 }
 ```
 
-## Features
+## Variants
 
-### Password Reset Flow
-- Token-based password reset
-- Password confirmation
-- Form validation
-- Loading state management
-- Success/error handling
+The component supports several visual variants through the Medusa UI Button component:
 
-### Form Validation
-- Required field checking
-- Password matching validation
-- Empty field validation
-- Token verification
+- `primary` (default): Main call-to-action style
+- `secondary`: Alternative, less prominent style
+- `transparent`: No background style
+- `danger`: Error or destructive action style
 
-### User Experience
-- Loading indicators
-- Error messages
-- Success feedback
-- Navigation options
-- Clean interface
+## Loading State
 
-## Query Parameters
+The component automatically handles loading states during form submission:
 
-The component expects two URL parameters:
-
-1. `token`: The password reset token
-2. `email`: The user's email address
-
-Example URL:
-```
-/reset-password?token=abc123&email=user@example.com
+```typescript copy
+const { pending } = useFormStatus()
 ```
 
-## API Integration
+The loading state is passed to the Medusa UI Button component through the `isLoading` prop.
 
-The component integrates with the Medusa.js backend:
+## Integration with Medusa UI
 
-- Endpoint: `/auth/customer/emailpass/update`
-- Method: POST
-- Headers: Content-Type: application/json
-- Body: `{ email: string, password: string }`
-- Credentials: include
+The component wraps the Medusa UI Button component with the following default props:
 
-## Error Handling
-
-The component handles several error scenarios:
-
-1. Missing password fields
-2. Password mismatch
-3. Failed API requests
-4. Invalid tokens
-5. Network errors
-
-## Best Practices
-
-1. Secure token handling
-2. Password validation
-3. Clear error messaging
-4. Loading state feedback
-5. User navigation
-6. Form accessibility
-7. Responsive design
-
-## Dependencies
-
-- React (useState)
-- Next.js Navigation
-- LocalizedClientLink
-- Environment variables
+```typescript copy
+<Button
+  size="large"
+  type="submit"
+  variant={variant || "primary"}
+/>
+```
 
 ## Testing
 
-Example test cases:
+The component supports testing through the optional `data-testid` prop:
 
-```tsx copy
-describe('ResetPassword', () => {
-  it('validates password fields', async () => {
-    render(<ResetPassword />)
-    
-    const submitButton = screen.getByRole('button', { name: /reset password/i })
-    await userEvent.click(submitButton)
-    
-    expect(screen.getByText('Both password fields are required')).toBeInTheDocument()
-  })
-
-  it('handles successful password reset', async () => {
-    const mockRouter = { push: jest.fn() }
-    render(<ResetPassword />, { router: mockRouter })
-    
-    await userEvent.type(screen.getByPlaceholderText(/enter new password/i), 'newpass123')
-    await userEvent.type(screen.getByPlaceholderText(/confirm new password/i), 'newpass123')
-    await userEvent.click(screen.getByRole('button', { name: /reset password/i }))
-    
-    expect(mockRouter.push).toHaveBeenCalledWith('/account')
-  })
-})
+```typescript copy
+// In your test
+const button = screen.getByTestId("your-test-id")
 ```
 
-## Future Enhancements
+## Best Practices
 
-1. Password strength requirements
-2. Better error messages
-3. Password requirements display
-4. Token expiration handling
-5. Progressive form validation
-6. Improved loading states
-7. Password history check
+1. Always use within a form element
+2. Use appropriate variants for different actions:
+   - `primary` for main form submissions
+   - `secondary` for alternative actions
+   - `danger` for destructive operations
+3. Provide meaningful button text through children
+4. Include data-testid when using in tested components
 
-## Security Considerations
+## Dependencies
 
-1. Token validation
-2. Secure communication
-3. Password encryption
-4. CSRF protection
-5. Rate limiting
-6. Input sanitization
-7. Error obfuscation
+- `@medusajs/ui`: For the base Button component
+- `react`: For component and children types
+- `react-dom`: For useFormStatus hook
 
-## Related Components
+## TypeScript Support
 
-- LoginForm
-- ForgotPassword
-- AccountSettings
-- PasswordInput
+The component includes full TypeScript support with proper type definitions for all props:
 
----
-
-This component provides a secure and user-friendly way for customers to reset their passwords within a Medusa.js-powered store.
+```typescript copy
+interface SubmitButtonProps {
+  children: React.ReactNode
+  variant?: "primary" | "secondary" | "transparent" | "danger" | null
+  className?: string
+  "data-testid"?: string
+}
+```
