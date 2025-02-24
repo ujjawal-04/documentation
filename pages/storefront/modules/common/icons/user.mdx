@@ -1,138 +1,233 @@
 ---
-title: 'Account Layout'
-description: 'A layout component for account-related pages that provides a consistent structure with navigation and content areas'
+title: 'User Icon'
+description: 'A customizable user profile icon component that represents a person with a simplified avatar design.'
 ---
 
-# Account Layout
+# User Icon
 
-The `AccountLayout` component serves as a wrapper for account-related pages, providing a consistent layout structure with navigation and content areas. It's designed to be responsive and works with the Medusa e-commerce framework.
+The `User` component is an SVG icon that displays a recognizable user or profile symbol. It's commonly used for user avatars, profile buttons, account sections, and other UI elements that represent a person or user account.
 
-## Component Overview
+## Features
 
-The AccountLayout component creates a full-width container with a two-column layout on larger screens, featuring:
-- A navigation sidebar (only shown when a customer is logged in)
-- A main content area for child components
-- Responsive design that switches to a single column on mobile devices
+- Customizable size and color
+- Consistent stroke width and styling
+- Responsive scaling
+- Support for additional SVG attributes
+- Clean, recognizable user profile design with head and shoulders silhouette
 
 ## Props
 
 | Prop | Type | Required | Description |
 |------|------|----------|-------------|
-| customer | `HttpTypes.StoreCustomer \| null` | Yes | The customer object from Medusa's store API. Used to display account navigation |
-| children | `React.ReactNode` | Yes | The content to be rendered in the main area of the layout |
+| `size` | `string` | No | Width and height of the icon in pixels (default: "16") |
+| `color` | `string` | No | Color of the icon's stroke (default: "currentColor") |
+| `...attributes` | `IconProps & SVGAttributes<SVGElement>` | No | Additional attributes passed to the underlying SVG element |
 
 ## Usage
 
 ```tsx copy
-import AccountLayout from './AccountLayout'
-import { StoreCustomer } from '@medusajs/types'
+import User from "@components/icons/User"
 
-const AccountPage = ({ customer }: { customer: StoreCustomer }) => {
+export default function ProfileButton() {
   return (
-    <AccountLayout customer={customer}>
-      <div>Account content goes here</div>
-    </AccountLayout>
+    <button 
+      onClick={() => openUserMenu()} 
+      className="flex items-center gap-2 p-2 rounded-md hover:bg-ui-bg-base-hover"
+    >
+      <User size="18" />
+      <span>My Profile</span>
+    </button>
   )
 }
 ```
 
-## Implementation Details
+## Styling
 
-### Layout Structure
+The icon is designed with:
 
-The component uses a nested structure of flex and grid containers:
+- Clean SVG paths for crisp rendering at any size
+- Consistent stroke width (1.5) for all paths
+- Rounded stroke caps and joins for a polished appearance
+- Default color inheritance via "currentColor"
+- Proper viewBox settings (0 0 20 20) for responsive scaling
+- Two distinct paths that form a complete user silhouette:
+  1. The upper circular head/face area
+  2. The lower shoulders/body area with a slight indentation for the neck
 
-1. Outer container:
-   - Uses `flex-1` for flexible sizing
-   - Applies padding on larger screens with `small:py-12`
+## Customization
 
-2. Inner container:
-   - Maximum width of `max-w-5xl`
-   - Centered with `mx-auto`
-   - White background
-   - Flex column layout
+### Size Variations
 
-3. Grid layout:
-   - Single column by default
-   - Two columns on larger screens using `small:grid-cols-[240px_1fr]`
-   - Fixed 240px sidebar width
-   - Flexible content area width
+```tsx copy
+// Small (default)
+<User size="16" />
 
-### Responsive Design
+// Medium
+<User size="24" />
 
-The layout adapts to different screen sizes:
+// Large
+<User size="32" />
 
-- **Mobile** (< small breakpoint):
-  - Single column layout
-  - No top/bottom padding
-  - Full width content
+// Custom
+<User size="40" />
+```
 
-- **Desktop** (≥ small breakpoint):
-  - Two column layout
-  - 12 units of padding top/bottom
-  - Fixed width sidebar
+### Color Variations
 
-### Navigation
+```tsx copy
+// Default (inherits from text color)
+<User />
 
-The `AccountNav` component is conditionally rendered based on the presence of a customer:
-- Only shown when `customer` prop is not null
-- Receives the customer object as a prop
-- Contained within the left column of the grid
+// Brand color
+<User color="#4F46E5" />
 
-## Dependencies
+// Muted variant
+<User color="var(--color-ui-fg-subtle)" />
 
-- React
-- UnderlineLink component from common modules
-- AccountNav component
-- Medusa types for customer data
-- Tailwind CSS for styling
+// High contrast
+<User color="var(--color-ui-fg-base)" />
+```
 
-## Testing
+### With Additional SVG Attributes
 
-The component includes a data-testid attribute (`account-page`) for easy targeting in tests.
+```tsx copy
+<User 
+  size="24"
+  strokeWidth="2"
+  className="my-user-icon"
+  style={{ filter: "drop-shadow(0px 1px 2px rgba(0, 0, 0, 0.1))" }}
+/>
+```
 
 ## Examples
 
-### With Customer
+### Simple Profile Avatar
 
 ```tsx copy
-const LoggedInExample = () => {
-  const customer = {
-    id: "cust_123",
-    email: "user@example.com",
-    // ... other customer properties
-  }
-  
-  return (
-    <AccountLayout customer={customer}>
-      <h1>Welcome back!</h1>
-      <p>Your account details...</p>
-    </AccountLayout>
-  )
-}
+<div className="flex items-center gap-3">
+  <div className="flex items-center justify-center w-10 h-10 rounded-full bg-ui-bg-base-hover">
+    <User size="20" />
+  </div>
+  <div>
+    <h3 className="text-sm font-medium">Jane Smith</h3>
+    <p className="text-xs text-ui-fg-subtle">jane.smith@example.com</p>
+  </div>
+</div>
 ```
 
-### Without Customer
+### Account Menu Trigger
 
 ```tsx copy
-const LoggedOutExample = () => {
-  return (
-    <AccountLayout customer={null}>
-      <h1>Please log in</h1>
-      <p>Login form goes here...</p>
-    </AccountLayout>
-  )
-}
+<button 
+  aria-label="Open user menu" 
+  onClick={() => setMenuOpen(true)}
+  className="flex items-center justify-center w-8 h-8 rounded-full bg-ui-bg-base hover:bg-ui-bg-base-hover"
+>
+  <User size="18" />
+</button>
 ```
 
-## Best Practices
+### Navigation Item
 
-1. Always provide a customer prop, even if null, to ensure proper rendering
-2. Use semantic HTML within the content area
-3. Ensure child components respect the layout's padding and width constraints
-4. Consider the responsive nature of the layout when designing child components
+```tsx copy
+<nav className="space-y-1">
+  <a 
+    href="/dashboard" 
+    className="flex items-center gap-2 px-3 py-2 text-ui-fg-subtle hover:text-ui-fg-base hover:bg-ui-bg-base-hover rounded-md"
+  >
+    <svg>...</svg>
+    <span>Dashboard</span>
+  </a>
+  <a 
+    href="/profile" 
+    className="flex items-center gap-2 px-3 py-2 text-ui-fg-base bg-ui-bg-base-hover rounded-md"
+  >
+    <User size="16" />
+    <span>Profile</span>
+  </a>
+  <a 
+    href="/settings" 
+    className="flex items-center gap-2 px-3 py-2 text-ui-fg-subtle hover:text-ui-fg-base hover:bg-ui-bg-base-hover rounded-md"
+  >
+    <svg>...</svg>
+    <span>Settings</span>
+  </a>
+</nav>
+```
 
-## Related Components
+### User Card
 
-- AccountNav: Provides the navigation sidebar
-- UnderlineLink: Used within the navigation for interactive elements
+```tsx copy
+<div className="border border-ui-border-base rounded-md overflow-hidden">
+  <div className="p-4 flex flex-col items-center">
+    <div className="flex items-center justify-center w-16 h-16 rounded-full bg-ui-bg-base-hover mb-3">
+      <User size="32" />
+    </div>
+    <h3 className="font-medium">Alex Johnson</h3>
+    <p className="text-sm text-ui-fg-subtle">Product Manager</p>
+  </div>
+  <div className="border-t border-ui-border-base p-3 flex justify-around">
+    <button className="text-sm text-ui-fg-interactive hover:underline">Message</button>
+    <button className="text-sm text-ui-fg-interactive hover:underline">View Profile</button>
+  </div>
+</div>
+```
+
+### User List Item
+
+```tsx copy
+<ul className="divide-y divide-ui-border-base">
+  {users.map((user) => (
+    <li key={user.id} className="py-3 flex items-center gap-3">
+      <div className="flex items-center justify-center w-8 h-8 rounded-full bg-ui-bg-base-hover">
+        {user.avatar ? (
+          <img src={user.avatar} alt={user.name} className="w-8 h-8 rounded-full" />
+        ) : (
+          <User size="16" />
+        )}
+      </div>
+      <div className="flex-1 min-w-0">
+        <p className="text-sm font-medium truncate">{user.name}</p>
+        <p className="text-xs text-ui-fg-subtle truncate">{user.email}</p>
+      </div>
+      <button className="text-sm text-ui-fg-interactive hover:underline">
+        View
+      </button>
+    </li>
+  ))}
+</ul>
+```
+
+### With Badge
+
+```tsx copy
+<div className="relative">
+  <div className="flex items-center justify-center w-10 h-10 rounded-full bg-ui-bg-base-hover">
+    <User size="20" />
+  </div>
+  <div className="absolute -top-1 -right-1 w-4 h-4 bg-ui-bg-error rounded-full border-2 border-ui-bg-base"></div>
+</div>
+```
+
+## Accessibility
+
+When using this icon for user-related elements:
+
+- Always provide appropriate `aria-label` attributes for icon-only buttons
+- Consider adding tooltips for icon-only buttons to enhance discoverability
+- Ensure sufficient color contrast between the icon and its background
+- Use semantic HTML elements for interactive elements (buttons, links)
+- When used as a placeholder for missing user avatars, consider adding an appropriate `alt` attribute
+- For navigation items, consider using `aria-current="page"` for the active page
+
+## Technical Details
+
+The component uses:
+
+- React's functional component pattern with TypeScript support
+- SVG paths for drawing the user silhouette geometry
+- Type import from a shared `IconProps` interface
+- Default prop values for consistent appearance
+- Two distinct paths that form the user profile representation:
+  1. A circular path for the head/face area
+  2. A curved path for the shoulders/upper body

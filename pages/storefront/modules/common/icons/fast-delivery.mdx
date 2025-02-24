@@ -1,142 +1,220 @@
-# Login Template
+---
+title: 'Fast Delivery Icon'
+description: 'A customizable icon representing fast delivery or shipping service, commonly used in e-commerce interfaces and logistics features.'
+---
 
-The `LoginTemplate` is a client-side component that manages the display of either a login or registration form. It uses React's useState hook to toggle between these two views.
+# Fast Delivery Icon
+
+The `FastDelivery` component is an SVG icon that depicts a fast delivery service or shipping option. It's commonly used in e-commerce interfaces, order tracking sections, and shipping method selection interfaces to represent expedited delivery options.
+
+## Features
+
+- Customizable size and color
+- Consistent stroke styling
+- Detailed delivery vehicle representation
+- Responsive scaling
+- Support for additional SVG attributes
+
+## Props
+
+| Prop | Type | Required | Description |
+|------|------|----------|-------------|
+| `size` | `string` | No | Width and height of the icon in pixels (default: "16") |
+| `color` | `string` | No | Color of the icon's stroke (default: "currentColor") |
+| `...attributes` | `SVGAttributes<SVGElement>` | No | Additional attributes passed to the underlying SVG element |
 
 ## Usage
 
 ```tsx copy
-import LoginTemplate from './LoginTemplate'
+import FastDelivery from "@components/icons/FastDelivery"
 
-const AccountPage = () => {
-  return <LoginTemplate />
-}
-```
-
-## Component Architecture
-
-### View States
-
-The component uses an enum to define possible view states:
-
-```tsx copy
-export enum LOGIN_VIEW {
-  SIGN_IN = "sign-in",
-  REGISTER = "register",
-}
-```
-
-### State Management
-
-- Uses the `useState` hook to track current view
-- Default view is "sign-in"
-- State is managed through `setCurrentView` function passed to child components
-
-### Conditional Rendering
-
-The component conditionally renders either:
-- `<Login />` component when currentView is "sign-in"
-- `<Register />` component when currentView is "register"
-
-## Implementation Details
-
-### Component Structure
-
-```tsx copy
-"use client"
-
-import { useState } from "react"
-import Register from "@modules/account/components/register"
-import Login from "@modules/account/components/login"
-
-const LoginTemplate = () => {
-  const [currentView, setCurrentView] = useState("sign-in")
-  
+export default function ShippingOptions() {
   return (
-    <div className="w-full flex justify-start px-8 py-8">
-      {currentView === "sign-in" ? (
-        <Login setCurrentView={setCurrentView} />
-      ) : (
-        <Register setCurrentView={setCurrentView} />
-      )}
+    <div className="shipping-options">
+      <div className="option flex items-center gap-3 p-3 border rounded mb-2">
+        <FastDelivery size="24" />
+        <div>
+          <h3 className="font-medium">Express Delivery</h3>
+          <p className="text-sm text-ui-fg-subtle">Delivery within 1-2 business days</p>
+        </div>
+      </div>
     </div>
   )
 }
-
-export default LoginTemplate
 ```
 
-### Styling
+## Styling
 
-The component uses Tailwind CSS classes for layout:
-- `w-full`: Full width container
-- `flex`: Flex container
-- `justify-start`: Left alignment
-- `px-8`: Horizontal padding of 8 units
-- `py-8`: Vertical padding of 8 units
+The icon is designed with:
 
-### Child Components
+- Detailed paths for accurate representation of the delivery concept
+- Consistent stroke width (1.5) for visual harmony with other icons
+- Rounded stroke caps and joins for a polished appearance
+- Default color inheritance via "currentColor"
+- Proper viewBox settings for responsive scaling
 
-#### Login Component Example
+## Customization
+
+### Size Variations
 
 ```tsx copy
-interface LoginProps {
-  setCurrentView: (view: "sign-in" | "register") => void
-}
+// Small
+<FastDelivery size="16" />
 
-const Login = ({ setCurrentView }: LoginProps) => {
-  return (
+// Medium
+<FastDelivery size="24" />
+
+// Large
+<FastDelivery size="32" />
+
+// Custom
+<FastDelivery size="48" />
+```
+
+### Color Variations
+
+```tsx copy
+// Default (inherits from text color)
+<FastDelivery />
+
+// Specific color
+<FastDelivery color="#4F46E5" />
+
+// UI token colors
+<FastDelivery color="var(--color-ui-fg-interactive)" />
+```
+
+## Examples
+
+### Shipping Method Selection
+
+```tsx copy
+<div className="shipping-methods">
+  <h3 className="text-base font-medium mb-3">Select Shipping Method</h3>
+  <div className="space-y-2">
+    <label className="flex items-center gap-3 p-3 border rounded cursor-pointer hover:bg-ui-bg-base-hover">
+      <input type="radio" name="shipping" value="standard" className="form-radio" />
+      <div className="flex items-center gap-3 flex-1">
+        <FastDelivery size="20" />
+        <div>
+          <p className="font-medium">Express Delivery</p>
+          <p className="text-sm text-ui-fg-subtle">1-2 business days</p>
+        </div>
+        <span className="ml-auto font-medium">$12.99</span>
+      </div>
+    </label>
+    
+    <label className="flex items-center gap-3 p-3 border rounded cursor-pointer hover:bg-ui-bg-base-hover">
+      <input type="radio" name="shipping" value="standard" className="form-radio" />
+      <div className="flex items-center gap-3 flex-1">
+        <Truck size="20" />
+        <div>
+          <p className="font-medium">Standard Shipping</p>
+          <p className="text-sm text-ui-fg-subtle">3-5 business days</p>
+        </div>
+        <span className="ml-auto font-medium">$4.99</span>
+      </div>
+    </label>
+  </div>
+</div>
+```
+
+### Order Status Timeline
+
+```tsx copy
+<div className="order-timeline p-4 border rounded">
+  <h3 className="text-lg font-medium mb-4">Order #12345</h3>
+  <div className="timeline space-y-6">
+    <div className="timeline-item flex">
+      <div className="timeline-icon w-8 flex items-center justify-center">
+        <div className="w-6 h-6 rounded-full bg-ui-bg-interactive flex items-center justify-center">
+          <Check size="14" color="white" />
+        </div>
+      </div>
+      <div className="ml-4">
+        <h4 className="font-medium">Order Placed</h4>
+        <p className="text-sm text-ui-fg-subtle">June 3, 2023 at 10:24 AM</p>
+      </div>
+    </div>
+    
+    <div className="timeline-item flex">
+      <div className="timeline-icon w-8 flex items-center justify-center">
+        <div className="w-6 h-6 rounded-full bg-ui-bg-interactive flex items-center justify-center">
+          <Box size="14" color="white" />
+        </div>
+      </div>
+      <div className="ml-4">
+        <h4 className="font-medium">Order Packed</h4>
+        <p className="text-sm text-ui-fg-subtle">June 3, 2023 at 2:45 PM</p>
+      </div>
+    </div>
+    
+    <div className="timeline-item flex">
+      <div className="timeline-icon w-8 flex items-center justify-center">
+        <div className="w-6 h-6 rounded-full bg-ui-bg-base border-2 border-ui-border-interactive flex items-center justify-center">
+          <FastDelivery size="14" color="var(--color-ui-fg-interactive)" />
+        </div>
+      </div>
+      <div className="ml-4">
+        <h4 className="font-medium">In Transit</h4>
+        <p className="text-sm text-ui-fg-interactive">Estimated delivery: June 5, 2023</p>
+      </div>
+    </div>
+  </div>
+</div>
+```
+
+### Promotional Banner
+
+```tsx copy
+<div className="promo-banner p-4 bg-ui-bg-base-hover border rounded">
+  <div className="flex items-center gap-3">
+    <div className="shrink-0 w-10 h-10 rounded-full bg-ui-bg-interactive flex items-center justify-center">
+      <FastDelivery size="20" color="white" />
+    </div>
     <div>
-      <form>
-        {/* Login form fields */}
-      </form>
-      <button onClick={() => setCurrentView("register")}>
-        Create an account
-      </button>
+      <h3 className="font-bold text-lg">Free Express Delivery</h3>
+      <p>On orders over $75. Limited time offer!</p>
     </div>
-  )
-}
+  </div>
+</div>
 ```
 
-#### Register Component Example
+### Product Card Badge
 
 ```tsx copy
-interface RegisterProps {
-  setCurrentView: (view: "sign-in" | "register") => void
-}
-
-const Register = ({ setCurrentView }: RegisterProps) => {
-  return (
-    <div>
-      <form>
-        {/* Registration form fields */}
-      </form>
-      <button onClick={() => setCurrentView("sign-in")}>
-        Already have an account? Sign in
-      </button>
+<div className="product-card border rounded overflow-hidden">
+  <div className="relative">
+    <img src="/product-image.jpg" alt="Product" className="w-full" />
+    <div className="absolute top-2 left-2 bg-ui-bg-interactive text-ui-fg-on-interactive px-2 py-1 rounded flex items-center gap-1 text-xs">
+      <FastDelivery size="12" />
+      <span>Same Day</span>
     </div>
-  )
-}
+  </div>
+  <div className="p-3">
+    <h3 className="font-medium">Product Name</h3>
+    <p className="text-ui-fg-muted text-sm">Product description</p>
+    <div className="mt-2 font-bold">$29.99</div>
+  </div>
+</div>
 ```
 
-## Props
+## Accessibility
 
-| Prop | Type | Description |
-|------|------|-------------|
-| setCurrentView | `(view: "sign-in" \| "register") => void` | Function to update the current view state |
+When using this icon in interfaces:
 
-## Key Features
+- When used without accompanying text, provide appropriate `aria-label` attributes
+- Ensure sufficient color contrast for visibility
+- For interactive elements, maintain proper focus states
+- Consider adding text labels alongside the icon for clarity
+- Use the icon consistently throughout your interface for shipping-related content
 
-1. **Client Component**
-   - Marked with "use client" directive
-   - Handles client-side state
-   - Manages view transitions
+## Technical Details
 
-2. **State Management**
-   - Uses React useState hook
-   - Toggles between login and register views
-   - Passes state setter to child components
+The component uses:
 
-3. **Type Safety**
-   - TypeScript interfaces for props
-   - Enum for view states
-   - Strict type checking for state management
+- React's functional component pattern with TypeScript support
+- Detailed SVG paths for accurate representation
+- Consistent stroke properties across all paths
+- Default prop values for ease of use
+- Proper typing via the imported `IconProps` interface

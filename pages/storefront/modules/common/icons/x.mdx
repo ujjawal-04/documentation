@@ -1,138 +1,245 @@
 ---
-title: 'Account Layout'
-description: 'A layout component for account-related pages that provides a consistent structure with navigation and content areas'
+title: 'X Icon'
+description: 'A customizable X-shaped icon component that represents closing, canceling, or removing elements.'
 ---
 
-# Account Layout
+# X Icon
 
-The `AccountLayout` component serves as a wrapper for account-related pages, providing a consistent layout structure with navigation and content areas. It's designed to be responsive and works with the Medusa e-commerce framework.
+The `X` component is an SVG icon that displays a simple X shape formed by two intersecting diagonal lines. It's commonly used for close buttons, dismissal actions, removal indicators, and other UI elements that represent closing or canceling operations.
 
-## Component Overview
+## Features
 
-The AccountLayout component creates a full-width container with a two-column layout on larger screens, featuring:
-- A navigation sidebar (only shown when a customer is logged in)
-- A main content area for child components
-- Responsive design that switches to a single column on mobile devices
+- Customizable size and color
+- Consistent stroke width and styling
+- Responsive scaling
+- Support for additional SVG attributes
+- Clean, recognizable X shape with rounded line caps
 
 ## Props
 
 | Prop | Type | Required | Description |
 |------|------|----------|-------------|
-| customer | `HttpTypes.StoreCustomer \| null` | Yes | The customer object from Medusa's store API. Used to display account navigation |
-| children | `React.ReactNode` | Yes | The content to be rendered in the main area of the layout |
+| `size` | `string` | No | Width and height of the icon in pixels (default: "20") |
+| `color` | `string` | No | Color of the icon's stroke (default: "currentColor") |
+| `...attributes` | `IconProps & SVGAttributes<SVGElement>` | No | Additional attributes passed to the underlying SVG element |
 
 ## Usage
 
 ```tsx copy
-import AccountLayout from './AccountLayout'
-import { StoreCustomer } from '@medusajs/types'
+import X from "@components/icons/X"
 
-const AccountPage = ({ customer }: { customer: StoreCustomer }) => {
+export default function CloseButton({ onClose }) {
   return (
-    <AccountLayout customer={customer}>
-      <div>Account content goes here</div>
-    </AccountLayout>
+    <button 
+      aria-label="Close" 
+      onClick={onClose} 
+      className="flex items-center justify-center w-8 h-8 rounded-full hover:bg-ui-bg-base-hover"
+    >
+      <X size="20" />
+    </button>
   )
 }
 ```
 
-## Implementation Details
+## Styling
 
-### Layout Structure
+The icon is designed with:
 
-The component uses a nested structure of flex and grid containers:
+- Clean SVG paths for crisp rendering at any size
+- Consistent stroke width (1.5) for all paths
+- Rounded stroke caps and joins for a polished appearance
+- Default color inheritance via "currentColor"
+- Proper viewBox settings (0 0 20 20) for responsive scaling
+- Two distinct diagonal lines that cross from corner to corner:
+  1. A diagonal line from top-left to bottom-right
+  2. A diagonal line from top-right to bottom-left
 
-1. Outer container:
-   - Uses `flex-1` for flexible sizing
-   - Applies padding on larger screens with `small:py-12`
+## Customization
 
-2. Inner container:
-   - Maximum width of `max-w-5xl`
-   - Centered with `mx-auto`
-   - White background
-   - Flex column layout
+### Size Variations
 
-3. Grid layout:
-   - Single column by default
-   - Two columns on larger screens using `small:grid-cols-[240px_1fr]`
-   - Fixed 240px sidebar width
-   - Flexible content area width
+```tsx copy
+// Default
+<X size="20" />
 
-### Responsive Design
+// Small
+<X size="16" />
 
-The layout adapts to different screen sizes:
+// Medium
+<X size="24" />
 
-- **Mobile** (< small breakpoint):
-  - Single column layout
-  - No top/bottom padding
-  - Full width content
+// Large
+<X size="32" />
+```
 
-- **Desktop** (≥ small breakpoint):
-  - Two column layout
-  - 12 units of padding top/bottom
-  - Fixed width sidebar
+### Color Variations
 
-### Navigation
+```tsx copy
+// Default (inherits from text color)
+<X />
 
-The `AccountNav` component is conditionally rendered based on the presence of a customer:
-- Only shown when `customer` prop is not null
-- Receives the customer object as a prop
-- Contained within the left column of the grid
+// Muted
+<X color="var(--color-ui-fg-subtle)" />
 
-## Dependencies
+// Error variant
+<X color="var(--color-error)" />
 
-- React
-- UnderlineLink component from common modules
-- AccountNav component
-- Medusa types for customer data
-- Tailwind CSS for styling
+// Contextual colors
+<X color="#6B7280" />
+<X color="var(--color-ui-fg-muted)" />
+```
 
-## Testing
+### With Additional SVG Attributes
 
-The component includes a data-testid attribute (`account-page`) for easy targeting in tests.
+```tsx copy
+<X 
+  size="24"
+  strokeWidth="2"
+  className="my-x-icon"
+  style={{ filter: "drop-shadow(0px 1px 1px rgba(0, 0, 0, 0.1))" }}
+/>
+```
 
 ## Examples
 
-### With Customer
+### Modal Close Button
 
 ```tsx copy
-const LoggedInExample = () => {
-  const customer = {
-    id: "cust_123",
-    email: "user@example.com",
-    // ... other customer properties
+<div className="fixed inset-0 bg-ui-bg-overlay flex items-center justify-center z-50">
+  <div className="bg-ui-bg-base rounded-lg p-6 max-w-md w-full relative">
+    <button 
+      aria-label="Close modal" 
+      onClick={closeModal}
+      className="absolute top-4 right-4 w-8 h-8 flex items-center justify-center rounded-full hover:bg-ui-bg-base-hover"
+    >
+      <X size="20" />
+    </button>
+    <h2 className="text-lg font-medium mb-4">Modal Title</h2>
+    <p className="text-ui-fg-subtle">Modal content goes here...</p>
+  </div>
+</div>
+```
+
+### Toast Notification Dismiss
+
+```tsx copy
+<div className="fixed top-4 right-4 flex flex-col gap-2 z-50">
+  {notifications.map((notification) => (
+    <div 
+      key={notification.id}
+      className="bg-ui-bg-base shadow-md rounded-md p-4 pr-10 border border-ui-border-base relative max-w-sm"
+    >
+      <p className="text-sm font-medium">{notification.title}</p>
+      <p className="text-xs text-ui-fg-subtle">{notification.message}</p>
+      <button 
+        aria-label="Dismiss notification" 
+        onClick={() => dismissNotification(notification.id)}
+        className="absolute top-2 right-2 w-6 h-6 flex items-center justify-center rounded-full hover:bg-ui-bg-base-hover"
+      >
+        <X size="14" />
+      </button>
+    </div>
+  ))}
+</div>
+```
+
+### Form Field Clear Button
+
+```tsx copy
+<div className="relative">
+  <input 
+    type="text" 
+    value={searchQuery}
+    onChange={(e) => setSearchQuery(e.target.value)}
+    placeholder="Search..."
+    className="w-full px-3 py-2 pr-9 border border-ui-border-base rounded-md focus:border-ui-border-interactive focus:ring-1 focus:ring-ui-border-interactive outline-none"
+  />
+  {searchQuery && (
+    <button 
+      aria-label="Clear search" 
+      onClick={() => setSearchQuery('')}
+      className="absolute top-1/2 right-2 transform -translate-y-1/2 w-6 h-6 flex items-center justify-center rounded-full hover:bg-ui-bg-base-hover"
+    >
+      <X size="14" />
+    </button>
+  )}
+</div>
+```
+
+### Tag/Chip Removal
+
+```tsx copy
+<div className="flex flex-wrap gap-2">
+  {selectedTags.map((tag) => (
+    <div 
+      key={tag.id}
+      className="inline-flex items-center gap-1 px-2 py-1 bg-ui-bg-base-hover rounded-md text-sm"
+    >
+      <span>{tag.name}</span>
+      <button 
+        aria-label={`Remove ${tag.name} tag`} 
+        onClick={() => removeTag(tag.id)}
+        className="w-4 h-4 flex items-center justify-center rounded-full hover:bg-ui-bg-base text-ui-fg-subtle hover:text-ui-fg-base"
+      >
+        <X size="12" />
+      </button>
+    </div>
+  ))}
+</div>
+```
+
+### Error Indicator
+
+```tsx copy
+<div className="flex items-center gap-2 p-3 bg-ui-bg-error-subtle text-ui-fg-error rounded-md">
+  <div className="flex-shrink-0 w-6 h-6 rounded-full bg-ui-bg-error flex items-center justify-center">
+    <X size="14" color="white" />
+  </div>
+  <div>
+    <p className="text-sm font-medium">Invalid credentials</p>
+    <p className="text-xs">Please check your username and password and try again.</p>
+  </div>
+</div>
+```
+
+### With Animation
+
+```tsx copy
+<style jsx>{`
+  .close-icon {
+    transition: transform 0.2s ease;
   }
   
-  return (
-    <AccountLayout customer={customer}>
-      <h1>Welcome back!</h1>
-      <p>Your account details...</p>
-    </AccountLayout>
-  )
-}
+  .close-btn:hover .close-icon {
+    transform: rotate(90deg);
+  }
+`}</style>
+
+<button className="close-btn p-2 rounded-full hover:bg-ui-bg-base-hover">
+  <X className="close-icon" size="18" />
+</button>
 ```
 
-### Without Customer
+## Accessibility
 
-```tsx copy
-const LoggedOutExample = () => {
-  return (
-    <AccountLayout customer={null}>
-      <h1>Please log in</h1>
-      <p>Login form goes here...</p>
-    </AccountLayout>
-  )
-}
-```
+When using this icon for closing or dismissal actions:
 
-## Best Practices
+- Always provide appropriate `aria-label` attributes for icon-only buttons
+- Ensure sufficient color contrast between the icon and its background
+- Consider adding tooltips for icon-only buttons to enhance discoverability
+- Use appropriately sized touch targets (at least 44×44px) for touch devices
+- For modal dialogs, consider adding keyboard shortcuts (e.g., Escape key) for dismissal
+- When used in form field clearing, ensure the action is intuitive and has appropriate focus management
+- Provide feedback when elements are removed or dismissed
 
-1. Always provide a customer prop, even if null, to ensure proper rendering
-2. Use semantic HTML within the content area
-3. Ensure child components respect the layout's padding and width constraints
-4. Consider the responsive nature of the layout when designing child components
+## Technical Details
 
-## Related Components
+The component uses:
 
-- AccountNav: Provides the navigation sidebar
-- UnderlineLink: Used within the navigation for interactive elements
+- React's functional component pattern with TypeScript support
+- SVG paths for drawing the X geometry
+- Type import from a shared `IconProps` interface
+- Default prop values for consistent appearance
+- Two distinct paths that form the X shape:
+  1. A diagonal line from top-left (5,5) to bottom-right (15,15)
+  2. A diagonal line from top-right (15,5) to bottom-left (5,15)

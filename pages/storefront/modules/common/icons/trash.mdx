@@ -1,138 +1,241 @@
 ---
-title: 'Account Layout'
-description: 'A layout component for account-related pages that provides a consistent structure with navigation and content areas'
+title: 'Trash Icon'
+description: 'A customizable trash/delete icon component that represents deletion actions with a recognizable waste bin design.'
 ---
 
-# Account Layout
+# Trash Icon
 
-The `AccountLayout` component serves as a wrapper for account-related pages, providing a consistent layout structure with navigation and content areas. It's designed to be responsive and works with the Medusa e-commerce framework.
+The `Trash` component is an SVG icon that displays a recognizable trash bin or deletion symbol. It's commonly used for delete buttons, removal actions, and other UI elements that represent the permanent removal of content or data.
 
-## Component Overview
+## Features
 
-The AccountLayout component creates a full-width container with a two-column layout on larger screens, featuring:
-- A navigation sidebar (only shown when a customer is logged in)
-- A main content area for child components
-- Responsive design that switches to a single column on mobile devices
+- Customizable size and color
+- Consistent stroke width and styling
+- Responsive scaling
+- Support for additional SVG attributes
+- Clean, recognizable trash bin design with detail lines
 
 ## Props
 
 | Prop | Type | Required | Description |
 |------|------|----------|-------------|
-| customer | `HttpTypes.StoreCustomer \| null` | Yes | The customer object from Medusa's store API. Used to display account navigation |
-| children | `React.ReactNode` | Yes | The content to be rendered in the main area of the layout |
+| `size` | `string` | No | Width and height of the icon in pixels (default: "16") |
+| `color` | `string` | No | Color of the icon's stroke (default: "currentColor") |
+| `...attributes` | `IconProps & SVGAttributes<SVGElement>` | No | Additional attributes passed to the underlying SVG element |
 
 ## Usage
 
 ```tsx copy
-import AccountLayout from './AccountLayout'
-import { StoreCustomer } from '@medusajs/types'
+import Trash from "@components/icons/Trash"
 
-const AccountPage = ({ customer }: { customer: StoreCustomer }) => {
+export default function DeleteButton({ onDelete }) {
   return (
-    <AccountLayout customer={customer}>
-      <div>Account content goes here</div>
-    </AccountLayout>
+    <button 
+      onClick={onDelete} 
+      className="inline-flex items-center gap-1.5 px-3 py-1.5 text-sm text-ui-fg-error hover:bg-ui-bg-error-subtle rounded-md"
+    >
+      <Trash size="14" />
+      <span>Delete</span>
+    </button>
   )
 }
 ```
 
-## Implementation Details
+## Styling
 
-### Layout Structure
+The icon is designed with:
 
-The component uses a nested structure of flex and grid containers:
+- Clean SVG paths for crisp rendering at any size
+- Consistent stroke width (1.5) for all paths
+- Rounded stroke caps and joins for a polished appearance
+- Default color inheritance via "currentColor"
+- Proper viewBox settings (0 0 20 20) for responsive scaling
+- Four distinct paths that form a complete trash bin visual:
+  1. The lid/top line
+  2. The main bin container with handle details
+  3. The first vertical deletion/indicator line
+  4. The second vertical deletion/indicator line
 
-1. Outer container:
-   - Uses `flex-1` for flexible sizing
-   - Applies padding on larger screens with `small:py-12`
+## Customization
 
-2. Inner container:
-   - Maximum width of `max-w-5xl`
-   - Centered with `mx-auto`
-   - White background
-   - Flex column layout
+### Size Variations
 
-3. Grid layout:
-   - Single column by default
-   - Two columns on larger screens using `small:grid-cols-[240px_1fr]`
-   - Fixed 240px sidebar width
-   - Flexible content area width
+```tsx copy
+// Small (default)
+<Trash size="16" />
 
-### Responsive Design
+// Medium
+<Trash size="20" />
 
-The layout adapts to different screen sizes:
+// Large
+<Trash size="24" />
 
-- **Mobile** (< small breakpoint):
-  - Single column layout
-  - No top/bottom padding
-  - Full width content
+// Custom
+<Trash size="32" />
+```
 
-- **Desktop** (≥ small breakpoint):
-  - Two column layout
-  - 12 units of padding top/bottom
-  - Fixed width sidebar
+### Color Variations
 
-### Navigation
+```tsx copy
+// Default (inherits from text color)
+<Trash />
 
-The `AccountNav` component is conditionally rendered based on the presence of a customer:
-- Only shown when `customer` prop is not null
-- Receives the customer object as a prop
-- Contained within the left column of the grid
+// Error/danger color
+<Trash color="var(--color-error)" />
 
-## Dependencies
+// Subtle variant
+<Trash color="var(--color-ui-fg-subtle)" />
 
-- React
-- UnderlineLink component from common modules
-- AccountNav component
-- Medusa types for customer data
-- Tailwind CSS for styling
+// Contextual colors
+<Trash color="#EF4444" />
+<Trash color="var(--color-ui-fg-muted)" />
+```
 
-## Testing
+### With Additional SVG Attributes
 
-The component includes a data-testid attribute (`account-page`) for easy targeting in tests.
+```tsx copy
+<Trash 
+  size="20"
+  strokeWidth="2"
+  className="my-trash-icon"
+  style={{ filter: "drop-shadow(0px 1px 1px rgba(0, 0, 0, 0.1))" }}
+/>
+```
 
 ## Examples
 
-### With Customer
+### Simple Delete Button
 
 ```tsx copy
-const LoggedInExample = () => {
-  const customer = {
-    id: "cust_123",
-    email: "user@example.com",
-    // ... other customer properties
+<button 
+  onClick={handleDelete} 
+  className="inline-flex items-center gap-1.5 px-3 py-1.5 text-sm border border-ui-border-base rounded-md hover:bg-ui-bg-base-hover"
+>
+  <Trash size="14" />
+  <span>Delete</span>
+</button>
+```
+
+### Destructive Action Button
+
+```tsx copy
+<button 
+  onClick={handleDelete}
+  className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-ui-bg-error text-ui-fg-on-error rounded-md hover:bg-ui-bg-error-hover"
+>
+  <Trash size="14" color="currentColor" />
+  <span>Delete Permanently</span>
+</button>
+```
+
+### Icon-Only Delete Button with Confirmation
+
+```tsx copy
+<div className="relative group">
+  <button 
+    aria-label="Delete item" 
+    onClick={() => setShowConfirmation(true)}
+    className="flex items-center justify-center w-8 h-8 rounded-full text-ui-fg-subtle hover:text-ui-fg-error hover:bg-ui-bg-base-hover"
+  >
+    <Trash size="16" />
+  </button>
+  
+  {showConfirmation && (
+    <div className="absolute right-0 top-full mt-2 p-3 bg-ui-bg-base border border-ui-border-base rounded-md shadow-md w-60 z-10">
+      <p className="text-sm mb-3">Are you sure you want to delete this item?</p>
+      <div className="flex gap-2 justify-end">
+        <button 
+          onClick={() => setShowConfirmation(false)} 
+          className="px-2 py-1 text-xs text-ui-fg-subtle hover:text-ui-fg-base"
+        >
+          Cancel
+        </button>
+        <button 
+          onClick={handleConfirmedDelete} 
+          className="px-2 py-1 text-xs bg-ui-bg-error text-ui-fg-on-error rounded-md"
+        >
+          Delete
+        </button>
+      </div>
+    </div>
+  )}
+</div>
+```
+
+### Table Row Delete Action
+
+```tsx copy
+<table className="w-full border-collapse">
+  <thead>
+    <tr className="border-b border-ui-border-base">
+      <th className="py-2 px-4 text-left font-medium text-ui-fg-subtle">Name</th>
+      <th className="py-2 px-4 text-left font-medium text-ui-fg-subtle">Email</th>
+      <th className="py-2 px-4 text-left font-medium text-ui-fg-subtle">Role</th>
+      <th className="py-2 px-4 text-right font-medium text-ui-fg-subtle">Actions</th>
+    </tr>
+  </thead>
+  <tbody>
+    {users.map((user) => (
+      <tr key={user.id} className="border-b border-ui-border-base">
+        <td className="py-2 px-4">{user.name}</td>
+        <td className="py-2 px-4">{user.email}</td>
+        <td className="py-2 px-4">{user.role}</td>
+        <td className="py-2 px-4 text-right">
+          <button 
+            onClick={() => deleteUser(user.id)} 
+            className="p-1 text-ui-fg-subtle hover:text-ui-fg-error"
+            aria-label={`Delete ${user.name}`}
+          >
+            <Trash size="16" />
+          </button>
+        </td>
+      </tr>
+    ))}
+  </tbody>
+</table>
+```
+
+### With Hover Effect
+
+```tsx copy
+<style jsx>{`
+  .delete-icon {
+    transition: all 0.2s ease;
   }
   
-  return (
-    <AccountLayout customer={customer}>
-      <h1>Welcome back!</h1>
-      <p>Your account details...</p>
-    </AccountLayout>
-  )
-}
+  .delete-btn:hover .delete-icon {
+    transform: translateY(-1px);
+    color: var(--color-error);
+  }
+`}</style>
+
+<button className="delete-btn p-2 rounded-md hover:bg-ui-bg-base-hover">
+  <Trash className="delete-icon" size="18" />
+</button>
 ```
 
-### Without Customer
+## Accessibility
 
-```tsx copy
-const LoggedOutExample = () => {
-  return (
-    <AccountLayout customer={null}>
-      <h1>Please log in</h1>
-      <p>Login form goes here...</p>
-    </AccountLayout>
-  )
-}
-```
+When using this icon for deletion actions:
 
-## Best Practices
+- Always provide appropriate `aria-label` attributes for icon-only buttons
+- Consider adding confirmation dialogs for destructive or irreversible actions
+- Use appropriate error or danger colors to reinforce the destructive nature
+- Ensure sufficient color contrast between the icon and its background
+- Consider adding descriptive text along with the icon for clarity
+- For bulk delete operations, consider showing the number of items to be deleted
+- Use appropriate focus states for keyboard navigation
 
-1. Always provide a customer prop, even if null, to ensure proper rendering
-2. Use semantic HTML within the content area
-3. Ensure child components respect the layout's padding and width constraints
-4. Consider the responsive nature of the layout when designing child components
+## Technical Details
 
-## Related Components
+The component uses:
 
-- AccountNav: Provides the navigation sidebar
-- UnderlineLink: Used within the navigation for interactive elements
+- React's functional component pattern with TypeScript support
+- SVG paths for drawing the trash bin geometry
+- Type import from a shared `IconProps` interface
+- Default prop values for consistent appearance
+- Four distinct paths that form a cohesive trash bin graphic:
+  1. The horizontal top/lid of the trash bin
+  2. The main bin container including the bin outline and handles
+  3. The first vertical indicator line inside the bin
+  4. The second vertical indicator line inside the bin

@@ -1,273 +1,104 @@
 ---
-Address Card 
+title: 'Divider'
+description: 'A simple horizontal divider component for creating visual separation between content sections.'
 ---
 
-# Address Components
+# Divider
 
-## Add Address Component
+The `Divider` component provides a consistent way to create visual separation between different sections of content. It renders as a thin horizontal line with configurable styling.
 
-The `AddAddress` component allows users to input and save a new address within their account.
+## Features
 
-### Installation
+- Simple, consistent horizontal line
+- Customizable appearance through className prop
+- Lightweight implementation
+- Consistent default styling
 
-```tsx copy
-import AddAddress from "@components/AddAddress"
-```
+## Props
 
-### Props
+| Prop | Type | Required | Description |
+|------|------|----------|-------------|
+| `className` | `string` | No | Additional CSS classes to customize the divider's appearance |
 
-| Prop Name | Type | Description |
-|-----------|------|-------------|
-| `region` | `HttpTypes.StoreRegion` | The region context for address management |
-| `addresses` | `HttpTypes.StoreCustomerAddress[]` | List of existing customer addresses |
-
-### Features
-
-- **Modal Interface**: Opens a modal for adding a new address
-- **Form Inputs**: Includes fields for first name, last name, company, address, postal code, city, state, country, and phone
-- **Validation**: Ensures required fields are filled before submission
-- **Success & Error Handling**: Displays success and error messages based on API responses
-
-### Usage Example
+## Usage
 
 ```tsx copy
-<AddAddress 
-  region={regionData} 
-  addresses={customerData.addresses} 
-/>
-```
+import Divider from '@/components/Divider'
 
-### Implementation Example
-
-```tsx copy
-import { AddAddress } from "@components/AddAddress"
-import { useRegion } from "@lib/hooks/use-region"
-
-export default function NewAddressSection() {
-  const { region } = useRegion()
-  
+export default function ProductDetails() {
   return (
-    <div className="mt-4">
-      <h2 className="text-xl font-bold mb-4">Add New Address</h2>
-      <AddAddress
-        region={region}
-        addresses={customer.addresses}
-        onSuccess={() => {
-          // Handle success
-          toast.success("Address added successfully")
-        }}
-      />
-    </div>
-  )
-}
-```
-
-## Edit Address Component
-
-The `EditAddress` component allows users to modify their existing saved addresses.
-
-### Installation
-
-```tsx copy
-import EditAddress from "@components/EditAddress"
-```
-
-### Props
-
-| Prop Name | Type | Description |
-|-----------|------|-------------|
-| `region` | `HttpTypes.StoreRegion` | The region context for address management |
-| `address` | `HttpTypes.StoreCustomerAddress` | The address object to be edited |
-| `isActive` | `boolean` | Indicates if the address is the default one |
-
-### Features
-
-- **Modal Interface**: Opens a modal for editing the selected address
-- **Form Inputs**: Provides fields for first name, last name, company, address, postal code, city, state, country, and phone
-- **Validation**: Ensures required fields are completed before submission
-- **Success & Error Handling**: Displays appropriate messages based on API responses
-- **Delete Functionality**: Allows users to remove an existing address
-
-### Usage Example
-
-```tsx copy
-<EditAddress 
-  region={regionData} 
-  address={addressData} 
-  isActive={true} 
-/>
-```
-
-### Form Implementation
-
-```tsx copy
-// Example of form structure within EditAddress
-<form onSubmit={handleSubmit}>
-  <div className="grid grid-cols-2 gap-4">
-    <Input
-      label="First Name"
-      name="first_name"
-      defaultValue={address.first_name}
-      required
-    />
-    <Input
-      label="Last Name"
-      name="last_name"
-      defaultValue={address.last_name}
-      required
-    />
-  </div>
-  <Input
-    label="Company"
-    name="company"
-    defaultValue={address.company}
-  />
-  <Input
-    label="Address"
-    name="address_1"
-    defaultValue={address.address_1}
-    required
-  />
-  <div className="grid grid-cols-2 gap-4">
-    <Input
-      label="Postal Code"
-      name="postal_code"
-      defaultValue={address.postal_code}
-      required
-    />
-    <Input
-      label="City"
-      name="city"
-      defaultValue={address.city}
-      required
-    />
-  </div>
-  <CountrySelect
-    region={region}
-    defaultValue={address.country_code}
-  />
-  <Input
-    label="Phone"
-    name="phone"
-    defaultValue={address.phone}
-  />
-  <div className="flex justify-end gap-4 mt-6">
-    <Button
-      type="button"
-      variant="secondary"
-      onClick={handleDelete}
-    >
-      Delete
-    </Button>
-    <Button
-      type="submit"
-      isLoading={isSubmitting}
-    >
-      Save Changes
-    </Button>
-  </div>
-</form>
-```
-
-## Component Integration
-
-Here's how these components work together in the AddressBook context:
-
-```tsx copy
-import { AddressBook, AddAddress, EditAddress } from "@components/address"
-
-export default function AddressManagement() {
-  const { customer } = useCustomer()
-  const { region } = useRegion()
-
-  return (
-    <div className="space-y-8">
-      <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-        {customer.addresses.map((address) => (
-          <EditAddress
-            key={address.id}
-            address={address}
-            region={region}
-            isActive={address.id === customer.default_address_id}
-          />
-        ))}
-      </div>
+    <div className="product-container">
+      <h2>Product Title</h2>
+      <p>Product description goes here...</p>
       
-      <AddAddress
-        region={region}
-        addresses={customer.addresses}
-      />
+      <Divider />
+      
+      <div className="price-section">
+        <span>$99.99</span>
+        <button>Add to Cart</button>
+      </div>
     </div>
   )
 }
 ```
 
-## Error Handling
+## Styling
 
-Both components implement comprehensive error handling:
+The component uses Tailwind CSS for styling through the Medusa UI `clx` utility and includes:
 
-```tsx copy
-const handleAddressUpdate = async (data) => {
-  try {
-    await updateAddress({
-      ...data,
-      address_id: address.id
-    })
-    onSuccess()
-  } catch (error) {
-    setError(error.message)
-  }
-}
-```
+- 1px height for subtle separation
+- Full width by default
+- Light gray border color (border-gray-200)
+- Small top margin (mt-1)
 
-## Best Practices
+## Examples
 
-1. Always validate form inputs before submission
-2. Provide clear feedback for user actions
-3. Handle loading states appropriately
-4. Implement proper error handling
-5. Use consistent styling across address forms
-6. Maintain accessibility standards
-7. Include proper form validation messages
-
-## Accessibility
-
-Both components follow accessibility best practices:
-
-- Semantic HTML structure
-- Proper form labeling
-- Keyboard navigation support
-- ARIA attributes for modals
-- Error message announcements
-- Focus management
-- Screen reader friendly validation
-
-## Testing
-
-Example test cases for both components:
+### Basic Usage
 
 ```tsx copy
-describe('AddAddress', () => {
-  it('validates required fields', async () => {
-    render(<AddAddress region={mockRegion} addresses={[]} />)
-    
-    fireEvent.click(screen.getByText('Save'))
-    
-    expect(await screen.findByText('First name is required')).toBeInTheDocument()
-  })
-})
-
-describe('EditAddress', () => {
-  it('loads existing address data', () => {
-    render(
-      <EditAddress
-        region={mockRegion}
-        address={mockAddress}
-        isActive={false}
-      />
-    )
-    
-    expect(screen.getByDisplayValue(mockAddress.first_name)).toBeInTheDocument()
-  })
-})
+<Divider />
 ```
+
+### With Custom Styling
+
+```tsx copy
+<Divider className="my-4 border-gray-300" />
+```
+
+### With Dark Theme
+
+```tsx copy
+<Divider className="border-gray-700" />
+```
+
+### With Vertical Spacing
+
+```tsx copy
+<Divider className="my-8" />
+```
+
+### In a Card Component
+
+```tsx copy
+<div className="bg-white p-4 rounded shadow">
+  <h3>Card Title</h3>
+  <Divider className="my-2" />
+  <p>Card content goes here...</p>
+</div>
+```
+
+## Dependencies
+
+- @medusajs/ui (for the clx utility)
+- react (for component structure)
+
+## Technical Details
+
+The component:
+
+- Is implemented as a simple functional component
+- Uses the clx utility from Medusa UI for class name composition
+- Renders a single div element with border styling to create the line
+- Has minimal overhead due to its simplicity
+- Maintains consistent styling across the application
+- Can be easily customized with additional classes

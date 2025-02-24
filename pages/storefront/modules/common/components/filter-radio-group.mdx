@@ -1,268 +1,195 @@
 ---
-title: "Request Reset Password"
-description: "A component for handling password reset requests in a Next.js storefront"
+title: 'Filter Radio Group'
+description: 'A customized radio group component for filter selections with visual indicators for the selected option.'
 ---
 
-# Request Reset Password
+# Filter Radio Group
 
-The `RequestResetPassword` component provides users with a form to request a password reset link via email.
-
-## Installation
-
-```tsx copy
-import RequestResetPassword from "@components/RequestResetPassword"
-```
+The `Filter Radio Group` component provides a styled radio button group specifically designed for filter selections. It includes a title, customized radio buttons with labels, and visual indicators for the selected option.
 
 ## Features
 
-- **User Input for Email**: Accepts the user's email to send a reset link
-- **Validation**: Ensures the email field is not empty before submitting
-- **API Request Handling**: Sends a request to the Medusa backend to trigger a password reset email
-- **Loading State**: Displays a loading indicator while the request is being processed
-- **Success/Error Feedback**: Notifies users if the request was successful or if an error occurred
-- **Navigation Link**: Provides a link for users to log in if they remember their password
+- Customized radio button styling
+- Visual indicator for selected option (dot icon)
+- Consistent text formatting
+- Accessible radio group implementation
+- Support for dynamic options
+- Automatic handling of selected state
+
+## Props
+
+| Prop | Type | Required | Description |
+|------|------|----------|-------------|
+| `title` | `string` | Yes | The title of the filter group |
+| `items` | `Array<{value: string, label: string}>` | Yes | Array of options to display |
+| `value` | `any` | Yes | The currently selected value |
+| `handleChange` | `function` | Yes | Function to call when selection changes |
+| `data-testid` | `string` | No | Test ID for the component |
 
 ## Usage
 
-Basic implementation of the component:
-
 ```tsx copy
-<RequestResetPassword />
-```
+import FilterRadioGroup from '@/components/FilterRadioGroup'
+import { useState } from 'react'
 
-## Implementation Example
-
-Here's a complete example of how to implement the component:
-
-```tsx copy
-import { RequestResetPassword } from "@components/RequestResetPassword"
-import { Container } from "@components/ui"
-
-export default function ResetPasswordPage() {
+export default function ProductFilters() {
+  const [selectedSize, setSelectedSize] = useState("medium")
+  
+  const sizeOptions = [
+    { value: "small", label: "Small" },
+    { value: "medium", label: "Medium" },
+    { value: "large", label: "Large" },
+    { value: "xlarge", label: "X-Large" }
+  ]
+  
   return (
-    <Container className="py-8">
-      <div className="flex justify-center">
-        <div className="max-w-md w-full">
-          <h1 className="text-2xl font-bold mb-6">
-            Reset your password
-          </h1>
-          <RequestResetPassword />
-        </div>
-      </div>
-    </Container>
+    <div className="filters-container p-4 border rounded">
+      <h2 className="text-lg font-medium mb-4">Filters</h2>
+      
+      <FilterRadioGroup
+        title="Size"
+        items={sizeOptions}
+        value={selectedSize}
+        handleChange={setSelectedSize}
+        data-testid="size-filter"
+      />
+    </div>
   )
 }
 ```
 
-## Component Structure
+## Styling
 
-### State Management
+The component uses Tailwind CSS for styling through the Medusa UI `clx` utility and includes:
 
-```tsx copy
-const RequestResetPassword = () => {
-  const [loading, setLoading] = useState(false)
-  const [email, setEmail] = useState("")
-  const [message, setMessage] = useState("")
+- Flex layout for proper alignment
+- Consistent spacing between items
+- Visual dot indicator for selected items
+- Different text colors for selected vs. unselected options
+- Hidden radio input with visible labels
+- Hover cursor styling for interactivity
 
-  // Component logic here
-}
-```
+## States
 
-### Form Handler
+### Default State
+- Title displayed above options
+- All options shown with muted text
+- No visual indicator displayed
 
-```tsx copy
-const handleSubmit = async (e: React.FormEvent) => {
-  e.preventDefault()
-  setLoading(true)
-  setMessage("")
+### Selected State
+- Selected option has a dot indicator to the left
+- Selected option text has higher contrast
+- Option is indented slightly with negative margin
+- Radio input remains hidden but is properly checked
 
-  try {
-    const response = await fetch(
-      `${BACKEND_URL}/auth/customer/emailpass/reset-password`,
-      {
-        credentials: "include",
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ identifier: email }),
-      }
-    )
-
-    if (response.ok) {
-      setMessage("Reset link sent to your email")
-      setEmail("")
-    } else {
-      setMessage("Error sending reset link")
-    }
-  } catch (error) {
-    setMessage("An error occurred")
-  } finally {
-    setLoading(false)
-  }
-}
-```
-
-### UI Implementation
-
-```tsx copy
-return (
-  <div className="w-full">
-    <form onSubmit={handleSubmit} className="space-y-4">
-      <div>
-        <label 
-          htmlFor="email" 
-          className="block text-sm font-medium text-gray-700"
-        >
-          Email
-        </label>
-        <input
-          id="email"
-          type="email"
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
-          required
-          className="mt-1 block w-full rounded-md border-gray-300 shadow-sm"
-          placeholder="Enter your email"
-        />
-      </div>
-
-      <button
-        type="submit"
-        disabled={loading}
-        className="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
-      >
-        {loading ? "Sending..." : "Reset Password"}
-      </button>
-
-      {message && (
-        <div className="mt-4 text-sm text-center">
-          {message}
-        </div>
-      )}
-
-      <div className="mt-4 text-sm text-center">
-        <a
-          href="/login"
-          className="text-blue-600 hover:text-blue-500"
-        >
-          Remember your password? Log in
-        </a>
-      </div>
-    </form>
-  </div>
-)
-```
-
-## API Integration
-
-The component interacts with the Medusa backend:
-
-```tsx copy
-const BACKEND_URL = process.env.NEXT_PUBLIC_MEDUSA_BACKEND_URL
-
-// API request configuration
-const requestConfig = {
-  credentials: "include",
-  method: "POST",
-  headers: {
-    "Content-Type": "application/json"
-  },
-  body: JSON.stringify({ 
-    identifier: email 
-  })
-}
-
-// API call
-const response = await fetch(
-  `${BACKEND_URL}/auth/customer/emailpass/reset-password`,
-  requestConfig
-)
-```
-
-## Error Handling
-
-The component implements comprehensive error handling:
-
-```tsx copy
-const handleError = (error: unknown) => {
-  if (error instanceof Error) {
-    setMessage(error.message)
-  } else {
-    setMessage("An unexpected error occurred")
-  }
-  setLoading(false)
-}
-```
-
-## Best Practices
-
-1. Always validate email format before submission
-2. Provide clear feedback for all user actions
-3. Implement proper loading states
-4. Handle all potential error cases
-5. Follow security best practices for password reset
-6. Use appropriate form validation
-7. Maintain consistent error messaging
+### Hover State
+- Cursor changes to pointer when hovering over options
+- Visual feedback for interactive elements
 
 ## Accessibility
 
-The component follows accessibility best practices:
+The component includes several accessibility features:
 
-- Semantic HTML structure
-- Proper form labeling
-- ARIA attributes
-- Keyboard navigation support
-- Clear error messages
-- Loading state indicators
-- Focus management
+- Uses Medusa UI RadioGroup for proper keyboard navigation
+- Associates labels with inputs using htmlFor/id
+- Maintains correct checked states
+- Includes data-testid attributes for testing
+- Uses semantic HTML structure
+- Provides visual indicators of selection state
 
-## Testing
+## Examples
 
-Example test cases for the component:
+### Basic Usage
 
 ```tsx copy
-describe('RequestResetPassword', () => {
-  it('validates email input', () => {
-    render(<RequestResetPassword />)
-    
-    const submitButton = screen.getByRole('button', {
-      name: /reset password/i
-    })
-    
-    fireEvent.click(submitButton)
-    
-    expect(screen.getByText('Email is required')).toBeInTheDocument()
-  })
+<FilterRadioGroup
+  title="Category"
+  items={[
+    { value: "shirts", label: "Shirts" },
+    { value: "pants", label: "Pants" },
+    { value: "accessories", label: "Accessories" }
+  ]}
+  value="shirts"
+  handleChange={(value) => console.log(value)}
+/>
+```
 
-  it('handles successful submission', async () => {
-    render(<RequestResetPassword />)
-    
-    const emailInput = screen.getByLabelText(/email/i)
-    fireEvent.change(emailInput, {
-      target: { value: 'test@example.com' }
-    })
-    
-    const submitButton = screen.getByRole('button')
-    fireEvent.click(submitButton)
-    
-    expect(await screen.findByText('Reset link sent to your email'))
-      .toBeInTheDocument()
-  })
-})
+### With Pre-selected Value
+
+```tsx copy
+<FilterRadioGroup
+  title="Color"
+  items={[
+    { value: "red", label: "Red" },
+    { value: "blue", label: "Blue" },
+    { value: "green", label: "Green" }
+  ]}
+  value="blue"
+  handleChange={setSelectedColor}
+/>
+```
+
+### With Dynamic Options
+
+```tsx copy
+<FilterRadioGroup
+  title="Brand"
+  items={brands.map(brand => ({
+    value: brand.id,
+    label: brand.name
+  }))}
+  value={selectedBrand}
+  handleChange={setSelectedBrand}
+  data-testid="brand-filter"
+/>
+```
+
+### Within a Filter Group
+
+```tsx copy
+<div className="filter-section">
+  <h2>Refine Products</h2>
+  
+  <FilterRadioGroup
+    title="Price Range"
+    items={[
+      { value: "0-50", label: "$0 - $50" },
+      { value: "50-100", label: "$50 - $100" },
+      { value: "100+", label: "$100+" }
+    ]}
+    value={priceRange}
+    handleChange={setPriceRange}
+  />
+  
+  <div className="my-4"></div>
+  
+  <FilterRadioGroup
+    title="Rating"
+    items={[
+      { value: "4+", label: "4 stars & up" },
+      { value: "3+", label: "3 stars & up" },
+      { value: "2+", label: "2 stars & up" }
+    ]}
+    value={ratingFilter}
+    handleChange={setRatingFilter}
+  />
+</div>
 ```
 
 ## Dependencies
 
-- React
-- Next.js
-- Tailwind CSS for styling
-- Medusa backend integration
+- @medusajs/icons (for EllipseMiniSolid icon)
+- @medusajs/ui (for Label, RadioGroup, Text, and clx utility)
+- react (for component structure)
 
-## Security Considerations
+## Technical Details
 
-- Rate limiting for reset requests
-- Secure token generation and validation
-- Proper error handling without information leakage
-- Secure communication with backend
-- Token expiration handling
+The component:
+
+- Uses Medusa UI RadioGroup as the foundation
+- Hides the actual radio inputs and uses styled labels
+- Shows a dot icon (EllipseMiniSolid) next to the selected option
+- Adjusts the margin for selected items to align them properly
+- Uses conditional styling based on selection state
+- Passes the handleChange callback to the RadioGroup's onValueChange
+- Uses data attributes to indicate the active state for testing

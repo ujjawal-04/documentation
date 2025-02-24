@@ -1,142 +1,218 @@
-# Login Template
+---
+title: 'NextJs Icon'
+description: 'A component displaying the Next.js logo for technology stack indicators and framework representation.'
+---
 
-The `LoginTemplate` is a client-side component that manages the display of either a login or registration form. It uses React's useState hook to toggle between these two views.
+# NextJs Icon
+
+The `NextJs` component is an SVG icon that displays the Next.js framework logo. It's commonly used to represent the Next.js framework in technology stack indicators, documentation, or integration contexts within applications.
+
+## Features
+
+- Customizable size and color
+- Detailed Next.js logo representation
+- Default color optimized for UI contexts
+- Responsive scaling
+- Support for additional SVG attributes
+
+## Props
+
+| Prop | Type | Required | Description |
+|------|------|----------|-------------|
+| `size` | `string` | No | Base size value for the icon (default: "20") |
+| `color` | `string` | No | Color of the icon fill (default: "#9CA3AF") |
+| `...attributes` | `SVGAttributes<SVGElement>` | No | Additional attributes passed to the underlying SVG element |
 
 ## Usage
 
 ```tsx copy
-import LoginTemplate from './LoginTemplate'
+import NextJs from "@components/icons/NextJs"
 
-const AccountPage = () => {
-  return <LoginTemplate />
+export default function TechStack() {
+  return (
+    <div className="tech-stack">
+      <div className="flex items-center gap-2">
+        <NextJs size="24" />
+        <span>Built with Next.js</span>
+      </div>
+    </div>
+  )
 }
 ```
 
-## Component Architecture
+## Styling
 
-### View States
+The icon is designed with:
 
-The component uses an enum to define possible view states:
+- Precise SVG path for accurate Next.js logo representation
+- Fixed aspect ratio for brand integrity
+- Default color set to a subtle gray (#9CA3AF)
+- Proper viewBox settings for consistent rendering
+- Single detailed path for optimal rendering
+
+## Customization
+
+### Size Variations
 
 ```tsx copy
-export enum LOGIN_VIEW {
-  SIGN_IN = "sign-in",
-  REGISTER = "register",
-}
+// Small
+<NextJs size="16" />
+
+// Default
+<NextJs size="20" />
+
+// Medium
+<NextJs size="24" />
+
+// Large
+<NextJs size="32" />
 ```
 
-### State Management
-
-- Uses the `useState` hook to track current view
-- Default view is "sign-in"
-- State is managed through `setCurrentView` function passed to child components
-
-### Conditional Rendering
-
-The component conditionally renders either:
-- `<Login />` component when currentView is "sign-in"
-- `<Register />` component when currentView is "register"
-
-## Implementation Details
-
-### Component Structure
+### Color Variations
 
 ```tsx copy
-"use client"
+// Default (subtle gray)
+<NextJs />
 
-import { useState } from "react"
-import Register from "@modules/account/components/register"
-import Login from "@modules/account/components/login"
+// Black (official color)
+<NextJs color="#000000" />
 
-const LoginTemplate = () => {
-  const [currentView, setCurrentView] = useState("sign-in")
+// White (for dark backgrounds)
+<NextJs color="#FFFFFF" />
+
+// Brand color adaptation
+<NextJs color="var(--color-ui-fg-interactive)" />
+```
+
+## Examples
+
+### Technology Stack Display
+
+```tsx copy
+<div className="tech-stack-container p-4 border rounded">
+  <h3 className="text-base font-medium mb-3">Our Technology Stack</h3>
+  <div className="grid grid-cols-2 gap-3">
+    <div className="tech-item flex items-center gap-2">
+      <NextJs size="20" color="#000000" />
+      <span>Next.js</span>
+    </div>
+    <div className="tech-item flex items-center gap-2">
+      <ReactIcon size="20" color="#61DAFB" />
+      <span>React</span>
+    </div>
+    <div className="tech-item flex items-center gap-2">
+      <TypeScriptIcon size="20" color="#3178C6" />
+      <span>TypeScript</span>
+    </div>
+    <div className="tech-item flex items-center gap-2">
+      <TailwindIcon size="20" color="#06B6D4" />
+      <span>Tailwind CSS</span>
+    </div>
+  </div>
+</div>
+```
+
+### Framework Integration Badge
+
+```tsx copy
+<div className="integration-badge flex items-center gap-2 px-3 py-1.5 bg-black text-white rounded-full">
+  <NextJs size="16" color="white" />
+  <span className="text-sm font-medium">Next.js Powered</span>
+</div>
+```
+
+### Project Card
+
+```tsx copy
+<div className="project-card border rounded overflow-hidden">
+  <div className="p-4">
+    <div className="flex items-center justify-between mb-3">
+      <h3 className="font-medium">E-commerce Project</h3>
+      <NextJs size="20" color="#000000" />
+    </div>
+    <p className="text-sm text-ui-fg-subtle mb-3">
+      A modern e-commerce platform built with Next.js and Medusa.
+    </p>
+    <div className="tech-tags flex flex-wrap gap-2">
+      <span className="px-2 py-0.5 bg-ui-bg-base-hover text-ui-fg-subtle text-xs rounded">Next.js</span>
+      <span className="px-2 py-0.5 bg-ui-bg-base-hover text-ui-fg-subtle text-xs rounded">React</span>
+      <span className="px-2 py-0.5 bg-ui-bg-base-hover text-ui-fg-subtle text-xs rounded">Medusa</span>
+    </div>
+  </div>
+</div>
+```
+
+### Documentation Navigation
+
+```tsx copy
+<div className="docs-sidebar w-64 h-screen border-r">
+  <div className="p-4 border-b">
+    <div className="flex items-center gap-2">
+      <NextJs size="24" color="#000000" />
+      <h1 className="text-lg font-medium">Documentation</h1>
+    </div>
+  </div>
+  <nav className="p-4">
+    <div className="mb-4">
+      <h2 className="text-sm font-medium text-ui-fg-subtle mb-2">Getting Started</h2>
+      <ul className="space-y-1 text-sm">
+        <li><a href="#" className="text-ui-fg-interactive">Installation</a></li>
+        <li><a href="#" className="hover:text-ui-fg-interactive">Project Structure</a></li>
+        <li><a href="#" className="hover:text-ui-fg-interactive">Configuration</a></li>
+      </ul>
+    </div>
+    {/* More navigation items */}
+  </nav>
+</div>
+```
+
+### Integration Setup Wizard
+
+```tsx copy
+<div className="setup-wizard p-6 border rounded max-w-xl mx-auto">
+  <div className="flex items-center gap-3 mb-6">
+    <div className="w-12 h-12 rounded-full bg-black flex items-center justify-center">
+      <NextJs size="28" color="white" />
+    </div>
+    <div>
+      <h2 className="text-xl font-medium">Next.js Integration</h2>
+      <p className="text-ui-fg-subtle">Connect your Medusa store with Next.js frontend</p>
+    </div>
+  </div>
   
-  return (
-    <div className="w-full flex justify-start px-8 py-8">
-      {currentView === "sign-in" ? (
-        <Login setCurrentView={setCurrentView} />
-      ) : (
-        <Register setCurrentView={setCurrentView} />
-      )}
+  <div className="steps space-y-4">
+    <div className="step p-4 border rounded bg-ui-bg-base-hover">
+      <h3 className="font-medium mb-2">1. Create Next.js Project</h3>
+      <div className="code-block bg-gray-800 text-white p-3 rounded text-sm font-mono">
+        npx create-next-app@latest my-medusa-storefront
+      </div>
     </div>
-  )
-}
-
-export default LoginTemplate
+    
+    {/* More steps */}
+  </div>
+  
+  <button className="mt-6 px-4 py-2 bg-black text-white rounded w-full">
+    Continue Setup
+  </button>
+</div>
 ```
 
-### Styling
+## Accessibility
 
-The component uses Tailwind CSS classes for layout:
-- `w-full`: Full width container
-- `flex`: Flex container
-- `justify-start`: Left alignment
-- `px-8`: Horizontal padding of 8 units
-- `py-8`: Vertical padding of 8 units
+When using this icon in interfaces:
 
-### Child Components
+- When used as a standalone interactive element, provide appropriate `aria-label` attributes
+- Ensure sufficient color contrast, especially when using non-default colors
+- For decorative usage, consider adding `aria-hidden="true"` to the SVG
+- When used to represent technology, provide adequate text context nearby
+- Consider using the official black color for best brand recognition
 
-#### Login Component Example
+## Technical Details
 
-```tsx copy
-interface LoginProps {
-  setCurrentView: (view: "sign-in" | "register") => void
-}
+The component uses:
 
-const Login = ({ setCurrentView }: LoginProps) => {
-  return (
-    <div>
-      <form>
-        {/* Login form fields */}
-      </form>
-      <button onClick={() => setCurrentView("register")}>
-        Create an account
-      </button>
-    </div>
-  )
-}
-```
-
-#### Register Component Example
-
-```tsx copy
-interface RegisterProps {
-  setCurrentView: (view: "sign-in" | "register") => void
-}
-
-const Register = ({ setCurrentView }: RegisterProps) => {
-  return (
-    <div>
-      <form>
-        {/* Registration form fields */}
-      </form>
-      <button onClick={() => setCurrentView("sign-in")}>
-        Already have an account? Sign in
-      </button>
-    </div>
-  )
-}
-```
-
-## Props
-
-| Prop | Type | Description |
-|------|------|-------------|
-| setCurrentView | `(view: "sign-in" \| "register") => void` | Function to update the current view state |
-
-## Key Features
-
-1. **Client Component**
-   - Marked with "use client" directive
-   - Handles client-side state
-   - Manages view transitions
-
-2. **State Management**
-   - Uses React useState hook
-   - Toggles between login and register views
-   - Passes state setter to child components
-
-3. **Type Safety**
-   - TypeScript interfaces for props
-   - Enum for view states
-   - Strict type checking for state management
+- React's functional component pattern with TypeScript support
+- SVG with fixed internal dimensions for optimal rendering
+- Single detailed path for accurate logo representation
+- Default prop values optimized for common usage scenarios
+- Proper typing via the imported `IconProps` interface

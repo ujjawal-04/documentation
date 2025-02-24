@@ -1,138 +1,223 @@
 ---
-title: 'Account Layout'
-description: 'A layout component for account-related pages that provides a consistent structure with navigation and content areas'
+title: 'Eye Off Icon'
+description: 'A customizable icon representing hidden visibility, commonly used for password fields and content visibility toggles.'
 ---
 
-# Account Layout
+# Eye Off Icon
 
-The `AccountLayout` component serves as a wrapper for account-related pages, providing a consistent layout structure with navigation and content areas. It's designed to be responsive and works with the Medusa e-commerce framework.
+The `EyeOff` component is an SVG icon that represents hidden visibility. It's commonly used in password input fields to toggle password visibility, in content visibility controls, or in any interface where hiding/showing elements is relevant.
 
-## Component Overview
+## Features
 
-The AccountLayout component creates a full-width container with a two-column layout on larger screens, featuring:
-- A navigation sidebar (only shown when a customer is logged in)
-- A main content area for child components
-- Responsive design that switches to a single column on mobile devices
+- Customizable size and color
+- Consistent stroke styling
+- Clear "hidden" visual representation
+- Responsive scaling
+- Support for additional SVG attributes
 
 ## Props
 
 | Prop | Type | Required | Description |
 |------|------|----------|-------------|
-| customer | `HttpTypes.StoreCustomer \| null` | Yes | The customer object from Medusa's store API. Used to display account navigation |
-| children | `React.ReactNode` | Yes | The content to be rendered in the main area of the layout |
+| `size` | `string` | No | Width and height of the icon in pixels (default: "20") |
+| `color` | `string` | No | Color of the icon's stroke (default: "currentColor") |
+| `...attributes` | `SVGAttributes<SVGElement>` | No | Additional attributes passed to the underlying SVG element |
 
 ## Usage
 
 ```tsx copy
-import AccountLayout from './AccountLayout'
-import { StoreCustomer } from '@medusajs/types'
+import EyeOff from "@components/icons/EyeOff"
+import Eye from "@components/icons/Eye"
 
-const AccountPage = ({ customer }: { customer: StoreCustomer }) => {
+export default function PasswordInput() {
+  const [showPassword, setShowPassword] = useState(false)
+  
   return (
-    <AccountLayout customer={customer}>
-      <div>Account content goes here</div>
-    </AccountLayout>
+    <div className="relative">
+      <input 
+        type={showPassword ? "text" : "password"}
+        placeholder="Enter password"
+        className="w-full px-3 py-2 pr-10 border rounded"
+      />
+      <button
+        type="button"
+        className="absolute inset-y-0 right-0 flex items-center px-3"
+        onClick={() => setShowPassword(!showPassword)}
+        aria-label={showPassword ? "Hide password" : "Show password"}
+      >
+        {showPassword ? <EyeOff /> : <Eye />}
+      </button>
+    </div>
   )
 }
 ```
 
-## Implementation Details
+## Styling
 
-### Layout Structure
+The icon is designed with:
 
-The component uses a nested structure of flex and grid containers:
+- Detailed paths for clear visual representation
+- Consistent stroke width (1.5) for visual harmony with other icons
+- Rounded stroke caps and joins for a polished appearance
+- Default color inheritance via "currentColor"
+- Proper viewBox settings for responsive scaling
 
-1. Outer container:
-   - Uses `flex-1` for flexible sizing
-   - Applies padding on larger screens with `small:py-12`
+## Customization
 
-2. Inner container:
-   - Maximum width of `max-w-5xl`
-   - Centered with `mx-auto`
-   - White background
-   - Flex column layout
+### Size Variations
 
-3. Grid layout:
-   - Single column by default
-   - Two columns on larger screens using `small:grid-cols-[240px_1fr]`
-   - Fixed 240px sidebar width
-   - Flexible content area width
+```tsx copy
+// Small
+<EyeOff size="16" />
 
-### Responsive Design
+// Default
+<EyeOff size="20" />
 
-The layout adapts to different screen sizes:
+// Medium
+<EyeOff size="24" />
 
-- **Mobile** (< small breakpoint):
-  - Single column layout
-  - No top/bottom padding
-  - Full width content
+// Large
+<EyeOff size="32" />
+```
 
-- **Desktop** (≥ small breakpoint):
-  - Two column layout
-  - 12 units of padding top/bottom
-  - Fixed width sidebar
+### Color Variations
 
-### Navigation
+```tsx copy
+// Default (inherits from text color)
+<EyeOff />
 
-The `AccountNav` component is conditionally rendered based on the presence of a customer:
-- Only shown when `customer` prop is not null
-- Receives the customer object as a prop
-- Contained within the left column of the grid
+// Specific color
+<EyeOff color="#6B7280" />
 
-## Dependencies
-
-- React
-- UnderlineLink component from common modules
-- AccountNav component
-- Medusa types for customer data
-- Tailwind CSS for styling
-
-## Testing
-
-The component includes a data-testid attribute (`account-page`) for easy targeting in tests.
+// UI token colors
+<EyeOff color="var(--color-ui-fg-muted)" />
+```
 
 ## Examples
 
-### With Customer
+### Password Input Toggle
 
 ```tsx copy
-const LoggedInExample = () => {
-  const customer = {
-    id: "cust_123",
-    email: "user@example.com",
-    // ... other customer properties
-  }
-  
-  return (
-    <AccountLayout customer={customer}>
-      <h1>Welcome back!</h1>
-      <p>Your account details...</p>
-    </AccountLayout>
-  )
-}
+<div className="form-field">
+  <label htmlFor="password" className="block text-sm font-medium mb-1">
+    Password
+  </label>
+  <div className="relative">
+    <input
+      id="password"
+      type={visible ? "text" : "password"}
+      className="w-full px-3 py-2 pr-10 border rounded focus:ring-2 focus:ring-ui-border-interactive focus:border-ui-border-interactive"
+    />
+    <button
+      type="button"
+      onClick={() => setVisible(!visible)}
+      className="absolute inset-y-0 right-0 flex items-center px-3 text-ui-fg-muted hover:text-ui-fg-base"
+      aria-label={visible ? "Hide password" : "Show password"}
+    >
+      {visible ? <EyeOff /> : <Eye />}
+    </button>
+  </div>
+</div>
 ```
 
-### Without Customer
+### Content Visibility Toggle
 
 ```tsx copy
-const LoggedOutExample = () => {
-  return (
-    <AccountLayout customer={null}>
-      <h1>Please log in</h1>
-      <p>Login form goes here...</p>
-    </AccountLayout>
-  )
-}
+<div className="content-block p-4 border rounded">
+  <div className="flex items-center justify-between mb-2">
+    <h3 className="font-medium">Sensitive Information</h3>
+    <button 
+      onClick={() => setContentVisible(!contentVisible)}
+      className="flex items-center gap-1 text-sm"
+    >
+      {contentVisible ? (
+        <>
+          <EyeOff size="16" />
+          <span>Hide content</span>
+        </>
+      ) : (
+        <>
+          <Eye size="16" />
+          <span>Show content</span>
+        </>
+      )}
+    </button>
+  </div>
+  {contentVisible ? (
+    <div className="content">
+      {/* Content to show/hide */}
+    </div>
+  ) : (
+    <div className="text-sm text-ui-fg-muted italic">
+      Content hidden for privacy
+    </div>
+  )}
+</div>
 ```
 
-## Best Practices
+### Privacy Setting Toggle
 
-1. Always provide a customer prop, even if null, to ensure proper rendering
-2. Use semantic HTML within the content area
-3. Ensure child components respect the layout's padding and width constraints
-4. Consider the responsive nature of the layout when designing child components
+```tsx copy
+<div className="setting-row flex items-center justify-between py-3 border-b">
+  <div>
+    <h4 className="text-sm font-medium">Profile Visibility</h4>
+    <p className="text-xs text-ui-fg-muted">
+      Control who can see your profile information
+    </p>
+  </div>
+  <button 
+    onClick={() => setIsPrivate(!isPrivate)}
+    className={`flex items-center justify-center w-8 h-8 rounded-full ${
+      isPrivate 
+        ? 'bg-ui-bg-base text-ui-fg-base' 
+        : 'bg-ui-bg-interactive text-ui-fg-on-interactive'
+    }`}
+    aria-label={isPrivate ? "Profile is private" : "Profile is public"}
+  >
+    {isPrivate ? <EyeOff size="16" /> : <Eye size="16" />}
+  </button>
+</div>
+```
 
-## Related Components
+### Tooltip with Visibility Toggle
 
-- AccountNav: Provides the navigation sidebar
-- UnderlineLink: Used within the navigation for interactive elements
+```tsx copy
+<div className="flex items-center gap-2">
+  <span className="text-sm font-medium">API Key:</span>
+  <div className="relative inline-block">
+    <span className={hideKey ? "filter blur-sm" : ""}>
+      {apiKey}
+    </span>
+    <button
+      onClick={() => setHideKey(!hideKey)}
+      className="ml-2 align-middle"
+      aria-label={hideKey ? "Show API key" : "Hide API key"}
+    >
+      {hideKey ? <Eye size="16" /> : <EyeOff size="16" />}
+    </button>
+  </div>
+  <button className="text-sm text-ui-fg-interactive">
+    Copy
+  </button>
+</div>
+```
+
+## Accessibility
+
+When using this icon in interfaces:
+
+- Always provide an appropriate `aria-label` for buttons using this icon
+- Ensure sufficient color contrast for visibility
+- When toggling between Eye and EyeOff icons, make sure to update the aria-label accordingly
+- Consider including text alongside the icon for clarity, especially for important actions
+- Maintain focus states for keyboard navigation
+
+## Technical Details
+
+The component uses:
+
+- React's functional component pattern with TypeScript support
+- SVG paths with detailed drawing commands for accurate representation
+- Consistent stroke properties across all paths
+- Default prop values for ease of use
+- Proper typing via the imported `IconProps` interface

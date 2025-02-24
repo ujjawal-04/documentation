@@ -1,138 +1,216 @@
 ---
-title: 'Account Layout'
-description: 'A layout component for account-related pages that provides a consistent structure with navigation and content areas'
+title: 'Refresh Icon'
+description: 'A customizable refresh/reload icon component displaying a circular rotation with directional arrows.'
 ---
 
-# Account Layout
+# Refresh Icon
 
-The `AccountLayout` component serves as a wrapper for account-related pages, providing a consistent layout structure with navigation and content areas. It's designed to be responsive and works with the Medusa e-commerce framework.
+The `Refresh` component is an SVG icon that displays a cyclical refresh/reload symbol with two directional arrows forming a continuous loop. It's commonly used for reload buttons, data refresh actions, synchronization indicators, and other UI elements that represent updating or refreshing content.
 
-## Component Overview
+## Features
 
-The AccountLayout component creates a full-width container with a two-column layout on larger screens, featuring:
-- A navigation sidebar (only shown when a customer is logged in)
-- A main content area for child components
-- Responsive design that switches to a single column on mobile devices
+- Customizable size and color
+- Consistent stroke width and styling
+- Responsive scaling
+- Support for additional SVG attributes
+- Clean, recognizable refresh symbol with bidirectional flow
 
 ## Props
 
 | Prop | Type | Required | Description |
 |------|------|----------|-------------|
-| customer | `HttpTypes.StoreCustomer \| null` | Yes | The customer object from Medusa's store API. Used to display account navigation |
-| children | `React.ReactNode` | Yes | The content to be rendered in the main area of the layout |
+| `size` | `string` | No | Width and height of the icon in pixels (default: "16") |
+| `color` | `string` | No | Color of the icon's stroke (default: "currentColor") |
+| `...attributes` | `IconProps & SVGAttributes<SVGElement>` | No | Additional attributes passed to the underlying SVG element |
 
 ## Usage
 
 ```tsx copy
-import AccountLayout from './AccountLayout'
-import { StoreCustomer } from '@medusajs/types'
+import Refresh from "@components/icons/Refresh"
 
-const AccountPage = ({ customer }: { customer: StoreCustomer }) => {
+export default function DataTable() {
   return (
-    <AccountLayout customer={customer}>
-      <div>Account content goes here</div>
-    </AccountLayout>
+    <div className="flex justify-between items-center mb-4">
+      <h2 className="text-lg font-medium">Transaction History</h2>
+      <button 
+        onClick={() => refreshData()} 
+        className="flex items-center gap-1.5 text-sm text-ui-fg-subtle hover:text-ui-fg-base"
+      >
+        <Refresh size="14" />
+        <span>Refresh</span>
+      </button>
+    </div>
   )
 }
 ```
 
-## Implementation Details
+## Styling
 
-### Layout Structure
+The icon is designed with:
 
-The component uses a nested structure of flex and grid containers:
+- Clean SVG paths for crisp rendering at any size
+- Consistent stroke width (1.5) for all paths
+- Rounded stroke caps and joins for a polished appearance
+- Default color inheritance via "currentColor"
+- Proper viewBox settings (0 0 24 24) for responsive scaling
+- Four distinct path elements that form a complete refresh cycle
 
-1. Outer container:
-   - Uses `flex-1` for flexible sizing
-   - Applies padding on larger screens with `small:py-12`
+## Customization
 
-2. Inner container:
-   - Maximum width of `max-w-5xl`
-   - Centered with `mx-auto`
-   - White background
-   - Flex column layout
+### Size Variations
 
-3. Grid layout:
-   - Single column by default
-   - Two columns on larger screens using `small:grid-cols-[240px_1fr]`
-   - Fixed 240px sidebar width
-   - Flexible content area width
+```tsx copy
+// Small (default)
+<Refresh size="16" />
 
-### Responsive Design
+// Medium
+<Refresh size="24" />
 
-The layout adapts to different screen sizes:
+// Large
+<Refresh size="32" />
 
-- **Mobile** (< small breakpoint):
-  - Single column layout
-  - No top/bottom padding
-  - Full width content
+// Custom
+<Refresh size="40" />
+```
 
-- **Desktop** (≥ small breakpoint):
-  - Two column layout
-  - 12 units of padding top/bottom
-  - Fixed width sidebar
+### Color Variations
 
-### Navigation
+```tsx copy
+// Default (inherits from text color)
+<Refresh />
 
-The `AccountNav` component is conditionally rendered based on the presence of a customer:
-- Only shown when `customer` prop is not null
-- Receives the customer object as a prop
-- Contained within the left column of the grid
+// Brand color
+<Refresh color="#4F46E5" />
 
-## Dependencies
+// Contextual colors
+<Refresh color="var(--color-ui-fg-interactive)" />
+<Refresh color="var(--color-ui-fg-subtle)" />
 
-- React
-- UnderlineLink component from common modules
-- AccountNav component
-- Medusa types for customer data
-- Tailwind CSS for styling
+// Semantic colors
+<Refresh color="var(--color-success)" />
+```
 
-## Testing
+### With Additional SVG Attributes
 
-The component includes a data-testid attribute (`account-page`) for easy targeting in tests.
+```tsx copy
+<Refresh 
+  size="24"
+  strokeWidth="2"
+  className="my-refresh-icon"
+  style={{ filter: "drop-shadow(0px 1px 2px rgba(0, 0, 0, 0.1))" }}
+/>
+```
 
 ## Examples
 
-### With Customer
+### Simple Refresh Button
 
 ```tsx copy
-const LoggedInExample = () => {
-  const customer = {
-    id: "cust_123",
-    email: "user@example.com",
-    // ... other customer properties
+<button 
+  onClick={() => refreshData()} 
+  className="inline-flex items-center gap-1.5 px-3 py-1.5 text-sm rounded-md bg-ui-bg-base hover:bg-ui-bg-base-hover border border-ui-border-base"
+>
+  <Refresh size="14" />
+  <span>Refresh</span>
+</button>
+```
+
+### Icon-Only Button with Tooltip
+
+```tsx copy
+<div className="relative group">
+  <button 
+    aria-label="Refresh data" 
+    onClick={() => refreshData()}
+    className="flex items-center justify-center w-8 h-8 rounded-full bg-ui-bg-base hover:bg-ui-bg-base-hover"
+  >
+    <Refresh size="16" />
+  </button>
+  <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-2 py-1 text-xs bg-ui-fg-base text-ui-bg-base rounded opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none">
+    Refresh data
+  </div>
+</div>
+```
+
+### Status-Based Refresh Button
+
+```tsx copy
+<button 
+  onClick={() => refreshData()} 
+  disabled={isLoading}
+  className={`
+    inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md
+    ${isLoading 
+      ? 'bg-ui-bg-disabled text-ui-fg-disabled cursor-not-allowed' 
+      : 'bg-ui-bg-base hover:bg-ui-bg-base-hover text-ui-fg-base'}
+  `}
+>
+  <Refresh 
+    size="16" 
+    className={isLoading ? 'animate-spin' : ''} 
+  />
+  <span>{isLoading ? 'Refreshing...' : 'Refresh data'}</span>
+</button>
+```
+
+### Auto-Refresh Indicator
+
+```tsx copy
+<div className="flex items-center gap-1.5 text-xs text-ui-fg-subtle">
+  <Refresh size="12" className={autoRefreshEnabled ? 'text-success animate-spin-slow' : ''} />
+  <span>
+    {autoRefreshEnabled 
+      ? `Auto-refreshing every ${refreshInterval}s` 
+      : 'Auto-refresh disabled'}
+  </span>
+  <button 
+    onClick={() => toggleAutoRefresh()}
+    className="ml-2 text-ui-fg-interactive hover:underline"
+  >
+    {autoRefreshEnabled ? 'Disable' : 'Enable'}
+  </button>
+</div>
+```
+
+### With Animation
+
+```tsx copy
+<style jsx>{`
+  .refresh-icon {
+    transition: transform 0.3s ease;
   }
   
-  return (
-    <AccountLayout customer={customer}>
-      <h1>Welcome back!</h1>
-      <p>Your account details...</p>
-    </AccountLayout>
-  )
-}
+  .refresh-btn:hover .refresh-icon {
+    transform: rotate(180deg);
+  }
+`}</style>
+
+<button className="refresh-btn px-3 py-2 rounded-md border">
+  <Refresh className="refresh-icon" />
+</button>
 ```
 
-### Without Customer
+## Accessibility
 
-```tsx copy
-const LoggedOutExample = () => {
-  return (
-    <AccountLayout customer={null}>
-      <h1>Please log in</h1>
-      <p>Login form goes here...</p>
-    </AccountLayout>
-  )
-}
-```
+When using this icon in interactive elements:
 
-## Best Practices
+- Always provide appropriate `aria-label` attributes for icon-only buttons
+- Consider adding tooltips for icon-only buttons to enhance discoverability
+- Use appropriate `aria-busy` or `aria-live` attributes when content is refreshing
+- Ensure sufficient color contrast between the icon and its background
+- Add appropriate loading states to prevent multiple refresh actions
+- Consider using animation to indicate an active refresh process
 
-1. Always provide a customer prop, even if null, to ensure proper rendering
-2. Use semantic HTML within the content area
-3. Ensure child components respect the layout's padding and width constraints
-4. Consider the responsive nature of the layout when designing child components
+## Technical Details
 
-## Related Components
+The component uses:
 
-- AccountNav: Provides the navigation sidebar
-- UnderlineLink: Used within the navigation for interactive elements
+- React's functional component pattern with TypeScript support
+- SVG paths for drawing the icon geometry
+- Type import from a shared `IconProps` interface
+- Default prop values for consistent appearance
+- Four distinct paths that form a cohesive refresh cycle:
+  1. Upper-right arrow indicator
+  2. First half of the circular flow (clockwise)
+  3. Lower-left arrow indicator
+  4. Second half of the circular flow (counterclockwise)

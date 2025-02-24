@@ -1,138 +1,220 @@
 ---
-title: 'Account Layout'
-description: 'A layout component for account-related pages that provides a consistent structure with navigation and content areas'
+title: 'Package Icon'
+description: 'A customizable package or box icon commonly used to represent shipping, products, parcels, or deliverable items.'
 ---
 
-# Account Layout
+# Package Icon
 
-The `AccountLayout` component serves as a wrapper for account-related pages, providing a consistent layout structure with navigation and content areas. It's designed to be responsive and works with the Medusa e-commerce framework.
+The `Package` component is an SVG icon representing a 3D cube or package. It's commonly used to indicate physical products, shipping packages, parcels, or deliverable items in e-commerce and logistics interfaces.
 
-## Component Overview
+## Features
 
-The AccountLayout component creates a full-width container with a two-column layout on larger screens, featuring:
-- A navigation sidebar (only shown when a customer is logged in)
-- A main content area for child components
-- Responsive design that switches to a single column on mobile devices
+- Customizable size and color
+- Consistent stroke styling
+- Clear 3D package/box visual representation
+- Responsive scaling
+- Support for additional SVG attributes
 
 ## Props
 
 | Prop | Type | Required | Description |
 |------|------|----------|-------------|
-| customer | `HttpTypes.StoreCustomer \| null` | Yes | The customer object from Medusa's store API. Used to display account navigation |
-| children | `React.ReactNode` | Yes | The content to be rendered in the main area of the layout |
+| `size` | `string` | No | Width and height of the icon in pixels (default: "20") |
+| `color` | `string` | No | Color of the icon's stroke (default: "currentColor") |
+| `...attributes` | `SVGAttributes<SVGElement>` | No | Additional attributes passed to the underlying SVG element |
 
 ## Usage
 
 ```tsx copy
-import AccountLayout from './AccountLayout'
-import { StoreCustomer } from '@medusajs/types'
+import Package from "@components/icons/Package"
 
-const AccountPage = ({ customer }: { customer: StoreCustomer }) => {
+export default function OrderSummary() {
   return (
-    <AccountLayout customer={customer}>
-      <div>Account content goes here</div>
-    </AccountLayout>
+    <div className="shipping-info">
+      <div className="flex items-center gap-2 mb-2">
+        <Package size="20" />
+        <h3 className="font-medium">Your Order</h3>
+      </div>
+      <p className="text-ui-fg-subtle">2 items, estimated delivery Jun 15-18</p>
+    </div>
   )
 }
 ```
 
-## Implementation Details
+## Styling
 
-### Layout Structure
+The icon is designed with:
 
-The component uses a nested structure of flex and grid containers:
+- Clean paths for a clear 3D box representation
+- Consistent stroke width (1.5) for visual harmony with other icons
+- Rounded stroke caps and joins for a polished appearance
+- Default color inheritance via "currentColor"
+- Proper viewBox settings for responsive scaling
 
-1. Outer container:
-   - Uses `flex-1` for flexible sizing
-   - Applies padding on larger screens with `small:py-12`
+## Customization
 
-2. Inner container:
-   - Maximum width of `max-w-5xl`
-   - Centered with `mx-auto`
-   - White background
-   - Flex column layout
+### Size Variations
 
-3. Grid layout:
-   - Single column by default
-   - Two columns on larger screens using `small:grid-cols-[240px_1fr]`
-   - Fixed 240px sidebar width
-   - Flexible content area width
+```tsx copy
+// Small
+<Package size="16" />
 
-### Responsive Design
+// Default
+<Package size="20" />
 
-The layout adapts to different screen sizes:
+// Medium
+<Package size="24" />
 
-- **Mobile** (< small breakpoint):
-  - Single column layout
-  - No top/bottom padding
-  - Full width content
+// Large
+<Package size="32" />
+```
 
-- **Desktop** (≥ small breakpoint):
-  - Two column layout
-  - 12 units of padding top/bottom
-  - Fixed width sidebar
+### Color Variations
 
-### Navigation
+```tsx copy
+// Default (inherits from text color)
+<Package />
 
-The `AccountNav` component is conditionally rendered based on the presence of a customer:
-- Only shown when `customer` prop is not null
-- Receives the customer object as a prop
-- Contained within the left column of the grid
+// Specific color
+<Package color="#3B82F6" />
 
-## Dependencies
-
-- React
-- UnderlineLink component from common modules
-- AccountNav component
-- Medusa types for customer data
-- Tailwind CSS for styling
-
-## Testing
-
-The component includes a data-testid attribute (`account-page`) for easy targeting in tests.
+// UI token colors
+<Package color="var(--color-ui-fg-interactive)" />
+```
 
 ## Examples
 
-### With Customer
+### Order Status
 
 ```tsx copy
-const LoggedInExample = () => {
-  const customer = {
-    id: "cust_123",
-    email: "user@example.com",
-    // ... other customer properties
-  }
-  
-  return (
-    <AccountLayout customer={customer}>
-      <h1>Welcome back!</h1>
-      <p>Your account details...</p>
-    </AccountLayout>
-  )
-}
+<div className="order-status p-4 border rounded">
+  <div className="flex items-center justify-between mb-3">
+    <div className="flex items-center gap-2">
+      <Package size="18" />
+      <h3 className="font-medium">Order #12345</h3>
+    </div>
+    <span className="px-2 py-1 bg-blue-100 text-blue-800 text-xs rounded">Shipped</span>
+  </div>
+  <div className="mb-3">
+    <p className="text-sm">
+      <span className="text-ui-fg-subtle">Status:</span> In transit
+    </p>
+    <p className="text-sm">
+      <span className="text-ui-fg-subtle">Estimated delivery:</span> June 15-18
+    </p>
+  </div>
+  <button className="text-sm text-ui-fg-interactive">Track Package</button>
+</div>
 ```
 
-### Without Customer
+### Product Type Indicator
 
 ```tsx copy
-const LoggedOutExample = () => {
-  return (
-    <AccountLayout customer={null}>
-      <h1>Please log in</h1>
-      <p>Login form goes here...</p>
-    </AccountLayout>
-  )
-}
+<div className="product-card border rounded overflow-hidden">
+  <img src="/product-image.jpg" alt="Product" className="w-full" />
+  <div className="p-3">
+    <div className="flex items-center gap-1 text-xs text-ui-fg-subtle mb-1">
+      <Package size="12" />
+      <span>Physical product</span>
+    </div>
+    <h3 className="font-medium">Product Name</h3>
+    <p className="text-sm text-ui-fg-subtle">Brief description</p>
+    <div className="mt-2 font-bold">$29.99</div>
+  </div>
+</div>
 ```
 
-## Best Practices
+### Shipping Information Section
 
-1. Always provide a customer prop, even if null, to ensure proper rendering
-2. Use semantic HTML within the content area
-3. Ensure child components respect the layout's padding and width constraints
-4. Consider the responsive nature of the layout when designing child components
+```tsx copy
+<div className="shipping-section p-4 border-t">
+  <div className="flex items-start gap-3">
+    <div className="mt-0.5">
+      <Package size="22" color="var(--color-ui-fg-interactive)" />
+    </div>
+    <div>
+      <h3 className="font-medium mb-2">Shipping Information</h3>
+      <div className="space-y-2 text-sm">
+        <p>
+          <span className="font-medium">Method:</span> Standard Shipping (3-5 business days)
+        </p>
+        <p>
+          <span className="font-medium">Address:</span><br />
+          John Doe<br />
+          123 Main Street, Apt 4B<br />
+          Brooklyn, NY 11201<br />
+          United States
+        </p>
+        <p>
+          <span className="font-medium">Tracking:</span> 
+          <a href="#" className="text-ui-fg-interactive ml-1">TRK123456789US</a>
+        </p>
+      </div>
+    </div>
+  </div>
+</div>
+```
 
-## Related Components
+### Empty Orders State
 
-- AccountNav: Provides the navigation sidebar
-- UnderlineLink: Used within the navigation for interactive elements
+```tsx copy
+<div className="empty-state flex flex-col items-center justify-center py-12">
+  <div className="w-16 h-16 rounded-full bg-ui-bg-base-hover flex items-center justify-center mb-4">
+    <Package size="32" />
+  </div>
+  <h3 className="text-lg font-medium mb-2">No orders yet</h3>
+  <p className="text-ui-fg-subtle text-center max-w-xs mb-4">
+    When you place your first order, it will appear here.
+  </p>
+  <button className="px-4 py-2 bg-ui-bg-interactive text-ui-fg-on-interactive rounded">
+    Start Shopping
+  </button>
+</div>
+```
+
+### Navigation Menu Item
+
+```tsx copy
+<nav className="sidebar-nav">
+  <ul className="space-y-1">
+    <li>
+      <a href="/dashboard" className="flex items-center gap-2 px-4 py-2 rounded hover:bg-ui-bg-base-hover">
+        <Dashboard size="18" />
+        <span>Dashboard</span>
+      </a>
+    </li>
+    <li>
+      <a href="/products" className="flex items-center gap-2 px-4 py-2 rounded hover:bg-ui-bg-base-hover">
+        <Package size="18" />
+        <span>Products</span>
+      </a>
+    </li>
+    <li>
+      <a href="/orders" className="flex items-center gap-2 px-4 py-2 bg-ui-bg-base-hover rounded text-ui-fg-interactive">
+        <ShoppingBag size="18" />
+        <span>Orders</span>
+      </a>
+    </li>
+  </ul>
+</nav>
+```
+
+## Accessibility
+
+When using this icon in interfaces:
+
+- When used in interactive elements, provide appropriate `aria-label` attributes
+- Ensure sufficient color contrast for visibility
+- Use the icon consistently throughout your interface for product/package-related elements
+- Consider adding descriptive text alongside the icon for improved clarity
+- For icon-only buttons, ensure proper focus states and labels
+
+## Technical Details
+
+The component uses:
+
+- React's functional component pattern with TypeScript support
+- SVG paths with detailed drawing commands for a 3D package representation
+- Consistent stroke properties across all paths
+- Default prop values for ease of use
+- Proper typing via the imported `IconProps` interface

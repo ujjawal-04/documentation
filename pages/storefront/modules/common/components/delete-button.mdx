@@ -1,206 +1,142 @@
 ---
-title: 'Address Book'
-description: 'A component for managing user addresses, including display, addition, and modification functionality.'
+title: 'Delete Button'
+description: 'A reusable delete button component that handles loading states and deletion of cart line items.'
 ---
 
-# Address Book
+# Delete Button
 
-The `AddressBook` component manages the display and modification of a user's saved addresses. It allows users to add new addresses and edit existing ones.
-
-## Installation
-
-Ensure you have the component in your project:
-
-```tsx copy
-import AddressBook from "@components/AddressBook"
-```
-
-## Props
-
-| Prop Name | Type | Required | Description |
-|-----------|------|----------|-------------|
-| `customer` | `HttpTypes.StoreCustomer` | Yes | The logged-in customer data, including addresses |
-| `region` | `HttpTypes.StoreRegion` | Yes | The region context for address management |
-
-## Usage
-
-Here's a basic example of how to use the `AddressBook` component:
-
-```tsx copy
-<AddressBook customer={customerData} region={regionData} />
-```
+The `Delete Button` component provides a consistent way to delete items from a cart. It handles the loading state during deletion and provides visual feedback to the user.
 
 ## Features
 
-### Address Management
-- **Displays Saved Addresses**: Lists all addresses stored in the customer's account
-- **Add New Address**: Integrates the `AddAddress` component to allow users to add a new address
-- **Edit Existing Addresses**: Uses `EditAddress` to provide an editing interface for each address
+- Loading state indicator with spinner
+- Error handling for failed deletions
+- Customizable content through children
+- Consistent styling with hover effects
+- Icon + text combination for clear intent
 
-### Responsive Design
-- **Desktop View**: Grid layout for optimal display
-- **Mobile View**: Adjusts layout for smaller screens
-- **Automatic Adaptation**: Ensures usability across devices
+## Props
 
-## Implementation Example
+| Prop | Type | Required | Description |
+|------|------|----------|-------------|
+| `id` | `string` | Yes | The ID of the line item to delete |
+| `children` | `React.ReactNode` | No | Optional content to display next to the trash icon |
+| `className` | `string` | No | Additional CSS classes to apply to the container |
+
+## Usage
 
 ```tsx copy
-import { AddressBook } from "@components/AddressBook"
-import { useCustomer } from "@lib/hooks/use-customer"
-import { useRegion } from "@lib/hooks/use-region"
+import DeleteButton from '@/components/DeleteButton'
 
-export default function AccountAddresses() {
-  const { customer } = useCustomer()
-  const { region } = useRegion()
-
+export default function CartItem({ lineItem }) {
   return (
-    <div className="w-full">
-      <div className="mb-8 flex flex-col gap-y-4">
-        <h1 className="text-2xl-semi">Shipping Addresses</h1>
-        <p className="text-base-regular">
-          View and update your shipping addresses, you can add as many as you like.
-        </p>
+    <div className="flex justify-between border-b py-4">
+      <div>
+        <h3>{lineItem.title}</h3>
+        <p>${lineItem.price}</p>
       </div>
-      {customer && region ? (
-        <AddressBook customer={customer} region={region} />
-      ) : null}
+      
+      <DeleteButton id={lineItem.id}>
+        Remove
+      </DeleteButton>
     </div>
   )
 }
 ```
 
-## Behavior
-
-The component implements the following behavior:
-
-### Address Display
-```tsx copy
-// Example of address mapping implementation
-{customer.addresses.map((address) => (
-  <EditAddress
-    key={address.id}
-    address={address}
-    region={region}
-    customer={customer}
-  />
-))}
-```
-
-### New Address Addition
-```tsx copy
-<AddAddress
-  region={region}
-  customer={customer}
-  className="bg-white p-4 rounded-lg"
-/>
-```
-
 ## Styling
 
-The component uses Tailwind CSS for styling:
+The component uses Tailwind CSS for styling through the Medusa UI `clx` utility and includes:
 
-```tsx copy
-// Example styling structure
-<div className="grid grid-cols-1 md:grid-cols-2 gap-4 p-4">
-  {/* Address components */}
-  <div className="bg-white rounded-lg shadow p-4">
-    {/* Individual address content */}
-  </div>
-</div>
-```
+- Flex layout for alignment
+- Hover state styling with color transitions
+- Animated spinner during deletion
+- Consistent text sizing
+- Appropriate cursor indication
 
-### Style Features
-- Consistent spacing and padding
-- Hover and active states
-- Responsive layout adjustments
-- Clear visual hierarchy
+## States
 
-## Form Handling
+### Default State
+- Displays a trash icon
+- Shows optional children content
+- Subtle text color
 
-The component handles address forms with proper validation:
+### Hover State
+- Text color becomes more prominent
+- Cursor changes to pointer
 
-```tsx copy
-// Example form implementation
-<form onSubmit={handleSubmit}>
-  <div className="grid grid-cols-1 gap-y-2">
-    <Input
-      label="Address"
-      name="address_1"
-      required
-      autoComplete="street-address"
-    />
-    <div className="grid grid-cols-2 gap-x-2">
-      <Input
-        label="Postal Code"
-        name="postal_code"
-        required
-        autoComplete="postal-code"
-      />
-      <Input
-        label="City"
-        name="city"
-        required
-        autoComplete="address-level2"
-      />
-    </div>
-  </div>
-</form>
-```
+### Loading State
+- Trash icon is replaced with an animated spinner
+- Button remains interactive but visually indicates process
+- Prevents duplicate delete operations
 
-## Best Practices
-
-1. Always provide the `customer` prop
-2. Use within authenticated routes
-3. Maintain a consistent address management structure
-4. Handle loading and error states appropriately
-5. Validate address data before submission
-6. Provide clear feedback for user actions
-7. Implement proper error handling
+### Error State
+- Automatically reverts to default state if deletion fails
+- Error handling is done internally
 
 ## Accessibility
 
-The component follows accessibility best practices:
+The component includes:
 
-- Semantic HTML structure
-- Keyboard navigation support
-- ARIA labels where appropriate
-- High contrast active states for visibility
-- Focus management for form elements
-- Clear error messaging
-- Screen reader friendly content structure
+- Button role for proper keyboard interaction
+- Visual indication of interactivity
+- Loading state feedback
+- Appropriate contrast for text elements
 
-## Error Handling
+## Examples
+
+### Basic Usage
 
 ```tsx copy
-const handleAddressSubmit = async (data) => {
-  try {
-    await updateAddress(data)
-    showNotification("Address updated successfully")
-  } catch (error) {
-    showNotification("Error updating address", "error")
-  }
-}
+<DeleteButton id="line_item_123" />
+```
+
+### With Custom Text
+
+```tsx copy
+<DeleteButton id="line_item_123">
+  Remove from cart
+</DeleteButton>
+```
+
+### With Custom Styling
+
+```tsx copy
+<DeleteButton 
+  id="line_item_123" 
+  className="mt-2 border-t pt-2"
+>
+  Delete
+</DeleteButton>
+```
+
+### Within a List
+
+```tsx copy
+{cartItems.map(item => (
+  <li key={item.id} className="flex justify-between py-2">
+    <span>{item.title}</span>
+    <DeleteButton id={item.id}>
+      Remove
+    </DeleteButton>
+  </li>
+))}
 ```
 
 ## Dependencies
 
-- React
-- Tailwind CSS for styling
-- Custom hooks for customer and region management
-- Form handling utilities
-- UI components (Input, Button, etc.)
+- @medusajs/icons (for Trash and Spinner icons)
+- @medusajs/ui (for the clx utility)
+- react (for hooks and component structure)
+- @lib/data/cart (for the deleteLineItem function)
 
-## Testing
+## Technical Details
 
-The component includes comprehensive test coverage:
+The component:
 
-```tsx copy
-describe('AddressBook', () => {
-  it('renders existing addresses', () => {
-    render(<AddressBook customer={mockCustomer} region={mockRegion} />)
-    expect(screen.getAllByTestId('address-card')).toHaveLength(
-      mockCustomer.addresses.length
-    )
-  })
-})
-```
+- Uses React's useState hook to track the deletion state
+- Calls the `deleteLineItem` function from the cart data library
+- Handles error cases by resetting the deletion state
+- Uses the clx utility from Medusa UI for class name composition
+- Conditionally renders either a Spinner or Trash icon based on state
+- Wraps the delete functionality in an async function

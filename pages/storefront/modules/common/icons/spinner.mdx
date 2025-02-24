@@ -1,138 +1,226 @@
 ---
-title: 'Account Layout'
-description: 'A layout component for account-related pages that provides a consistent structure with navigation and content areas'
+title: 'Spinner Icon'
+description: 'An animated loading spinner component with a partial circle design that provides a smooth rotation animation.'
 ---
 
-# Account Layout
+# Spinner Icon
 
-The `AccountLayout` component serves as a wrapper for account-related pages, providing a consistent layout structure with navigation and content areas. It's designed to be responsive and works with the Medusa e-commerce framework.
+The `Spinner` component is an SVG icon that displays an animated loading indicator with a circular design. It features a subtle rotating animation and a partial-circle appearance that provides users with visual feedback during loading states, data fetching operations, or processing actions.
 
-## Component Overview
+## Features
 
-The AccountLayout component creates a full-width container with a two-column layout on larger screens, featuring:
-- A navigation sidebar (only shown when a customer is logged in)
-- A main content area for child components
-- Responsive design that switches to a single column on mobile devices
+- Built-in rotation animation via Tailwind's `animate-spin` class
+- Customizable size and color
+- Dual-element design with varying opacity levels
+- Responsive scaling
+- Support for additional SVG attributes
+- Accessible loading indicator for asynchronous operations
 
 ## Props
 
 | Prop | Type | Required | Description |
 |------|------|----------|-------------|
-| customer | `HttpTypes.StoreCustomer \| null` | Yes | The customer object from Medusa's store API. Used to display account navigation |
-| children | `React.ReactNode` | Yes | The content to be rendered in the main area of the layout |
+| `size` | `string` | No | Width and height of the icon in pixels (default: "16") |
+| `color` | `string` | No | Color of the icon's stroke and fill (default: "currentColor") |
+| `...attributes` | `IconProps & SVGAttributes<SVGElement>` | No | Additional attributes passed to the underlying SVG element |
 
 ## Usage
 
 ```tsx copy
-import AccountLayout from './AccountLayout'
-import { StoreCustomer } from '@medusajs/types'
+import Spinner from "@components/icons/Spinner"
 
-const AccountPage = ({ customer }: { customer: StoreCustomer }) => {
+export default function SubmitButton({ isLoading }) {
   return (
-    <AccountLayout customer={customer}>
-      <div>Account content goes here</div>
-    </AccountLayout>
+    <button 
+      type="submit" 
+      disabled={isLoading}
+      className="px-4 py-2 bg-ui-button-primary text-ui-button-text-primary rounded-md"
+    >
+      {isLoading ? (
+        <span className="flex items-center gap-2">
+          <Spinner size="16" />
+          <span>Processing...</span>
+        </span>
+      ) : (
+        "Submit"
+      )}
+    </button>
   )
 }
 ```
 
-## Implementation Details
+## Styling
 
-### Layout Structure
+The icon is designed with:
 
-The component uses a nested structure of flex and grid containers:
+- An animated rotation effect via the `animate-spin` Tailwind class
+- A full circle with reduced opacity (25%) for the background element
+- A partial circle (arc) with higher opacity (75%) for the spinner indicator
+- Consistent stroke width (4) for the circular background
+- Default color inheritance via "currentColor"
+- Proper viewBox settings (0 0 24 24) for responsive scaling
 
-1. Outer container:
-   - Uses `flex-1` for flexible sizing
-   - Applies padding on larger screens with `small:py-12`
+## Customization
 
-2. Inner container:
-   - Maximum width of `max-w-5xl`
-   - Centered with `mx-auto`
-   - White background
-   - Flex column layout
+### Size Variations
 
-3. Grid layout:
-   - Single column by default
-   - Two columns on larger screens using `small:grid-cols-[240px_1fr]`
-   - Fixed 240px sidebar width
-   - Flexible content area width
+```tsx copy
+// Small (default)
+<Spinner size="16" />
 
-### Responsive Design
+// Medium
+<Spinner size="24" />
 
-The layout adapts to different screen sizes:
+// Large
+<Spinner size="32" />
 
-- **Mobile** (< small breakpoint):
-  - Single column layout
-  - No top/bottom padding
-  - Full width content
+// Custom
+<Spinner size="48" />
+```
 
-- **Desktop** (≥ small breakpoint):
-  - Two column layout
-  - 12 units of padding top/bottom
-  - Fixed width sidebar
+### Color Variations
 
-### Navigation
+```tsx copy
+// Default (inherits from text color)
+<Spinner />
 
-The `AccountNav` component is conditionally rendered based on the presence of a customer:
-- Only shown when `customer` prop is not null
-- Receives the customer object as a prop
-- Contained within the left column of the grid
+// Brand color
+<Spinner color="#4F46E5" />
 
-## Dependencies
+// White (for dark backgrounds)
+<Spinner color="white" />
 
-- React
-- UnderlineLink component from common modules
-- AccountNav component
-- Medusa types for customer data
-- Tailwind CSS for styling
+// Contextual colors
+<Spinner color="var(--color-ui-fg-interactive)" />
+<Spinner color="var(--color-primary)" />
+```
 
-## Testing
+### With Additional SVG Attributes
 
-The component includes a data-testid attribute (`account-page`) for easy targeting in tests.
+```tsx copy
+<Spinner 
+  size="24"
+  color="var(--color-primary)"
+  className="my-custom-spinner" // This will be merged with the default "animate-spin" class
+  style={{ filter: "drop-shadow(0px 0px 2px rgba(79, 70, 229, 0.5))" }}
+/>
+```
+
+### Custom Animation Speed
+
+```tsx copy
+<style jsx global>{`
+  .spin-slow {
+    animation-duration: 1.5s;
+  }
+  
+  .spin-fast {
+    animation-duration: 0.5s;
+  }
+`}</style>
+
+<Spinner className="spin-slow" />
+<Spinner /> {/* Default speed */}
+<Spinner className="spin-fast" />
+```
 
 ## Examples
 
-### With Customer
+### Simple Loading State
 
 ```tsx copy
-const LoggedInExample = () => {
-  const customer = {
-    id: "cust_123",
-    email: "user@example.com",
-    // ... other customer properties
-  }
-  
-  return (
-    <AccountLayout customer={customer}>
-      <h1>Welcome back!</h1>
-      <p>Your account details...</p>
-    </AccountLayout>
-  )
-}
+{isLoading ? (
+  <div className="flex justify-center py-8">
+    <Spinner size="32" />
+  </div>
+) : (
+  <DataTable data={data} />
+)}
 ```
 
-### Without Customer
+### Inline Button Loader
 
 ```tsx copy
-const LoggedOutExample = () => {
-  return (
-    <AccountLayout customer={null}>
-      <h1>Please log in</h1>
-      <p>Login form goes here...</p>
-    </AccountLayout>
-  )
-}
+<button 
+  onClick={handleSubmit} 
+  disabled={isSubmitting}
+  className="inline-flex items-center justify-center gap-2 px-4 py-2 rounded-md bg-ui-button-primary text-ui-button-text-primary"
+>
+  {isSubmitting && <Spinner size="14" />}
+  <span>{isSubmitting ? 'Submitting...' : 'Submit'}</span>
+</button>
 ```
 
-## Best Practices
+### Full Page Loader Overlay
 
-1. Always provide a customer prop, even if null, to ensure proper rendering
-2. Use semantic HTML within the content area
-3. Ensure child components respect the layout's padding and width constraints
-4. Consider the responsive nature of the layout when designing child components
+```tsx copy
+{isPageLoading && (
+  <div className="fixed inset-0 bg-ui-bg-overlay flex items-center justify-center z-50">
+    <div className="bg-ui-bg-base rounded-lg p-6 shadow-xl flex flex-col items-center">
+      <Spinner size="48" color="var(--color-primary)" />
+      <p className="mt-4 text-ui-fg-base font-medium">Loading your content...</p>
+    </div>
+  </div>
+)}
+```
 
-## Related Components
+### Loading Progress Indicator
 
-- AccountNav: Provides the navigation sidebar
-- UnderlineLink: Used within the navigation for interactive elements
+```tsx copy
+<div className="flex items-center gap-3">
+  <Spinner size="18" color="var(--color-primary)" />
+  <div className="flex-1">
+    <div className="h-2 bg-ui-bg-base-hover rounded-full overflow-hidden">
+      <div 
+        className="h-full bg-primary transition-all duration-300 ease-out" 
+        style={{ width: `${loadingProgress}%` }}
+      ></div>
+    </div>
+  </div>
+  <span className="text-sm text-ui-fg-subtle">{loadingProgress}%</span>
+</div>
+```
+
+### Section Loading States
+
+```tsx copy
+<div className="border rounded-md overflow-hidden">
+  <div className="p-4 border-b bg-ui-bg-base flex justify-between items-center">
+    <h3 className="font-medium">User Activity</h3>
+    {isSectionLoading && <Spinner size="16" />}
+  </div>
+  <div className="p-4">
+    {isSectionLoading ? (
+      <div className="h-32 flex items-center justify-center">
+        <span className="text-ui-fg-subtle text-sm">Loading activity data...</span>
+      </div>
+    ) : (
+      <ActivityChart data={activityData} />
+    )}
+  </div>
+</div>
+```
+
+## Accessibility
+
+When using this icon for loading states:
+
+- Use appropriate `aria-busy="true"` on the container when content is loading
+- Consider adding `aria-live="polite"` regions for dynamic content updates
+- Provide descriptive text alongside the spinner when possible
+- If using for a full-page loader, consider trapping focus within the loading modal
+- For button loading states, ensure the button is properly disabled during loading
+- For long loading operations, consider adding estimated time or progress indicators
+
+## Technical Details
+
+The component uses:
+
+- React's functional component pattern with TypeScript support
+- SVG elements for drawing the spinner geometry
+- Tailwind's `animate-spin` class for rotation animation
+- Type import from a shared `IconProps` interface
+- Default prop values for consistent appearance
+- Two distinct elements that create the spinner effect:
+  1. A full circle with reduced opacity (25%) serving as the track
+  2. A partial circle (arc) with higher opacity (75%) serving as the spinner indicator

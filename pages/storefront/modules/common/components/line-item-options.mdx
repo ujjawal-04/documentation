@@ -1,268 +1,138 @@
 ---
-title: "Order Overview"
-description: "A component for displaying a list of customer orders with empty state handling"
+title: 'Line Item Options'
+description: 'A component for displaying product variant information with text overflow handling.'
 ---
 
-# Order Overview
+# Line Item Options
 
-The `OrderOverview` component is responsible for displaying a list of orders. If there are no orders available, it shows a message prompting the user to continue shopping.
-
-## Installation
-
-```tsx copy
-import OrderOverview from "@components/OrderOverview"
-```
-
-## Props
-
-| Prop Name | Type | Description |
-|-----------|------|-------------|
-| `orders` | `HttpTypes.StoreOrder[]` | An array of customer orders |
-
-## Usage
-
-Basic implementation of the component:
-
-```tsx copy
-<OrderOverview orders={ordersData} />
-```
-
-## Implementation Example
-
-Here's a complete example showing how to use the OrderOverview component:
-
-```tsx copy
-import { OrderOverview } from "@components/OrderOverview"
-import { useOrders } from "@lib/hooks/use-orders"
-
-export default function OrderHistory() {
-  const { orders, isLoading } = useOrders()
-  
-  if (isLoading) {
-    return <div>Loading orders...</div>
-  }
-  
-  return (
-    <div className="max-w-2xl mx-auto py-8">
-      <h1 className="text-2xl font-bold mb-4">Order History</h1>
-      <OrderOverview orders={orders} />
-    </div>
-  )
-}
-```
+The `Line Item Options` component is a simple utility component used to display product variant information in a consistent manner. It handles text overflow with ellipsis and maintains consistent styling.
 
 ## Features
 
-### Order List Display
-- Maps through orders array
-- Renders individual OrderCard components
-- Maintains consistent spacing
-- Adds dividers between orders
+- Consistent text styling
+- Text overflow handling with ellipsis
+- Support for testing data attributes
+- Responsive width control
+- Integration with Medusa store product variants
 
-### Empty State Handling
-- Shows friendly message when no orders exist
-- Provides "Continue Shopping" call-to-action
-- Maintains consistent user experience
+## Props
 
-## Component Structure
+| Prop | Type | Required | Description |
+|------|------|----------|-------------|
+| `variant` | `HttpTypes.StoreProductVariant \| undefined` | Yes | The product variant to display |
+| `data-testid` | `string` | No | Test ID for the component |
+| `data-value` | `HttpTypes.StoreProductVariant` | No | Data value attribute for testing |
 
-### Main Component
-
-```tsx copy
-const OrderOverview = ({ orders }) => {
-  if (!orders.length) {
-    return <EmptyOrderState />
-  }
-
-  return (
-    <div className="space-y-4">
-      {orders.map((order, index) => (
-        <div
-          key={order.id}
-          className={clx(
-            "pb-4",
-            {
-              "border-b border-gray-200": index !== orders.length - 1
-            }
-          )}
-        >
-          <OrderCard order={order} />
-        </div>
-      ))}
-    </div>
-  )
-}
-```
-
-### Empty State Component
+## Usage
 
 ```tsx copy
-const EmptyOrderState = () => {
+import LineItemOptions from '@/components/LineItemOptions'
+import { useCart } from '@/hooks/useCart'
+
+export default function CartItem({ item }) {
   return (
-    <div className="flex flex-col items-center text-center">
-      <div className="max-w-[224px]">
-        <h2 className="text-lg font-medium mb-4">
-          Nothing to see here
-        </h2>
-        <p className="text-gray-500 mb-6">
-          You don't have any orders yet, let us change that :)
-        </p>
-        <LocalizedClientLink
-          href="/"
-          className="w-full btn-primary"
-        >
-          Continue Shopping
-        </LocalizedClientLink>
+    <div className="cart-item p-4 border-b">
+      <h3>{item.title}</h3>
+      
+      <LineItemOptions 
+        variant={item.variant} 
+        data-testid="cart-item-variant"
+      />
+      
+      <div className="mt-2">
+        <span>Quantity: {item.quantity}</span>
       </div>
     </div>
   )
-}
-```
-
-## Usage with Loading State
-
-```tsx copy
-const OrdersSection = () => {
-  const { orders, isLoading } = useOrders()
-
-  if (isLoading) {
-    return (
-      <div className="grid grid-cols-1 gap-4">
-        {Array.from({ length: 3 }).map((_, i) => (
-          <div
-            key={i}
-            className="bg-gray-100 h-40 rounded-lg animate-pulse"
-          />
-        ))}
-      </div>
-    )
-  }
-
-  return <OrderOverview orders={orders} />
 }
 ```
 
 ## Styling
 
-The component uses Tailwind CSS for styling:
+The component uses Tailwind CSS for styling and includes:
 
-```tsx copy
-// Example styling with Tailwind classes
-<div className="grid grid-cols-1 gap-y-8">
-  {/* Order cards container */}
-  <div className="space-y-6">
-    {orders.map((order, index) => (
-      <div
-        key={order.id}
-        className={clx(
-          "pb-6",
-          {
-            "border-b border-gray-200": index !== orders.length - 1
-          }
-        )}
-      >
-        <OrderCard order={order} />
-      </div>
-    ))}
-  </div>
-  
-  {/* Empty state container */}
-  <div className="flex flex-col items-center justify-center min-h-[300px]">
-    {/* Empty state content */}
-  </div>
-</div>
-```
+- Muted text color using design system tokens (text-ui-fg-subtle)
+- Medium text weight (txt-medium)
+- Inline-block display for proper text handling
+- Full width (w-full)
+- Hidden overflow with ellipsis for long text
 
-## Best Practices
+## States
 
-1. Always handle empty states gracefully
-2. Implement proper loading states
-3. Maintain consistent spacing and alignment
-4. Use proper type checking
-5. Handle potential data inconsistencies
-6. Implement error boundaries
-7. Follow responsive design principles
+### Default State
+- Displays the variant title
+- Truncates with ellipsis if text is too long
+- Uses muted text color
+
+### Empty/Undefined State
+- Handles undefined variants gracefully
+- Renders nothing if variant title is missing
 
 ## Accessibility
 
-The component follows accessibility best practices:
+The component includes:
 
+- Support for data attributes for testing
+- Proper text overflow handling
 - Semantic HTML structure
-- Proper heading hierarchy
-- Clear navigation paths
-- Descriptive button labels
-- Keyboard navigation support
-- Screen reader friendly content
+- Appropriate text contrast
 
-## Testing
+## Examples
 
-Example test cases for the component:
+### Basic Usage
 
 ```tsx copy
-describe('OrderOverview', () => {
-  it('renders order list when orders exist', () => {
-    const mockOrders = [
-      {
-        id: 'order_1',
-        // ... other order properties
-      },
-      {
-        id: 'order_2',
-        // ... other order properties
-      }
-    ]
-    
-    render(<OrderOverview orders={mockOrders} />)
-    
-    expect(screen.getAllByTestId('order-card')).toHaveLength(2)
-  })
-
-  it('renders empty state when no orders exist', () => {
-    render(<OrderOverview orders={[]} />)
-    
-    expect(screen.getByText(/nothing to see here/i)).toBeInTheDocument()
-    expect(screen.getByText(/continue shopping/i)).toBeInTheDocument()
-  })
-
-  it('adds divider between orders except last one', () => {
-    const mockOrders = [
-      { id: 'order_1' },
-      { id: 'order_2' },
-      { id: 'order_3' }
-    ]
-    
-    render(<OrderOverview orders={mockOrders} />)
-    
-    const dividers = screen.getAllByTestId('order-divider')
-    expect(dividers).toHaveLength(2)
-  })
-})
+<LineItemOptions variant={productVariant} />
 ```
 
-## Error Handling
+### With Testing Attributes
 
 ```tsx copy
-const handleOrderError = (error: unknown) => {
-  console.error('Error loading orders:', error)
-  return (
-    <div className="text-red-600 text-center py-4">
-      An error occurred while loading your orders.
-      Please try again later.
+<LineItemOptions 
+  variant={productVariant}
+  data-testid="product-variant-option"
+  data-value={productVariant}
+/>
+```
+
+### Within a Product Card
+
+```tsx copy
+<div className="product-card">
+  <img src={product.thumbnail} alt={product.title} />
+  <h3>{product.title}</h3>
+  <LineItemOptions variant={product.selectedVariant} />
+  <span className="price">${product.price}</span>
+</div>
+```
+
+### In a Cart Item List
+
+```tsx copy
+{cartItems.map(item => (
+  <li key={item.id} className="flex justify-between py-2">
+    <div>
+      <span>{item.title}</span>
+      <LineItemOptions variant={item.variant} />
     </div>
-  )
-}
+    <span>${item.price}</span>
+  </li>
+))}
 ```
 
 ## Dependencies
 
-- React
-- OrderCard component
-- LocalizedClientLink component
-- Tailwind CSS for styling
-- clx utility for conditional classes
+- @medusajs/types (for HttpTypes.StoreProductVariant type)
+- @medusajs/ui (for Text component)
+- react (for component structure)
 
-## Related Components
+## Technical Details
 
-- OrderCard: Used to display individual order details
-- LocalizedClientLink: Used for navigation
-- Loading components: For handling loading states
+The component:
+
+- Uses the Medusa UI Text component as its foundation
+- Handles variant information display in a standardized way
+- Passes through data attributes for testing purposes
+- Maintains consistent styling across the application
+- Handles text overflow with ellipsis for long variant titles
+- Is designed to be used within product listings, cart items, and order summaries

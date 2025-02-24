@@ -1,282 +1,193 @@
 ---
-title: "Login"
-description: "A component for handling user authentication in a Next.js storefront"
+title: 'Input'
+description: 'A customizable input component with floating label and password visibility toggle.'
 ---
 
-# Login
+# Input
 
-The `Login` component provides a user authentication interface for signing into an account.
-
-## Installation
-
-```tsx copy
-import Login from "@modules/account/components/Login"
-```
-
-## Props
-
-| Prop Name | Type | Description |
-|-----------|------|-------------|
-| `setCurrentView` | `(view: LOGIN_VIEW) => void` | Function to set the current login view state |
-
-## Usage
-
-Basic implementation of the component:
-
-```tsx copy
-<Login setCurrentView={setViewFunction} />
-```
-
-## Implementation Example
-
-Here's a complete example showing how to use the Login component:
-
-```tsx copy
-import { Login } from "@modules/account/components/Login"
-import { useState } from "react"
-
-export type LOGIN_VIEW = "LOGIN" | "REGISTER" | "RESET_PASSWORD"
-
-export default function AccountPage() {
-  const [currentView, setCurrentView] = useState<LOGIN_VIEW>("LOGIN")
-
-  return (
-    <div className="flex justify-center py-12">
-      <div className="max-w-md w-full bg-white shadow-lg rounded-lg p-8">
-        {currentView === "LOGIN" && (
-          <Login setCurrentView={setCurrentView} />
-        )}
-      </div>
-    </div>
-  )
-}
-```
+The `Input` component provides a styled form input with floating label animation, support for password visibility toggling, and error handling. It's designed to create a consistent and accessible user input experience.
 
 ## Features
 
-### Email and Password Authentication
-- Input validation for email format
-- Secure password handling
-- Error state management
-- Loading state during authentication
+- Floating label animation
+- Password visibility toggle
+- Required field indication
+- Error state handling
+- Customizable styling
+- Forward ref support
+- Optional top label
 
-### Error Handling
-- Displays user-friendly error messages
-- Handles network errors
-- Validates input before submission
+## Props
 
-### Navigation Options
-- Registration redirect
-- Password reset link
-- Account access options
+| Prop | Type | Required | Description |
+|------|------|----------|-------------|
+| `label` | `string` | Yes | The floating label text |
+| `name` | `string` | Yes | The input name attribute |
+| `type` | `string` | No | The input type (text, password, email, etc.) |
+| `errors` | `Record<string, unknown>` | No | Form validation errors object |
+| `touched` | `Record<string, unknown>` | No | Form touched fields object |
+| `required` | `boolean` | No | Indicates if the field is required |
+| `topLabel` | `string` | No | Optional additional label displayed above the input |
+| `...props` | `InputHTMLAttributes` | No | All other input HTML attributes |
 
-## Component Structure
-
-### Form Implementation
+## Usage
 
 ```tsx copy
-const LoginForm = ({ setCurrentView }) => {
-  const [email, setEmail] = useState("")
-  const [password, setPassword] = useState("")
-  const [error, setError] = useState<string | null>(null)
-  const [loading, setLoading] = useState(false)
+import Input from '@/components/Input'
+import { useForm } from 'some-form-library'
 
+export default function LoginForm() {
+  const { errors, touched, handleSubmit } = useForm()
+  
   return (
-    <form onSubmit={handleSubmit} className="space-y-4">
-      <div>
-        <label 
-          htmlFor="email" 
-          className="block text-sm font-medium text-gray-700"
-        >
-          Email
-        </label>
-        <input
-          id="email"
-          type="email"
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
-          required
-          className="mt-1 block w-full rounded-md border-gray-300"
-        />
-      </div>
-
-      <div>
-        <label 
-          htmlFor="password" 
-          className="block text-sm font-medium text-gray-700"
-        >
-          Password
-        </label>
-        <input
-          id="password"
-          type="password"
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
-          required
-          className="mt-1 block w-full rounded-md border-gray-300"
-        />
-      </div>
-
-      {error && (
-        <div className="text-red-600 text-sm">
-          {error}
-        </div>
-      )}
-
-      <button
-        type="submit"
-        disabled={loading}
-        className="w-full py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700"
-      >
-        {loading ? "Signing in..." : "Sign in"}
+    <form onSubmit={handleSubmit}>
+      <Input
+        label="Email"
+        name="email"
+        type="email"
+        required
+        errors={errors}
+        touched={touched}
+      />
+      
+      <Input
+        label="Password"
+        name="password"
+        type="password"
+        required
+        errors={errors}
+        touched={touched}
+      />
+      
+      <button type="submit" className="w-full mt-4 bg-black text-white py-3 rounded">
+        Sign In
       </button>
     </form>
   )
 }
 ```
 
-### Navigation Links
+## Styling
 
-```tsx copy
-const NavigationLinks = ({ setCurrentView }) => {
-  return (
-    <div className="mt-4 flex items-center justify-between">
-      <button
-        onClick={() => setCurrentView("REGISTER")}
-        className="text-sm text-blue-600 hover:text-blue-500"
-      >
-        Join us
-      </button>
-      
-      <LocalizedClientLink
-        href="/request-reset-password"
-        className="text-sm text-blue-600 hover:text-blue-500"
-      >
-        Restore
-      </LocalizedClientLink>
-    </div>
-  )
-}
-```
+The component uses Tailwind CSS for styling and includes:
 
-## Form Handling
+- Light gray background
+- Rounded corners
+- Consistent height and padding
+- Floating label animation
+- Password visibility toggle button
+- Required field indicator in red
+- No default borders (focus is indicated by other means)
+- Clean focus state without default browser outline
 
-```tsx copy
-const handleSubmit = async (e: React.FormEvent) => {
-  e.preventDefault()
-  setLoading(true)
-  setError(null)
+## States
 
-  try {
-    const response = await authenticateUser({ email, password })
-    if (response.ok) {
-      // Handle successful login
-      router.push("/account")
-    } else {
-      setError("Invalid email or password")
-    }
-  } catch (error) {
-    setError("An error occurred. Please try again.")
-  } finally {
-    setLoading(false)
-  }
-}
-```
+### Default State
+- Input with floating label
+- Gray background
+- Rounded appearance
 
-## Error Handling
+### Focused State
+- Label animates to the top of the input
+- Input maintains focus styling
 
-```tsx copy
-const handleError = (error: unknown) => {
-  if (error instanceof AuthError) {
-    setError(error.message)
-  } else {
-    setError("An unexpected error occurred")
-  }
-  setLoading(false)
-}
-```
+### Filled State
+- Label remains at the top position
+- Text visible in the input field
 
-## Best Practices
+### Password Field State
+- Includes eye/eye-off toggle button
+- Toggles between password and text input types
 
-1. Validate input fields before submission
-2. Provide clear feedback for all user actions
-3. Implement proper loading states
-4. Handle all potential error cases
-5. Use secure authentication methods
-6. Follow password security best practices
-7. Maintain consistent error messaging
+### Required Field State
+- Displays a red asterisk next to the label
 
 ## Accessibility
 
-The component follows accessibility best practices:
+The component includes several accessibility features:
 
-- Semantic HTML structure
-- Proper form labeling
-- ARIA attributes for dynamic content
-- Keyboard navigation support
+- Proper label association with input
+- Visual indication of required fields
+- Password visibility toggle
 - Focus management
-- Loading state indicators
-- Error message announcements
+- Support for all standard input attributes
 
-## Testing
+## Examples
 
-Example test cases for the component:
+### Basic Text Input
 
 ```tsx copy
-describe('Login', () => {
-  const mockSetCurrentView = jest.fn()
-
-  it('validates required fields', () => {
-    render(<Login setCurrentView={mockSetCurrentView} />)
-    
-    const submitButton = screen.getByRole('button', {
-      name: /sign in/i
-    })
-    
-    fireEvent.click(submitButton)
-    
-    expect(screen.getByText('Email is required')).toBeInTheDocument()
-    expect(screen.getByText('Password is required')).toBeInTheDocument()
-  })
-
-  it('handles successful login', async () => {
-    render(<Login setCurrentView={mockSetCurrentView} />)
-    
-    const emailInput = screen.getByLabelText(/email/i)
-    const passwordInput = screen.getByLabelText(/password/i)
-    
-    fireEvent.change(emailInput, {
-      target: { value: 'test@example.com' }
-    })
-    fireEvent.change(passwordInput, {
-      target: { value: 'password123' }
-    })
-    
-    const submitButton = screen.getByRole('button')
-    fireEvent.click(submitButton)
-    
-    // Assert redirect or success state
-  })
-})
+<Input
+  label="Full Name"
+  name="fullName"
+  type="text"
+/>
 ```
 
-## Security Considerations
+### Required Email Input
 
-- Implement rate limiting for login attempts
-- Use HTTPS for all authentication requests
-- Store passwords securely (hashing)
-- Implement session management
-- Handle token expiration
-- Protect against common vulnerabilities:
-  - Cross-Site Scripting (XSS)
-  - Cross-Site Request Forgery (CSRF)
-  - SQL Injection
-  - Brute Force Attacks
+```tsx copy
+<Input
+  label="Email Address"
+  name="email"
+  type="email"
+  required
+/>
+```
+
+### Password Input with Visibility Toggle
+
+```tsx copy
+<Input
+  label="Password"
+  name="password"
+  type="password"
+  required
+/>
+```
+
+### With Top Label
+
+```tsx copy
+<Input
+  topLabel="Contact Information"
+  label="Phone Number"
+  name="phone"
+  type="tel"
+/>
+```
+
+### With Form Validation
+
+```tsx copy
+<Input
+  label="Username"
+  name="username"
+  type="text"
+  required
+  errors={errors}
+  touched={touched}
+  minLength={3}
+  maxLength={20}
+/>
+```
 
 ## Dependencies
 
-- React
-- Next.js
-- Authentication services
-- Form handling utilities
-- Navigation components
+- @medusajs/ui (for Label component)
+- react (for hooks and component structure)
+- @modules/common/icons/eye and @modules/common/icons/eye-off (for password visibility toggle)
+
+## Technical Details
+
+The component:
+
+- Uses React.forwardRef to allow parent components to get a reference to the input
+- Manages password visibility state internally
+- Uses useImperativeHandle to ensure the ref points to the actual input element
+- Includes a floating label that animates on focus
+- Allows clicking the label to focus the input
+- Supports all standard HTML input attributes
+- Uses a display name for better debugging
+- Handles password visibility toggling with a button element
+- Conditionally renders the top label if provided

@@ -1,254 +1,157 @@
 ---
-title: "Profile Password"
-description: "Documentation for the ProfilePassword component, which allows users to update their passwords"
+title: 'Native Select'
+description: 'A customizable select component that uses the native HTML select element with enhanced styling and placeholder support.'
 ---
 
-# Profile Password
+# Native Select
 
-The `ProfilePassword` component provides functionality for users to update their account password within the account settings page.
+The `NativeSelect` component provides a styled wrapper around the native HTML select element. It enhances the standard select with consistent styling, placeholder support, and proper state management.
 
-## Installation
+## Features
 
-```tsx copy
-import ProfilePassword from "@components/profile/profile-password"
-```
+- Enhanced styling while maintaining native select behavior
+- Placeholder text support
+- Custom chevron icon indicator
+- Hover and focus states
+- Support for error states
+- Automatic placeholder text styling
+- Fully accessible
 
 ## Props
 
-| Prop Name | Type | Description |
-|-----------|------|-------------|
-| `customer` | `HttpTypes.StoreCustomer` | The current logged-in customer |
+| Prop | Type | Required | Description |
+|------|------|----------|-------------|
+| `placeholder` | `string` | No | Text to display when no option is selected (default: "Select...") |
+| `errors` | `Record<string, unknown>` | No | Error object for validation display |
+| `touched` | `Record<string, unknown>` | No | Touched object for validation tracking |
+| `className` | `string` | No | Additional CSS classes to apply to the component |
+| `children` | `ReactNode` | Yes | Option elements to display in the select |
+| `...props` | `SelectHTMLAttributes<HTMLSelectElement>` | No | All other props are passed to the underlying select element |
 
 ## Usage
 
-Basic implementation of the component:
-
 ```tsx copy
-<ProfilePassword customer={customerData} />
-```
+import NativeSelect from "@components/NativeSelect"
 
-## Implementation Example
-
-Here's a complete example showing how to use the ProfilePassword component:
-
-```tsx copy
-import { ProfilePassword } from "@components/profile/profile-password"
-import { useCustomer } from "@lib/hooks/use-customer"
-import { toast } from "@medusajs/ui"
-
-export default function SecuritySettings() {
-  const { customer } = useCustomer()
-  
-  if (!customer) {
-    return <div>Loading...</div>
-  }
-  
+export default function ProductVariantSelector() {
   return (
-    <div className="max-w-xl mx-auto py-8">
-      <h2 className="text-xl font-bold mb-4">Security Settings</h2>
-      <ProfilePassword customer={customer} />
+    <div className="product-options">
+      <label htmlFor="size" className="text-sm font-medium mb-2 block">
+        Size
+      </label>
+      <NativeSelect 
+        id="size" 
+        name="size"
+        placeholder="Select a size"
+        className="w-full"
+      >
+        <option value="xs">Extra Small</option>
+        <option value="s">Small</option>
+        <option value="m">Medium</option>
+        <option value="l">Large</option>
+        <option value="xl">Extra Large</option>
+      </NativeSelect>
     </div>
   )
 }
 ```
 
-## Features
+## Styling
 
-### Password Management
-- Form for password updates
-- Old password verification
-- New password input
-- Password confirmation
-- Security-focused input fields
+The component uses Tailwind CSS for styling and includes:
 
-### Form Validation
-- Password matching validation
-- Required field validation
-- Current password verification
-- Toast notifications for feedback
+- Border colors using design system tokens (`border-ui-border-base`)
+- Background colors for different states (`bg-ui-bg-subtle`, `bg-ui-bg-field-hover`)
+- Text colors for placeholder state (`text-ui-fg-muted`)
+- Consistent padding and rounded corners
+- Custom dropdown icon positioning
 
-### Security Measures
-- Masked password inputs
-- Secure form submission
-- No password storage in state
-- Proper error handling
+## States
 
-## Component Structure
+### Default State
+- Displays the placeholder text if no option is selected
+- Shows a subtle background color
 
-### Main Component
+### Hover State
+- Changes background color to indicate interactivity
 
-```tsx copy
-const ProfilePassword = ({ customer }) => {
-  const [isEditing, setIsEditing] = useState(false)
-  const { state, action } = useActionState()
+### With Selected Value
+- Displays the selected option text in standard text color
+- Maintains the chevron indicator on the right
 
-  const handleSubmit = async (e) => {
-    e.preventDefault()
-    
-    // Currently displays placeholder toast
-    toast.info("Password updates coming soon!")
-    
-    // Future implementation will include:
-    // const formData = new FormData(e.target)
-    // await updatePassword({
-    //   old_password: formData.get("old_password"),
-    //   new_password: formData.get("new_password")
-    // })
-  }
-
-  return (
-    <AccountInfo label="Password">
-      {!isEditing ? (
-        <PasswordDisplay onEdit={() => setIsEditing(true)} />
-      ) : (
-        <PasswordForm 
-          onSubmit={handleSubmit}
-          onCancel={() => setIsEditing(false)}
-          state={state}
-        />
-      )}
-    </AccountInfo>
-  )
-}
-```
-
-### Password Form Component
-
-```tsx copy
-const PasswordForm = ({ onSubmit, onCancel, state }) => {
-  return (
-    <form onSubmit={onSubmit} className="space-y-4">
-      <Input
-        label="Current Password"
-        name="old_password"
-        type="password"
-        required
-        autoComplete="current-password"
-      />
-      <Input
-        label="New Password"
-        name="new_password"
-        type="password"
-        required
-        autoComplete="new-password"
-      />
-      <Input
-        label="Confirm New Password"
-        name="confirm_password"
-        type="password"
-        required
-        autoComplete="new-password"
-      />
-      <div className="flex justify-end space-x-2">
-        <button 
-          type="button" 
-          onClick={onCancel}
-          className="btn-secondary"
-        >
-          Cancel
-        </button>
-        <button 
-          type="submit"
-          className="btn-primary"
-          disabled={state.loading}
-        >
-          Update Password
-        </button>
-      </div>
-    </form>
-  )
-}
-```
-
-## Current Limitations
-
-1. Password update functionality not yet implemented
-2. No API integration for password changes
-3. Limited password strength validation
-4. Basic feedback mechanisms
+### With Placeholder
+- Displays placeholder text in a muted color
+- Still shows the chevron indicator
 
 ## Accessibility
 
-The component implements these accessibility features:
+The component maintains all the accessibility features of the native select element:
 
-- Proper password input types
-- Clear error messaging
-- Keyboard navigation support
-- ARIA labels for form fields
-- Focus management
+- Keyboard navigation works as expected
+- Focus states are preserved
+- Screen readers can interpret the select element correctly
+- The select can be controlled via label association
 
-## Best Practices
+## Examples
 
-1. Secure password handling
-2. Clear validation feedback
-3. Proper form submission
-4. Input field masking
-5. Confirmation requirements
-6. Toast notifications
-7. Error state management
-
-## Testing
-
-Example test cases:
+### Basic Usage
 
 ```tsx copy
-describe('ProfilePassword', () => {
-  it('shows password form when edit is clicked', async () => {
-    render(<ProfilePassword customer={{}} />)
-    
-    await userEvent.click(screen.getByText('Change Password'))
-    expect(screen.getByLabelText('Current Password')).toBeInTheDocument()
-  })
-
-  it('validates password confirmation match', async () => {
-    render(<ProfilePassword customer={{}} />)
-    
-    await userEvent.click(screen.getByText('Change Password'))
-    await userEvent.type(screen.getByLabelText('New Password'), 'newpass123')
-    await userEvent.type(screen.getByLabelText('Confirm New Password'), 'newpass124')
-    await userEvent.click(screen.getByText('Update Password'))
-    
-    expect(screen.getByText('Passwords do not match')).toBeInTheDocument()
-  })
-})
+<NativeSelect placeholder="Select an option">
+  <option value="option1">Option 1</option>
+  <option value="option2">Option 2</option>
+  <option value="option3">Option 3</option>
+</NativeSelect>
 ```
 
-## Dependencies
+### With Default Value
 
-- React
-- @medusajs/ui toast
-- AccountInfo component
-- Input component
-- Form validation utilities
+```tsx copy
+<NativeSelect 
+  defaultValue="option2"
+  placeholder="Select an option"
+>
+  <option value="option1">Option 1</option>
+  <option value="option2">Option 2</option>
+  <option value="option3">Option 3</option>
+</NativeSelect>
+```
 
-## Related Components
+### With Custom Styling
 
-- AccountInfo: Wrapper component
-- Input: Form input fields
-- Toast: Notification system
-- ProfileEmail: Email management
-- ProfileName: Name management
+```tsx copy
+<NativeSelect 
+  placeholder="Select a currency"
+  className="w-32 text-sm"
+>
+  <option value="usd">USD</option>
+  <option value="eur">EUR</option>
+  <option value="gbp">GBP</option>
+</NativeSelect>
+```
 
-## Future Enhancements
+### With Form Validation
 
-1. Implement password update API integration
-2. Add password strength indicators
-3. Implement password history
-4. Add two-factor authentication
-5. Improve validation feedback
-6. Add password requirements display
-7. Implement password recovery flow
+```tsx copy
+<NativeSelect 
+  placeholder="Select a country"
+  name="country"
+  errors={errors}
+  touched={touched}
+  required
+>
+  <option value="us">United States</option>
+  <option value="ca">Canada</option>
+  <option value="mx">Mexico</option>
+</NativeSelect>
+```
 
-## Security Considerations
+## Technical Details
 
-1. Secure password transmission
-2. Password strength requirements
-3. Rate limiting
-4. Account lockout protection
-5. Session management
-6. Audit logging
-7. Security headers
+The component uses:
 
----
-
-This component provides a foundation for secure password management within the account settings interface, ready to be extended with full functionality when API support is implemented.
+- React's `forwardRef` to allow parent components to access the select element
+- React's `useImperativeHandle` hook to expose the inner ref
+- State management to track when the placeholder is being displayed
+- Utility functions from `@medusajs/ui` for class name composition
+- Icon from `@medusajs/icons` for the dropdown indicator

@@ -1,142 +1,194 @@
-# Login Template
+---
+title: 'ideal Icon'
+description: 'A component displaying the iDEAL logo for payment method selection interfaces.'
+---
 
-The `LoginTemplate` is a client-side component that manages the display of either a login or registration form. It uses React's useState hook to toggle between these two views.
+# ideal Icon
+
+The `Ideal` component is an SVG icon that displays the iDEAL logo, commonly used in payment method selection interfaces. This component allows for consistent representation of the iDEAL payment option within your application, particularly for applications targeting customers in the Netherlands.
+
+## Features
+
+- Customizable color
+- Detailed SVG representation
+- Accessible SVG implementation with proper title
+- Support for additional SVG attributes
+- Fixed aspect ratio for brand recognition
+
+## Props
+
+| Prop | Type | Required | Description |
+|------|------|----------|-------------|
+| `size` | `string` | No | Base size value for the icon (default: "20") |
+| `color` | `string` | No | Color of the icon (default: "currentColor") |
+| `...attributes` | `SVGAttributes<SVGElement>` | No | Additional attributes passed to the underlying SVG element |
 
 ## Usage
 
 ```tsx copy
-import LoginTemplate from './LoginTemplate'
+import Ideal from "@components/icons/Ideal"
 
-const AccountPage = () => {
-  return <LoginTemplate />
-}
-```
-
-## Component Architecture
-
-### View States
-
-The component uses an enum to define possible view states:
-
-```tsx copy
-export enum LOGIN_VIEW {
-  SIGN_IN = "sign-in",
-  REGISTER = "register",
-}
-```
-
-### State Management
-
-- Uses the `useState` hook to track current view
-- Default view is "sign-in"
-- State is managed through `setCurrentView` function passed to child components
-
-### Conditional Rendering
-
-The component conditionally renders either:
-- `<Login />` component when currentView is "sign-in"
-- `<Register />` component when currentView is "register"
-
-## Implementation Details
-
-### Component Structure
-
-```tsx copy
-"use client"
-
-import { useState } from "react"
-import Register from "@modules/account/components/register"
-import Login from "@modules/account/components/login"
-
-const LoginTemplate = () => {
-  const [currentView, setCurrentView] = useState("sign-in")
-  
+export default function PaymentMethods() {
   return (
-    <div className="w-full flex justify-start px-8 py-8">
-      {currentView === "sign-in" ? (
-        <Login setCurrentView={setCurrentView} />
-      ) : (
-        <Register setCurrentView={setCurrentView} />
-      )}
-    </div>
-  )
-}
-
-export default LoginTemplate
-```
-
-### Styling
-
-The component uses Tailwind CSS classes for layout:
-- `w-full`: Full width container
-- `flex`: Flex container
-- `justify-start`: Left alignment
-- `px-8`: Horizontal padding of 8 units
-- `py-8`: Vertical padding of 8 units
-
-### Child Components
-
-#### Login Component Example
-
-```tsx copy
-interface LoginProps {
-  setCurrentView: (view: "sign-in" | "register") => void
-}
-
-const Login = ({ setCurrentView }: LoginProps) => {
-  return (
-    <div>
-      <form>
-        {/* Login form fields */}
-      </form>
-      <button onClick={() => setCurrentView("register")}>
-        Create an account
-      </button>
+    <div className="payment-options">
+      <div className="flex items-center gap-3 p-3 border rounded mb-2">
+        <Ideal />
+        <span>Pay with iDEAL</span>
+      </div>
     </div>
   )
 }
 ```
 
-#### Register Component Example
+## Styling
+
+The icon is designed with:
+
+- Precise SVG paths for accurate representation of the iDEAL logo
+- Proper viewBox settings for consistent rendering
+- Accessible implementation with role="img" and title
+- Fixed dimensions (20px × 20px) for brand integrity
+- Customizable fill color
+
+## Customization
+
+### Color Variations
 
 ```tsx copy
-interface RegisterProps {
-  setCurrentView: (view: "sign-in" | "register") => void
-}
+// Default (inherits from text color)
+<Ideal />
 
-const Register = ({ setCurrentView }: RegisterProps) => {
-  return (
-    <div>
-      <form>
-        {/* Registration form fields */}
-      </form>
-      <button onClick={() => setCurrentView("sign-in")}>
-        Already have an account? Sign in
-      </button>
-    </div>
-  )
-}
+// Brand color
+<Ideal color="#CC0066" />
+
+// Grayscale for disabled state
+<Ideal color="#9CA3AF" />
 ```
 
-## Props
+### With Additional SVG Attributes
 
-| Prop | Type | Description |
-|------|------|-------------|
-| setCurrentView | `(view: "sign-in" \| "register") => void` | Function to update the current view state |
+```tsx copy
+<Ideal 
+  className="payment-icon"
+  style={{ filter: "drop-shadow(0px 1px 2px rgba(0, 0, 0, 0.1))" }}
+/>
+```
 
-## Key Features
+## Examples
 
-1. **Client Component**
-   - Marked with "use client" directive
-   - Handles client-side state
-   - Manages view transitions
+### Within Payment Options List
 
-2. **State Management**
-   - Uses React useState hook
-   - Toggles between login and register views
-   - Passes state setter to child components
+```tsx copy
+const paymentMethods = [
+  { id: "card", name: "Credit Card", icon: CreditCard },
+  { id: "ideal", name: "iDEAL", icon: Ideal },
+  { id: "paypal", name: "PayPal", icon: PayPal }
+]
 
-3. **Type Safety**
-   - TypeScript interfaces for props
-   - Enum for view states
-   - Strict type checking for state management
+return (
+  <div className="payment-methods">
+    <h3 className="text-base font-medium mb-3">Select Payment Method</h3>
+    <div className="space-y-2">
+      {paymentMethods.map(method => (
+        <div 
+          key={method.id}
+          className="flex items-center gap-3 p-3 border rounded cursor-pointer hover:bg-ui-bg-base-hover"
+          onClick={() => selectPaymentMethod(method.id)}
+        >
+          <method.icon size="24" />
+          <span>{method.name}</span>
+        </div>
+      ))}
+    </div>
+  </div>
+)
+```
+
+### Payment Method Card
+
+```tsx copy
+<div className="payment-method-card">
+  <div className="flex items-center justify-between p-4 border rounded">
+    <div className="flex items-center gap-3">
+      <Ideal color="#CC0066" />
+      <div>
+        <p className="font-medium">iDEAL</p>
+        <p className="text-sm text-ui-fg-subtle">Pay directly with your Dutch bank account</p>
+      </div>
+    </div>
+    <Radio checked={selectedMethod === "ideal"} />
+  </div>
+</div>
+```
+
+### Checkout Summary
+
+```tsx copy
+<div className="checkout-summary p-4 bg-ui-bg-base border rounded">
+  <h3 className="text-lg font-medium mb-3">Order Summary</h3>
+  {/* Order details */}
+  <div className="mt-4 pt-4 border-t">
+    <div className="flex items-center justify-between">
+      <div className="flex items-center gap-2">
+        <Ideal size="16" />
+        <span className="text-sm">iDEAL</span>
+      </div>
+      <button className="text-sm text-ui-fg-interactive">Change</button>
+    </div>
+  </div>
+  <button className="w-full mt-4 py-2 bg-ui-bg-interactive text-ui-fg-on-interactive rounded">
+    Confirm Order
+  </button>
+</div>
+```
+
+### Bank Selection Dropdown
+
+```tsx copy
+<div className="ideal-payment">
+  <div className="flex items-center gap-2 mb-3">
+    <Ideal />
+    <h3 className="font-medium">Pay with iDEAL</h3>
+  </div>
+  <div className="form-field">
+    <label htmlFor="ideal-bank" className="block text-sm mb-1">
+      Select your bank
+    </label>
+    <select 
+      id="ideal-bank"
+      className="w-full p-2 border rounded"
+    >
+      <option value="">Choose your bank</option>
+      <option value="abn_amro">ABN AMRO</option>
+      <option value="ing">ING</option>
+      <option value="rabobank">Rabobank</option>
+      <option value="sns">SNS Bank</option>
+      <option value="asn">ASN Bank</option>
+      <option value="regiobank">RegioBank</option>
+      <option value="bunq">Bunq</option>
+      <option value="knab">Knab</option>
+      <option value="triodos">Triodos Bank</option>
+    </select>
+  </div>
+</div>
+```
+
+## Accessibility
+
+When using this icon in interfaces:
+
+- The SVG includes a proper `role="img"` attribute
+- A descriptive `<title>` element is included for screen readers
+- When used in interactive elements, ensure proper labels are provided
+- Maintain sufficient color contrast for visibility
+- Consider adding text labels alongside the icon for clarity
+
+## Technical Details
+
+The component uses:
+
+- React's functional component pattern with TypeScript support
+- SVG with fixed dimensions (20px × 20px)
+- Proper SVG accessibility attributes
+- Default prop values for consistent appearance
+- Proper typing via the imported `IconProps` interface

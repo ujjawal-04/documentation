@@ -1,138 +1,201 @@
 ---
-title: 'Account Layout'
-description: 'A layout component for account-related pages that provides a consistent structure with navigation and content areas'
+title: 'Chevron Down Icon'
+description: 'A customizable chevron down arrow icon component for indicating expandable content, dropdowns, or navigation elements.'
 ---
 
-# Account Layout
+# Chevron Down Icon
 
-The `AccountLayout` component serves as a wrapper for account-related pages, providing a consistent layout structure with navigation and content areas. It's designed to be responsive and works with the Medusa e-commerce framework.
+The `ChevronDown` component is a simple, clean SVG icon displaying a downward-pointing chevron arrow. It's commonly used to indicate expandable content, dropdown menus, accordion interfaces, or to prompt users to scroll down.
 
-## Component Overview
+## Features
 
-The AccountLayout component creates a full-width container with a two-column layout on larger screens, featuring:
-- A navigation sidebar (only shown when a customer is logged in)
-- A main content area for child components
-- Responsive design that switches to a single column on mobile devices
+- Customizable size and color
+- Clean, minimal design
+- Consistent stroke styling
+- Responsive scaling
+- Support for additional SVG attributes
 
 ## Props
 
 | Prop | Type | Required | Description |
 |------|------|----------|-------------|
-| customer | `HttpTypes.StoreCustomer \| null` | Yes | The customer object from Medusa's store API. Used to display account navigation |
-| children | `React.ReactNode` | Yes | The content to be rendered in the main area of the layout |
+| `size` | `string` | No | Width and height of the icon in pixels (default: "16") |
+| `color` | `string` | No | Color of the icon's stroke (default: "currentColor") |
+| `...attributes` | `SVGAttributes<SVGElement>` | No | Additional attributes passed to the underlying SVG element |
 
 ## Usage
 
 ```tsx copy
-import AccountLayout from './AccountLayout'
-import { StoreCustomer } from '@medusajs/types'
+import ChevronDown from "@components/icons/ChevronDown"
 
-const AccountPage = ({ customer }: { customer: StoreCustomer }) => {
+export default function Dropdown() {
+  const [isOpen, setIsOpen] = useState(false)
+  
   return (
-    <AccountLayout customer={customer}>
-      <div>Account content goes here</div>
-    </AccountLayout>
+    <div className="relative">
+      <button 
+        onClick={() => setIsOpen(!isOpen)}
+        className="flex items-center justify-between w-full px-3 py-2 border rounded"
+      >
+        <span>Select an option</span>
+        <ChevronDown className={isOpen ? "rotate-180 transform" : ""} />
+      </button>
+      {isOpen && (
+        <div className="absolute w-full mt-1 border rounded bg-white">
+          {/* Dropdown content */}
+        </div>
+      )}
+    </div>
   )
 }
 ```
 
-## Implementation Details
+## Styling
 
-### Layout Structure
+The icon is designed with:
 
-The component uses a nested structure of flex and grid containers:
+- Simple, clear path for optimal recognition
+- Consistent stroke width (1.5) for visual harmony with other icons
+- Rounded stroke caps and joins for a polished appearance
+- Default color inheritance via "currentColor"
+- Proper viewBox settings for responsive scaling
 
-1. Outer container:
-   - Uses `flex-1` for flexible sizing
-   - Applies padding on larger screens with `small:py-12`
+## Customization
 
-2. Inner container:
-   - Maximum width of `max-w-5xl`
-   - Centered with `mx-auto`
-   - White background
-   - Flex column layout
+### Size Variations
 
-3. Grid layout:
-   - Single column by default
-   - Two columns on larger screens using `small:grid-cols-[240px_1fr]`
-   - Fixed 240px sidebar width
-   - Flexible content area width
+```tsx copy
+// Small
+<ChevronDown size="12" />
 
-### Responsive Design
+// Default
+<ChevronDown size="16" />
 
-The layout adapts to different screen sizes:
+// Medium
+<ChevronDown size="20" />
 
-- **Mobile** (< small breakpoint):
-  - Single column layout
-  - No top/bottom padding
-  - Full width content
+// Large
+<ChevronDown size="24" />
+```
 
-- **Desktop** (≥ small breakpoint):
-  - Two column layout
-  - 12 units of padding top/bottom
-  - Fixed width sidebar
+### Color Variations
 
-### Navigation
+```tsx copy
+// Default (inherits from text color)
+<ChevronDown />
 
-The `AccountNav` component is conditionally rendered based on the presence of a customer:
-- Only shown when `customer` prop is not null
-- Receives the customer object as a prop
-- Contained within the left column of the grid
+// Specific color
+<ChevronDown color="#4F46E5" />
 
-## Dependencies
+// UI token colors
+<ChevronDown color="var(--color-ui-fg-muted)" />
+```
 
-- React
-- UnderlineLink component from common modules
-- AccountNav component
-- Medusa types for customer data
-- Tailwind CSS for styling
+### Rotation for Different Directions
 
-## Testing
+```tsx copy
+// Up
+<ChevronDown className="rotate-180 transform" />
 
-The component includes a data-testid attribute (`account-page`) for easy targeting in tests.
+// Right
+<ChevronDown className="rotate-270 transform" />
+
+// Left
+<ChevronDown className="rotate-90 transform" />
+```
 
 ## Examples
 
-### With Customer
+### Accordion Component
 
 ```tsx copy
-const LoggedInExample = () => {
-  const customer = {
-    id: "cust_123",
-    email: "user@example.com",
-    // ... other customer properties
+<div className="border rounded">
+  <button 
+    onClick={() => toggleSection('basics')}
+    className="flex items-center justify-between w-full p-3 text-left"
+  >
+    <span className="font-medium">Basic Information</span>
+    <ChevronDown 
+      className={expandedSections.includes('basics') ? "rotate-180 transform" : ""}
+      size="14"
+    />
+  </button>
+  {expandedSections.includes('basics') && (
+    <div className="p-3 border-t">
+      {/* Accordion content */}
+    </div>
+  )}
+</div>
+```
+
+### Select Component
+
+```tsx copy
+<div className="relative">
+  <select className="appearance-none w-full p-2 pr-8 border rounded">
+    <option>Option 1</option>
+    <option>Option 2</option>
+    <option>Option 3</option>
+  </select>
+  <div className="absolute inset-y-0 right-0 flex items-center px-2 pointer-events-none">
+    <ChevronDown color="var(--color-ui-fg-muted)" />
+  </div>
+</div>
+```
+
+### Pagination Control
+
+```tsx copy
+<div className="flex items-center justify-between">
+  <button className="flex items-center gap-1 px-2 py-1 border rounded">
+    <ChevronDown className="rotate-90 transform" size="14" />
+    <span>Previous</span>
+  </button>
+  <div className="flex gap-1">
+    <button className="w-8 h-8 flex items-center justify-center border rounded">1</button>
+    <button className="w-8 h-8 flex items-center justify-center border rounded bg-ui-bg-interactive text-ui-fg-on-interactive">2</button>
+    <button className="w-8 h-8 flex items-center justify-center border rounded">3</button>
+  </div>
+  <button className="flex items-center gap-1 px-2 py-1 border rounded">
+    <span>Next</span>
+    <ChevronDown className="rotate-270 transform" size="14" />
+  </button>
+</div>
+```
+
+### Animated Dropdown Toggle
+
+```tsx copy
+<style jsx>{`
+  .chevron-transition {
+    transition: transform 0.2s ease;
   }
-  
-  return (
-    <AccountLayout customer={customer}>
-      <h1>Welcome back!</h1>
-      <p>Your account details...</p>
-    </AccountLayout>
-  )
-}
+`}</style>
+
+<button className="flex items-center gap-2">
+  <span>Show details</span>
+  <ChevronDown 
+    className={`chevron-transition ${isOpen ? 'rotate-180 transform' : ''}`}
+  />
+</button>
 ```
 
-### Without Customer
+## Accessibility
 
-```tsx copy
-const LoggedOutExample = () => {
-  return (
-    <AccountLayout customer={null}>
-      <h1>Please log in</h1>
-      <p>Login form goes here...</p>
-    </AccountLayout>
-  )
-}
-```
+When using this icon in interfaces:
 
-## Best Practices
+- Add appropriate `aria-expanded` attributes when using in expandable content
+- Ensure sufficient color contrast for visibility
+- For icon-only buttons, include proper `aria-label` attributes
+- Consider adding text labels alongside the icon for clarity
+- Use consistent direction conventions throughout your interface
 
-1. Always provide a customer prop, even if null, to ensure proper rendering
-2. Use semantic HTML within the content area
-3. Ensure child components respect the layout's padding and width constraints
-4. Consider the responsive nature of the layout when designing child components
+## Technical Details
 
-## Related Components
+The component uses:
 
-- AccountNav: Provides the navigation sidebar
-- UnderlineLink: Used within the navigation for interactive elements
+- React's functional component pattern with TypeScript support
+- Simple SVG path for optimal file size
+- Proper path attributes for consistent appearance
+- Default prop values for ease of use
+- Proper typing via the imported `IconProps` interface

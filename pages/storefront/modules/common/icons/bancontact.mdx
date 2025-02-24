@@ -1,138 +1,163 @@
 ---
-title: 'Account Layout'
-description: 'A layout component for account-related pages that provides a consistent structure with navigation and content areas'
+title: 'Ban Contact Icon'
+description: 'A component displaying the Bancontact logo for payment method selection interfaces.'
 ---
 
-# Account Layout
+# bancontact Icon
 
-The `AccountLayout` component serves as a wrapper for account-related pages, providing a consistent layout structure with navigation and content areas. It's designed to be responsive and works with the Medusa e-commerce framework.
+The `bancontact` component is an SVG icon that displays the Bancontact logo, commonly used in payment method selection interfaces. This component allows for consistent representation of the Bancontact payment option within your application.
 
-## Component Overview
+## Features
 
-The AccountLayout component creates a full-width container with a two-column layout on larger screens, featuring:
-- A navigation sidebar (only shown when a customer is logged in)
-- A main content area for child components
-- Responsive design that switches to a single column on mobile devices
+- Customizable color
+- Consistent styling
+- Accessible SVG implementation with proper title
+- Support for additional SVG attributes
+- Fixed aspect ratio for brand recognition
 
 ## Props
 
 | Prop | Type | Required | Description |
 |------|------|----------|-------------|
-| customer | `HttpTypes.StoreCustomer \| null` | Yes | The customer object from Medusa's store API. Used to display account navigation |
-| children | `React.ReactNode` | Yes | The content to be rendered in the main area of the layout |
+| `size` | `string` | No | Base size value for the icon (default: "20") |
+| `color` | `string` | No | Color of the icon (default: "currentColor") |
+| `...attributes` | `SVGAttributes<SVGElement>` | No | Additional attributes passed to the underlying SVG element |
 
 ## Usage
 
 ```tsx copy
-import AccountLayout from './AccountLayout'
-import { StoreCustomer } from '@medusajs/types'
+import bancontact from "@components/icons/bancontact"
 
-const AccountPage = ({ customer }: { customer: StoreCustomer }) => {
+export default function PaymentMethods() {
   return (
-    <AccountLayout customer={customer}>
-      <div>Account content goes here</div>
-    </AccountLayout>
+    <div className="payment-options">
+      <div className="flex items-center gap-3 p-3 border rounded mb-2">
+        <bancontact />
+        <span>Pay with Bancontact</span>
+      </div>
+    </div>
   )
 }
 ```
 
-## Implementation Details
+## Styling
 
-### Layout Structure
+The icon is designed with:
 
-The component uses a nested structure of flex and grid containers:
+- Clean SVG paths for accurate representation of the Bancontact logo
+- Proper viewBox settings for consistent rendering
+- Accessible implementation with role="img" and title
+- Maintains fixed width and height of 24px for brand integrity
+- Customizable fill color
 
-1. Outer container:
-   - Uses `flex-1` for flexible sizing
-   - Applies padding on larger screens with `small:py-12`
+## Customization
 
-2. Inner container:
-   - Maximum width of `max-w-5xl`
-   - Centered with `mx-auto`
-   - White background
-   - Flex column layout
+### Color Variations
 
-3. Grid layout:
-   - Single column by default
-   - Two columns on larger screens using `small:grid-cols-[240px_1fr]`
-   - Fixed 240px sidebar width
-   - Flexible content area width
+```tsx copy
+// Default (inherits from text color)
+<bancontact />
 
-### Responsive Design
+// Brand color
+<bancontact color="#005498" />
 
-The layout adapts to different screen sizes:
+// Grayscale for disabled state
+<bancontact color="#9CA3AF" />
+```
 
-- **Mobile** (< small breakpoint):
-  - Single column layout
-  - No top/bottom padding
-  - Full width content
+### With Additional SVG Attributes
 
-- **Desktop** (≥ small breakpoint):
-  - Two column layout
-  - 12 units of padding top/bottom
-  - Fixed width sidebar
-
-### Navigation
-
-The `AccountNav` component is conditionally rendered based on the presence of a customer:
-- Only shown when `customer` prop is not null
-- Receives the customer object as a prop
-- Contained within the left column of the grid
-
-## Dependencies
-
-- React
-- UnderlineLink component from common modules
-- AccountNav component
-- Medusa types for customer data
-- Tailwind CSS for styling
-
-## Testing
-
-The component includes a data-testid attribute (`account-page`) for easy targeting in tests.
+```tsx copy
+<bancontact 
+  className="payment-icon"
+  style={{ filter: "drop-shadow(0px 1px 2px rgba(0, 0, 0, 0.1))" }}
+/>
+```
 
 ## Examples
 
-### With Customer
+### Within Payment Options List
 
 ```tsx copy
-const LoggedInExample = () => {
-  const customer = {
-    id: "cust_123",
-    email: "user@example.com",
-    // ... other customer properties
-  }
-  
-  return (
-    <AccountLayout customer={customer}>
-      <h1>Welcome back!</h1>
-      <p>Your account details...</p>
-    </AccountLayout>
-  )
-}
+const paymentMethods = [
+  { id: "card", name: "Credit Card", icon: CreditCard },
+  { id: "bancontact", name: "Bancontact", icon: bancontact },
+  { id: "paypal", name: "PayPal", icon: PayPal }
+]
+
+return (
+  <div className="payment-methods">
+    <h3 className="text-base font-medium mb-3">Select Payment Method</h3>
+    <div className="space-y-2">
+      {paymentMethods.map(method => (
+        <div 
+          key={method.id}
+          className="flex items-center gap-3 p-3 border rounded cursor-pointer hover:bg-ui-bg-base-hover"
+          onClick={() => selectPaymentMethod(method.id)}
+        >
+          <method.icon size="24" />
+          <span>{method.name}</span>
+        </div>
+      ))}
+    </div>
+  </div>
+)
 ```
 
-### Without Customer
+### Payment Method Card
 
 ```tsx copy
-const LoggedOutExample = () => {
-  return (
-    <AccountLayout customer={null}>
-      <h1>Please log in</h1>
-      <p>Login form goes here...</p>
-    </AccountLayout>
-  )
-}
+<div className="payment-method-card">
+  <div className="flex items-center justify-between p-4 border rounded">
+    <div className="flex items-center gap-3">
+      <bancontact color="#005498" />
+      <div>
+        <p className="font-medium">Bancontact</p>
+        <p className="text-sm text-ui-fg-subtle">Pay directly with your Belgian bank account</p>
+      </div>
+    </div>
+    <Radio checked={selectedMethod === "bancontact"} />
+  </div>
+</div>
 ```
 
-## Best Practices
+### Checkout Summary
 
-1. Always provide a customer prop, even if null, to ensure proper rendering
-2. Use semantic HTML within the content area
-3. Ensure child components respect the layout's padding and width constraints
-4. Consider the responsive nature of the layout when designing child components
+```tsx copy
+<div className="checkout-summary p-4 bg-ui-bg-base border rounded">
+  <h3 className="text-lg font-medium mb-3">Order Summary</h3>
+  {/* Order details */}
+  <div className="mt-4 pt-4 border-t">
+    <div className="flex items-center justify-between">
+      <div className="flex items-center gap-2">
+        <bancontact size="16" />
+        <span className="text-sm">Bancontact</span>
+      </div>
+      <button className="text-sm text-ui-fg-interactive">Change</button>
+    </div>
+  </div>
+  <button className="w-full mt-4 py-2 bg-ui-bg-interactive text-ui-fg-on-interactive rounded">
+    Confirm Order
+  </button>
+</div>
+```
 
-## Related Components
+## Accessibility
 
-- AccountNav: Provides the navigation sidebar
-- UnderlineLink: Used within the navigation for interactive elements
+When using this icon in interfaces:
+
+- The SVG includes a proper `role="img"` attribute
+- A descriptive `<title>` element is included for screen readers
+- When used in interactive elements, ensure proper labels are provided
+- Maintain sufficient color contrast for visibility
+- Consider adding text labels alongside the icon for clarity
+
+## Technical Details
+
+The component uses:
+
+- React's functional component pattern with TypeScript support
+- SVG with fixed dimensions (24px × 24px)
+- Proper SVG accessibility attributes
+- Default prop values for consistent appearance
+- Proper typing via the imported `IconProps` interface

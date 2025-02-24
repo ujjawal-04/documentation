@@ -1,291 +1,187 @@
 ---
-title: "Profile Billing Address"
-description: "A React component for displaying and updating a user's billing address"
+title: 'Line Item Unit Price'
+description: 'A component for displaying the unit price of line items with support for original and discounted prices.'
 ---
 
-# Profile Billing Address
+# Line Item Unit Price
 
-The `ProfileBillingAddress` component provides functionality for users to view and manage their billing address information, including adding a new address or updating an existing one.
-
-## Installation
-
-```tsx copy
-import ProfileBillingAddress from "@modules/account/components/profile-billing-address"
-```
-
-## Props
-
-| Prop Name | Type | Description |
-|-----------|------|-------------|
-| `customer` | `HttpTypes.StoreCustomer` | The customer object containing user details and addresses |
-| `regions` | `HttpTypes.StoreRegion[]` | Array of available regions and their corresponding countries |
-
-## Usage
-
-Basic implementation of the component:
-
-```tsx copy
-<ProfileBillingAddress customer={customerData} regions={regions} />
-```
-
-## Implementation Example
-
-Here's a complete example showing how to use the ProfileBillingAddress component:
-
-```tsx copy
-import ProfileBillingAddress from "@modules/account/components/profile-billing-address"
-import { useCustomer } from "@lib/hooks/use-customer"
-import { useRegions } from "@lib/hooks/use-regions"
-
-export default function BillingAddressPage() {
-  const { customer } = useCustomer()
-  const { regions } = useRegions()
-  
-  if (!customer || !regions) {
-    return <div>Loading...</div>
-  }
-  
-  return (
-    <div className="max-w-2xl mx-auto py-8">
-      <h1 className="text-2xl font-bold mb-4">Billing Address</h1>
-      <ProfileBillingAddress 
-        customer={customer} 
-        regions={regions} 
-      />
-    </div>
-  )
-}
-```
+The `Line Item Unit Price` component displays the unit price of a line item (price per item), with special handling for discounted prices. It divides the total price by quantity and shows both the original and current unit price when a discount is applied, along with the percentage discount.
 
 ## Features
 
-### Address Display
-- Shows current billing address if it exists
-- Displays "No billing address" when none is set
-- Formats address details in a clear, readable manner
+- Display of current unit price (total price divided by quantity)
+- Conditional display of original unit price when discounted
+- Discount percentage calculation
+- Different display styles (default or tight)
+- Consistent currency formatting
+- Visual distinction for discounted prices
 
-### Address Management
-- Allows adding new billing address
-- Supports updating existing address
-- Validates required fields
-- Provides country selection based on available regions
+## Props
 
-### Form Handling
-- Real-time field validation
-- Success and error state management
-- Optimized re-rendering with useMemo
-- Proper form submission handling
+| Prop | Type | Required | Description |
+|------|------|----------|-------------|
+| `item` | `HttpTypes.StoreCartLineItem \| HttpTypes.StoreOrderLineItem` | Yes | The line item containing price and quantity information |
+| `currencyCode` | `string` | Yes | The currency code for price formatting |
+| `style` | `"default" \| "tight"` | No | The display style, controls label visibility (defaults to "default") |
 
-## Component Structure
-
-### Main Component
+## Usage
 
 ```tsx copy
-const ProfileBillingAddress = ({ customer, regions }) => {
-  const [isEditing, setIsEditing] = useState(false)
-  const [formState, setFormState] = useState(initialState)
-  
-  const defaultAddress = useMemo(() => 
-    customer.addresses.find(addr => addr.is_default_billing),
-    [customer.addresses]
-  )
+import LineItemUnitPrice from '@/components/LineItemUnitPrice'
 
+export default function CartItemRow({ lineItem, currencyCode }) {
   return (
-    <div className="space-y-4">
-      {!isEditing ? (
-        <AddressDisplay 
-          address={defaultAddress} 
-          onEdit={() => setIsEditing(true)} 
-        />
-      ) : (
-        <AddressForm 
-          address={defaultAddress}
-          regions={regions}
-          onSubmit={handleSubmit}
-          onCancel={() => setIsEditing(false)}
-        />
-      )}
+    <div className="flex justify-between py-4 border-b">
+      <div>
+        <h3>{lineItem.title}</h3>
+        <div className="flex gap-x-2 mt-1">
+          <span>Price per item:</span>
+          <LineItemUnitPrice 
+            item={lineItem} 
+            currencyCode={currencyCode}
+          />
+        </div>
+      </div>
+      <div>Total: ${lineItem.total}</div>
     </div>
   )
 }
 ```
 
-### Address Form Component
+## Styling
 
-```tsx copy
-const AddressForm = ({ address, regions, onSubmit, onCancel }) => {
-  const countries = useMemo(() => 
-    regions.flatMap(region => 
-      region.countries.map(country => ({
-        value: country.iso_2,
-        label: country.display_name
-      }))
-    ),
-    [regions]
-  )
+The component uses Tailwind CSS for styling through the Medusa UI `clx` utility and includes:
 
-  return (
-    <form onSubmit={handleSubmit} className="space-y-4">
-      <Input
-        label="First Name"
-        name="first_name"
-        required
-        defaultValue={address?.first_name}
-      />
-      <Input
-        label="Last Name"
-        name="last_name"
-        required
-        defaultValue={address?.last_name}
-      />
-      <Input
-        label="Address"
-        name="address_1"
-        required
-        defaultValue={address?.address_1}
-      />
-      <NativeSelect
-        label="Country"
-        name="country_code"
-        required
-        options={countries}
-        defaultValue={address?.country_code}
-      />
-      <div className="flex justify-end space-x-2">
-        <button type="button" onClick={onCancel}>
-          Cancel
-        </button>
-        <button type="submit">
-          Save Changes
-        </button>
-      </div>
-    </form>
-  )
-}
-```
+- Vertically centered price display with flex container
+- Line-through styling for original prices
+- Muted color for original prices and labels
+- Interactive (accent) color for discounted current prices
+- Interactive color for discount percentage
+- Consistent text sizing
+- Full height alignment using h-full
 
-## Usage with Loading State
+## States
 
-```tsx copy
-const BillingAddressSection = () => {
-  const { customer, isLoading } = useCustomer()
-  const { regions } = useRegions()
+### Regular Price State
+- Displays only the current unit price
+- No strikethrough or discount percentage
+- Standard text color
 
-  if (isLoading) {
-    return (
-      <div className="space-y-4">
-        <div className="h-12 bg-gray-100 rounded animate-pulse" />
-        <div className="h-32 bg-gray-100 rounded animate-pulse" />
-      </div>
-    )
-  }
+### Discounted Price State
+- Shows original unit price with strikethrough
+- Shows percentage discount (in default style)
+- Current unit price highlighted with interactive color
+- "Original:" label shown in default style
 
-  return <ProfileBillingAddress customer={customer} regions={regions} />
-}
-```
-
-## Events
-
-The component handles several key events:
-
-1. **Form Submission**: 
-   - Triggers address update/creation
-   - Handles validation
-   - Shows success/error feedback
-
-2. **Edit Toggle**:
-   - Switches between display and edit modes
-   - Preserves current address data
-
-3. **Country Selection**:
-   - Updates available regions
-   - Validates country-specific fields
+### Tight Style State
+- More compact display
+- Omits the "Original:" label
+- Omits the discount percentage
+- Only shows prices
 
 ## Accessibility
 
-The component implements these accessibility features:
+The component includes:
 
 - Semantic HTML structure
-- ARIA labels for form inputs
-- Error message announcements
-- Keyboard navigation support
-- Focus management
-- Clear success/error states
+- Data attributes for testing
+- Clear visual distinction between original and current prices
+- Sufficient color contrast
+- Vertical alignment for consistent display
 
-## Best Practices
+## Examples
 
-1. Form validation on both client and server side
-2. Optimized rendering with useMemo
-3. Clear error messaging
-4. Responsive design
-5. Proper type checking
-6. Loading state handling
-7. Clean form reset after submission
-
-## Testing
-
-Example test cases:
+### Basic Usage
 
 ```tsx copy
-describe('ProfileBillingAddress', () => {
-  it('displays existing billing address', () => {
-    const mockCustomer = {
-      addresses: [{
-        id: '123',
-        is_default_billing: true,
-        first_name: 'John',
-        last_name: 'Doe'
-      }]
-    }
-    
-    render(
-      <ProfileBillingAddress 
-        customer={mockCustomer} 
-        regions={[]} 
-      />
-    )
-    
-    expect(screen.getByText('John Doe')).toBeInTheDocument()
-  })
+<LineItemUnitPrice 
+  item={lineItem} 
+  currencyCode="USD"
+/>
+```
 
-  it('shows form when edit is clicked', async () => {
-    const mockCustomer = {
-      addresses: [{
-        is_default_billing: true,
-        first_name: 'John'
-      }]
-    }
-    
-    render(
-      <ProfileBillingAddress 
-        customer={mockCustomer} 
-        regions={[]} 
-      />
-    )
-    
-    await userEvent.click(screen.getByText('Edit'))
-    expect(screen.getByRole('form')).toBeInTheDocument()
-  })
-})
+### With Tight Style
+
+```tsx copy
+<LineItemUnitPrice 
+  item={lineItem} 
+  currencyCode="EUR"
+  style="tight"
+/>
+```
+
+### In a Detailed Product List
+
+```tsx copy
+<table className="w-full">
+  <thead>
+    <tr>
+      <th>Product</th>
+      <th>Unit Price</th>
+      <th>Quantity</th>
+      <th>Total</th>
+    </tr>
+  </thead>
+  <tbody>
+    {orderItems.map(item => (
+      <tr key={item.id}>
+        <td>{item.title}</td>
+        <td>
+          <LineItemUnitPrice 
+            item={item} 
+            currencyCode={order.currency_code}
+          />
+        </td>
+        <td>{item.quantity}</td>
+        <td>${item.total}</td>
+      </tr>
+    ))}
+  </tbody>
+</table>
+```
+
+### Within a Cart Summary
+
+```tsx copy
+<div className="cart-items">
+  {cartItems.map(item => (
+    <div key={item.id} className="grid grid-cols-4 py-2">
+      <div className="col-span-2">{item.title}</div>
+      <div>
+        <LineItemUnitPrice 
+          item={item} 
+          currencyCode="USD"
+          style="tight"
+        />
+        <div className="text-sm text-gray-500">
+          Qty: {item.quantity}
+        </div>
+      </div>
+      <div className="text-right">
+        ${item.total}
+      </div>
+    </div>
+  ))}
+</div>
 ```
 
 ## Dependencies
 
-- React
-- Input component
-- NativeSelect component
-- AccountInfo component
-- Form validation utilities
-- HTTP client for API calls
+- @lib/util/money (for currency formatting)
+- @medusajs/types (for type definitions)
+- @medusajs/ui (for the clx utility)
+- react (for component structure)
 
-## Related Components
+## Technical Details
 
-- AccountInfo: Wrapper component
-- Input: Form input fields
-- NativeSelect: Country selector
-- AddressDisplay: Shows formatted address
-- AddressForm: Handles address editing
+The component:
 
----
-
-This component simplifies billing address management while maintaining a consistent user experience across the account settings interface.
+- Extracts total, original_total, and quantity from the provided item
+- Divides the total and original_total by quantity to get unit prices
+- Compares current and original totals to determine if there's a discount
+- Calculates discount percentage manually using Math.round
+- Uses the convertToLocale utility for consistent currency formatting
+- Conditionally renders original price and discount information
+- Applies different styling based on whether a price is discounted
+- Supports two display styles: "default" and "tight"
+- Uses data-testid attributes for testing

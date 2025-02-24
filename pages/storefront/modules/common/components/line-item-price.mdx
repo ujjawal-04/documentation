@@ -1,251 +1,172 @@
 ---
-title: "Overview"
-description: "A component for displaying customer profile overview including saved addresses and recent orders"
+title: 'Line Item Price'
+description: 'A component for displaying product prices with support for original and discounted prices.'
 ---
 
-# Overview Component
+# Line Item Price
 
-The `Overview` component displays a comprehensive summary of a customer's profile, including their profile completion status, saved addresses, and recent order history.
-
-## Installation
-
-```tsx copy
-import Overview from "@components/Overview"
-```
-
-## Props
-
-| Prop Name | Type | Description |
-|-----------|------|-------------|
-| `customer` | `HttpTypes.StoreCustomer \| null` | The customer profile data |
-| `orders` | `HttpTypes.StoreOrder[] \| null` | Array of customer orders |
-
-## Usage
-
-Basic implementation of the component:
-
-```tsx copy
-<Overview customer={customerData} orders={ordersData} />
-```
-
-## Implementation Example
-
-Here's a complete example showing how to use the Overview component:
-
-```tsx copy
-import { Overview } from "@components/Overview"
-import { useCustomer } from "@lib/hooks/use-customer"
-import { useOrders } from "@lib/hooks/use-orders"
-
-export default function CustomerDashboard() {
-  const { customer } = useCustomer()
-  const { orders, isLoading } = useOrders()
-  
-  if (isLoading) {
-    return <div>Loading dashboard...</div>
-  }
-  
-  return (
-    <div className="max-w-4xl mx-auto py-8">
-      <h1 className="text-2xl font-bold mb-6">Dashboard</h1>
-      <Overview customer={customer} orders={orders} />
-    </div>
-  )
-}
-```
+The `Line Item Price` component displays the price of a line item, with special handling for discounted prices. It shows both the original and current price when a discount is applied, along with the percentage discount.
 
 ## Features
 
-### Profile Overview
-- Displays customer name and email
-- Shows profile completion percentage
-- Calculates completion based on key profile fields
-- Provides visual progress indicator
+- Display of current price
+- Conditional display of original price when discounted
+- Discount percentage calculation
+- Different display styles (default or tight)
+- Consistent currency formatting
+- Visual distinction for discounted prices
 
-### Quick Stats
-- Shows number of saved addresses
-- Displays total order count
-- Uses intuitive icons for visual representation
-- Responsive grid layout
+## Props
 
-### Recent Orders
-- Lists up to 5 most recent orders
-- Shows order ID, date, and total
-- Displays order status
-- Handles empty state gracefully
+| Prop | Type | Required | Description |
+|------|------|----------|-------------|
+| `item` | `HttpTypes.StoreCartLineItem \| HttpTypes.StoreOrderLineItem` | Yes | The line item containing price information |
+| `currencyCode` | `string` | Yes | The currency code for price formatting |
+| `style` | `"default" \| "tight"` | No | The display style, controls label visibility (defaults to "default") |
 
-## Component Structure
-
-### Main Component
+## Usage
 
 ```tsx copy
-const Overview = ({ customer, orders }) => {
-  const completion = getProfileCompletion(customer)
-  const recentOrders = orders?.slice(0, 5) || []
+import LineItemPrice from '@/components/LineItemPrice'
 
+export default function CartItemRow({ lineItem, currencyCode }) {
   return (
-    <div className="space-y-6">
-      <WelcomeCard customer={customer} completion={completion} />
-      <QuickStats customer={customer} orders={orders} />
-      <RecentOrders orders={recentOrders} />
+    <div className="flex justify-between py-4 border-b">
+      <div>
+        <h3>{lineItem.title}</h3>
+        <p>Quantity: {lineItem.quantity}</p>
+      </div>
+      
+      <LineItemPrice 
+        item={lineItem} 
+        currencyCode={currencyCode}
+      />
     </div>
   )
-}
-```
-
-### Profile Completion Calculator
-
-```tsx copy
-const getProfileCompletion = (customer: HttpTypes.StoreCustomer | null) => {
-  let count = 0
-  
-  if (!customer) return 0
-  
-  if (customer.email) count++
-  if (customer.first_name && customer.last_name) count++
-  if (customer.phone) count++
-  if (customer.addresses?.find((addr) => addr.is_default_billing)) count++
-  
-  return (count / 4) * 100
-}
-```
-
-## Usage with Loading State
-
-```tsx copy
-const DashboardOverview = () => {
-  const { customer, orders, isLoading } = useCustomerData()
-
-  if (isLoading) {
-    return (
-      <div className="space-y-6">
-        <div className="h-40 bg-gray-100 rounded-lg animate-pulse" />
-        <div className="grid grid-cols-2 gap-4">
-          <div className="h-24 bg-gray-100 rounded-lg animate-pulse" />
-          <div className="h-24 bg-gray-100 rounded-lg animate-pulse" />
-        </div>
-        <div className="h-64 bg-gray-100 rounded-lg animate-pulse" />
-      </div>
-    )
-  }
-
-  return <Overview customer={customer} orders={orders} />
 }
 ```
 
 ## Styling
 
-The component uses Tailwind CSS with shadcn/ui components for consistent styling:
+The component uses Tailwind CSS for styling through the Medusa UI `clx` utility and includes:
 
-```tsx copy
-<Card>
-  <CardHeader>
-    <CardTitle>
-      Hello {customer?.first_name || 'Guest'}
-    </CardTitle>
-  </CardHeader>
-  <CardContent>
-    <div className="space-y-4">
-      <p className="text-sm text-gray-500">
-        Signed in as: {customer?.email}
-      </p>
-      <div className="space-y-2">
-        <div className="flex justify-between text-sm">
-          <span>Profile Completion</span>
-          <span>{completion}% Completed</span>
-        </div>
-        <Progress value={completion} className="h-2" />
-      </div>
-    </div>
-  </CardContent>
-</Card>
-```
+- Right-aligned price display
+- Line-through styling for original prices
+- Muted color for original prices
+- Interactive (accent) color for discounted current prices
+- Interactive color for discount percentage
+- Consistent text sizing
+- Flexible layout using flex container
 
-## Best Practices
+## States
 
-1. Handle null/undefined customer and orders data
-2. Implement proper loading states
-3. Use semantic HTML structure
-4. Maintain consistent spacing
-5. Follow responsive design patterns
-6. Implement proper error boundaries
-7. Use proper type checking for props
+### Regular Price State
+- Displays only the current price
+- No strikethrough or discount percentage
+- Standard text color
+
+### Discounted Price State
+- Shows original price with strikethrough
+- Shows percentage discount (in default style)
+- Current price highlighted with interactive color
+- "Original:" label shown in default style
+
+### Tight Style State
+- More compact display
+- Omits the "Original:" label
+- Omits the discount percentage
+- Only shows prices
 
 ## Accessibility
 
-The component follows accessibility best practices:
+The component includes:
 
 - Semantic HTML structure
-- Proper heading hierarchy
+- Data attributes for testing
+- Clear visual distinction between original and current prices
 - Sufficient color contrast
-- Descriptive text labels
-- Keyboard navigation support
-- ARIA attributes where necessary
+- Responsive text alignment
 
-## Testing
+## Examples
 
-Example test cases for the component:
+### Basic Usage
 
 ```tsx copy
-describe('Overview', () => {
-  it('renders welcome message with customer name', () => {
-    const mockCustomer = {
-      first_name: 'John',
-      email: 'john@example.com'
-    }
-    
-    render(<Overview customer={mockCustomer} orders={[]} />)
-    
-    expect(screen.getByText(/hello john/i)).toBeInTheDocument()
-    expect(screen.getByText(/john@example.com/i)).toBeInTheDocument()
-  })
-
-  it('calculates profile completion correctly', () => {
-    const mockCustomer = {
-      email: 'test@example.com',
-      first_name: 'John',
-      last_name: 'Doe',
-      phone: '+1234567890',
-      addresses: [{ is_default_billing: true }]
-    }
-    
-    render(<Overview customer={mockCustomer} orders={[]} />)
-    
-    expect(screen.getByText('100% Completed')).toBeInTheDocument()
-  })
-
-  it('displays empty state when no orders exist', () => {
-    render(<Overview customer={null} orders={[]} />)
-    
-    expect(screen.getByText(/no orders found/i)).toBeInTheDocument()
-  })
-})
+<LineItemPrice 
+  item={lineItem} 
+  currencyCode="USD"
+/>
 ```
 
-## Error Handling
+### With Tight Style
 
 ```tsx copy
-const handleCustomerError = (error: unknown) => {
-  console.error('Error loading customer data:', error)
-  return (
-    <div className="text-red-600 text-center py-4">
-      An error occurred while loading your profile.
-      Please try again later.
+<LineItemPrice 
+  item={lineItem} 
+  currencyCode="EUR"
+  style="tight"
+/>
+```
+
+### Within an Order Summary
+
+```tsx copy
+<div className="order-summary">
+  <h2>Order Summary</h2>
+  
+  {orderItems.map(item => (
+    <div key={item.id} className="flex justify-between py-2">
+      <span>{item.title} × {item.quantity}</span>
+      <LineItemPrice 
+        item={item} 
+        currencyCode={order.currency_code}
+      />
     </div>
-  )
-}
+  ))}
+  
+  <div className="border-t mt-4 pt-4">
+    <div className="flex justify-between">
+      <span>Total</span>
+      <span>${order.total}</span>
+    </div>
+  </div>
+</div>
+```
+
+### With and Without Discounts
+
+```tsx copy
+<div className="product-grid">
+  {products.map(product => (
+    <div key={product.id} className="product-card">
+      <img src={product.thumbnail} alt={product.title} />
+      <h3>{product.title}</h3>
+      <LineItemPrice 
+        item={product} 
+        currencyCode="USD"
+      />
+    </div>
+  ))}
+</div>
 ```
 
 ## Dependencies
 
-- React
-- shadcn/ui components (Card, Progress)
-- Lucide React icons
-- Tailwind CSS for styling
+- @lib/util/get-precentage-diff (for percentage discount calculation)
+- @lib/util/money (for currency formatting)
+- @medusajs/types (for type definitions)
+- @medusajs/ui (for the clx utility)
+- react (for component structure)
 
-## Related Components
+## Technical Details
 
-- Card: Used for content sections
-- Progress: For profile completion indicator
-- Lucide icons: For visual elements
-- Loading components: For handling loading states
+The component:
+
+- Extracts total and original_total from the provided item
+- Compares current and original prices to determine if there's a discount
+- Uses the getPercentageDiff utility to calculate discount percentage
+- Uses the convertToLocale utility for consistent currency formatting
+- Conditionally renders original price and discount information
+- Applies different styling based on whether a price is discounted
+- Supports two display styles: "default" and "tight"
+- Uses data-testid attributes for testing

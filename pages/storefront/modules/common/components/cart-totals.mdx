@@ -1,176 +1,172 @@
 ---
-title: CartTotals Component
-description: A React component for displaying cart totals in a Medusa.js storefront.
+title: 'Cart Totals'
+description: 'A reusable component that displays a breakdown of cart pricing information including subtotals, discounts, and the final amount.'
 ---
 
-import CartTotals from "@/modules/common/components/cart-totals";
+# Cart Totals
 
-## CartTotals Component
+The `Cart Totals` component is designed to display a comprehensive breakdown of shopping cart financial information. It provides a consistent and clear presentation of prices, discounts, and the final total.
 
-The `CartTotals` component is responsible for displaying various price breakdowns of a shopping cart, including subtotal, discounts, and total cost.
+## Features
 
-## Overview
+- Clear display of cart subtotal
+- Conditional rendering of discount amounts
+- Conditional rendering of gift card credits
+- Commented sections for shipping and taxes (easily enabled)
+- Responsive design with consistent spacing
+- Formatted currency values
 
-```typescript copy
-"use client"
+## Props
 
-import { convertToLocale } from "@lib/util/money"
-import React from "react"
-```
+| Prop | Type | Required | Description |
+|------|------|----------|-------------|
+| `totals` | `CartTotalsProps` | Yes | Object containing all cart pricing information |
 
-### Props
+### `totals` Object Properties
 
-#### `totals` (object, required)
-An object containing the pricing details of the cart. The structure is as follows:
+| Property | Type | Required | Description |
+|----------|------|----------|-------------|
+| `currency_code` | `string` | Yes | The currency code for formatting monetary values |
+| `total` | `number \| null` | No | The cart's final total amount |
+| `subtotal` | `number \| null` | No | The cart's subtotal (before shipping and taxes) |
+| `tax_total` | `number \| null` | No | The total tax amount (currently commented out) |
+| `shipping_total` | `number \| null` | No | The total shipping cost |
+| `discount_total` | `number \| null` | No | The total discount amount if applicable |
+| `gift_card_total` | `number \| null` | No | The total gift card amount applied if applicable |
+| `shipping_subtotal` | `number \| null` | No | The shipping subtotal (currently commented out) |
 
-| Property         | Type    | Description                                       |
-|-----------------|---------|---------------------------------------------------|
-| `total`         | number  | The final total amount of the cart.              |
-| `subtotal`      | number  | The subtotal before discounts, taxes, and shipping. |
-| `tax_total`     | number  | The total tax amount.                            |
-| `shipping_total`| number  | The total shipping cost.                         |
-| `discount_total`| number  | The total discount applied.                      |
-| `gift_card_total` | number  | The total amount covered by gift cards.        |
-| `currency_code` | string  | The currency code (e.g., `USD`, `EUR`).          |
-| `shipping_subtotal` | number | The subtotal of shipping costs.            |
+## Usage
 
-## Implementation
+```tsx copy
+import CartTotals from "@components/CartTotals"
 
-```typescript copy
-const CartTotals: React.FC<CartTotalsProps> = ({ totals }) => {
-  const {
-    currency_code,
-    total,
-    subtotal,
-    tax_total,
-    discount_total,
-    gift_card_total,
-    shipping_subtotal,
-  } = totals
+export default function CheckoutPage() {
+  // Example cart totals data
+  const cartTotals = {
+    currency_code: "USD",
+    total: 8800,
+    subtotal: 9900,
+    tax_total: 800,
+    shipping_total: 1000,
+    discount_total: 2000,
+    gift_card_total: 900,
+    shipping_subtotal: 1000
+  }
 
   return (
-    <div>
-      <div className="flex flex-col gap-y-2 txt-medium text-ui-fg-subtle ">
-        <div className="flex items-center justify-between">
-          <span className="flex gap-x-1 items-center">
-            Subtotal (excl. shipping and taxes)
-          </span>
-          <span data-testid="cart-subtotal" data-value={subtotal || 0}>
-            {convertToLocale({ amount: subtotal ?? 0, currency_code })}
-          </span>
-        </div>
-        {!!discount_total && (
-          <div className="flex items-center justify-between">
-            <span>Discount</span>
-            <span
-              className="text-ui-fg-interactive"
-              data-testid="cart-discount"
-              data-value={discount_total || 0}
-            >
-              - {convertToLocale({ amount: discount_total ?? 0, currency_code })}
-            </span>
-          </div>
-        )}
-        {!!gift_card_total && (
-          <div className="flex items-center justify-between">
-            <span>Gift card</span>
-            <span
-              className="text-ui-fg-interactive"
-              data-testid="cart-gift-card-amount"
-              data-value={gift_card_total || 0}
-            >
-              - {convertToLocale({ amount: gift_card_total ?? 0, currency_code })}
-            </span>
-          </div>
-        )}
-      </div>
-      <div className="h-px w-full border-b border-gray-200 my-4" />
-      <div className="flex items-center justify-between text-ui-fg-base mb-2 txt-medium ">
-        <span>Total</span>
-        <span
-          className="txt-xlarge-plus"
-          data-testid="cart-total"
-          data-value={total || 0}
-        >
-          {convertToLocale({ amount: total ?? 0, currency_code })}
-        </span>
-      </div>
-      <div className="h-px w-full border-b border-gray-200 mt-4" />
+    <div className="checkout-summary">
+      <h2 className="text-lg font-medium mb-4">Order Summary</h2>
+      <CartTotals totals={cartTotals} />
+      <button className="w-full mt-4 py-2 bg-black text-white rounded">
+        Proceed to Payment
+      </button>
     </div>
   )
 }
-
-export default CartTotals
 ```
 
-### Example Usage
+## Styling
+
+The component uses Tailwind CSS for styling and includes:
+
+- Text colors using design system tokens (`text-ui-fg-subtle`, `text-ui-fg-interactive`)
+- Consistent spacing with gap utilities
+- Horizontal dividers with subtle gray borders
+- Responsive layouts with flex display
+- Emphasis on the total amount with larger text
+
+## States
+
+### Default State
+- Displays the subtotal amount
+- Shows the final total with emphasis
+
+### With Discounts
+- Displays discount amount in an interactive color
+- Shows the discount as a negative value with a minus sign
+
+### With Gift Cards
+- Displays gift card credit in an interactive color
+- Shows the gift card amount as a negative value with a minus sign
+
+### Optional Features (Currently Commented)
+- Shipping costs display
+- Tax amount display
+
+## Accessibility
+
+The component includes several data attributes for testing and automation:
+
+- `data-testid` attributes for each section (cart-subtotal, cart-discount, etc.)
+- `data-value` attributes containing the raw numerical values
+- Semantic HTML structure for screen readers
+
+## Examples
+
+### Basic Usage
 
 ```tsx copy
-import CartTotals from "@/modules/common/components/cart-totals";
-
-const cartTotalsData = {
-  total: 5000,
-  subtotal: 4000,
-  tax_total: 500,
-  shipping_total: 500,
-  discount_total: 1000,
-  gift_card_total: 500,
-  currency_code: "USD",
-  shipping_subtotal: 500,
-};
-
-export default function CartPage() {
-  return <CartTotals totals={cartTotalsData} />;
-}
+<CartTotals 
+  totals={{
+    currency_code: "USD",
+    total: 9900,
+    subtotal: 9900
+  }} 
+/>
 ```
 
-## Features
-- Displays cart breakdown including subtotal, discounts, and final total.
-- Supports currency localization via `convertToLocale` function.
-- Conditionally renders discounts and gift card amounts when applicable.
-- Provides a clear and structured summary of the cart for the user.
-- Easy integration into any checkout or cart summary page.
-
-## Configuration
-
-### Styling Example
-If you want to change the text color and spacing, you can modify the component's CSS:
-
-```css copy
-.cart-totals {
-  color: #333;
-  padding: 1rem;
-}
-
-.cart-totals .total {
-  font-weight: bold;
-  font-size: 1.2rem;
-}
-```
-
-Or, if using TailwindCSS:
+### With Discounts
 
 ```tsx copy
-<div className="p-4 text-gray-800">
-  <CartTotals totals={cartTotalsData} />
-</div>
+<CartTotals 
+  totals={{
+    currency_code: "USD",
+    total: 8900,
+    subtotal: 9900,
+    discount_total: 1000
+  }} 
+/>
 ```
 
-## Potential Enhancements
-- Add an option to display a detailed tax breakdown.
-- Provide tooltips for each amount to explain calculations.
-- Include a button for applying discount codes directly within the component.
-- Extend functionality to support multiple currencies dynamically.
+### With Gift Card
 
-## Dependencies
+```tsx copy
+<CartTotals 
+  totals={{
+    currency_code: "EUR",
+    total: 8400,
+    subtotal: 9900,
+    discount_total: 1000,
+    gift_card_total: 500
+  }} 
+/>
+```
 
-- React
-- TailwindCSS
-- Framer Motion
-- Medusa.js SDK
+### With All Features Enabled
 
-## Best Practices
-- Ensure all currency amounts are properly formatted before display.
-- Handle cases where optional fields (like discounts) may be missing.
-- Keep styles flexible and adaptable for different storefront themes.
+To enable the commented shipping and taxes sections, uncomment the relevant code in the component:
 
+```tsx copy
+<CartTotals 
+  totals={{
+    currency_code: "GBP",
+    total: 8200,
+    subtotal: 9900,
+    tax_total: 800,
+    shipping_subtotal: 1000,
+    discount_total: 2000,
+    gift_card_total: 1500
+  }} 
+/>
+```
+
+## Technical Details
+
+The component uses:
+
+- Null coalescing operators (`??`) for safe handling of null/undefined values
+- Conditional rendering for optional elements like discounts and gift cards
+- Data attributes for testing purposes
+- The `convertToLocale` utility function for consistent currency formatting
+
+To enable shipping and taxes display, uncomment the relevant sections in the component code.

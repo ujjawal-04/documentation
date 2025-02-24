@@ -1,138 +1,177 @@
 ---
-title: 'Account Layout'
-description: 'A layout component for account-related pages that provides a consistent structure with navigation and content areas'
+title: 'Back Icon'
+description: 'A customizable back arrow icon component that combines a back arrow with a circular return motion.'
 ---
 
-# Account Layout
+# Back Icon
 
-The `AccountLayout` component serves as a wrapper for account-related pages, providing a consistent layout structure with navigation and content areas. It's designed to be responsive and works with the Medusa e-commerce framework.
+The `Back` component is an SVG icon that displays a back arrow combined with a circular return motion. It's commonly used for navigation elements, "go back" buttons, and other UI elements indicating a return to a previous page or state.
 
-## Component Overview
+## Features
 
-The AccountLayout component creates a full-width container with a two-column layout on larger screens, featuring:
-- A navigation sidebar (only shown when a customer is logged in)
-- A main content area for child components
-- Responsive design that switches to a single column on mobile devices
+- Customizable size and color
+- Consistent stroke width and styling
+- Responsive scaling
+- Support for additional SVG attributes
+- Clean, recognizable "back" symbol with circular return indicator
 
 ## Props
 
 | Prop | Type | Required | Description |
 |------|------|----------|-------------|
-| customer | `HttpTypes.StoreCustomer \| null` | Yes | The customer object from Medusa's store API. Used to display account navigation |
-| children | `React.ReactNode` | Yes | The content to be rendered in the main area of the layout |
+| `size` | `string` | No | Width and height of the icon in pixels (default: "16") |
+| `color` | `string` | No | Color of the icon's stroke (default: "currentColor") |
+| `...attributes` | `SVGAttributes<SVGElement>` | No | Additional attributes passed to the underlying SVG element |
 
 ## Usage
 
 ```tsx copy
-import AccountLayout from './AccountLayout'
-import { StoreCustomer } from '@medusajs/types'
+import Back from "@components/icons/Back"
 
-const AccountPage = ({ customer }: { customer: StoreCustomer }) => {
+export default function NavigationHeader() {
   return (
-    <AccountLayout customer={customer}>
-      <div>Account content goes here</div>
-    </AccountLayout>
+    <div className="header flex items-center py-4">
+      <button 
+        onClick={() => history.goBack()} 
+        className="flex items-center gap-2 text-ui-fg-subtle hover:text-ui-fg-base"
+      >
+        <Back size="20" />
+        <span>Back to products</span>
+      </button>
+    </div>
   )
 }
 ```
 
-## Implementation Details
+## Styling
 
-### Layout Structure
+The icon is designed with:
 
-The component uses a nested structure of flex and grid containers:
+- Clean SVG paths for crisp rendering at any size
+- Consistent stroke width (1.5) for all paths
+- Rounded stroke caps and joins for a polished appearance
+- Default color inheritance via "currentColor"
+- Proper viewBox settings for responsive scaling
 
-1. Outer container:
-   - Uses `flex-1` for flexible sizing
-   - Applies padding on larger screens with `small:py-12`
+## Customization
 
-2. Inner container:
-   - Maximum width of `max-w-5xl`
-   - Centered with `mx-auto`
-   - White background
-   - Flex column layout
+### Size Variations
 
-3. Grid layout:
-   - Single column by default
-   - Two columns on larger screens using `small:grid-cols-[240px_1fr]`
-   - Fixed 240px sidebar width
-   - Flexible content area width
+```tsx copy
+// Small (default)
+<Back size="16" />
 
-### Responsive Design
+// Medium
+<Back size="24" />
 
-The layout adapts to different screen sizes:
+// Large
+<Back size="32" />
 
-- **Mobile** (< small breakpoint):
-  - Single column layout
-  - No top/bottom padding
-  - Full width content
+// Custom
+<Back size="40" />
+```
 
-- **Desktop** (≥ small breakpoint):
-  - Two column layout
-  - 12 units of padding top/bottom
-  - Fixed width sidebar
+### Color Variations
 
-### Navigation
+```tsx copy
+// Default (inherits from text color)
+<Back />
 
-The `AccountNav` component is conditionally rendered based on the presence of a customer:
-- Only shown when `customer` prop is not null
-- Receives the customer object as a prop
-- Contained within the left column of the grid
+// Brand color
+<Back color="#4F46E5" />
 
-## Dependencies
+// Contextual colors
+<Back color="var(--color-error)" />
+<Back color="var(--color-success)" />
 
-- React
-- UnderlineLink component from common modules
-- AccountNav component
-- Medusa types for customer data
-- Tailwind CSS for styling
+// Semantic UI colors
+<Back color="var(--color-ui-fg-interactive)" />
+```
 
-## Testing
+### With Additional SVG Attributes
 
-The component includes a data-testid attribute (`account-page`) for easy targeting in tests.
+```tsx copy
+<Back 
+  strokeWidth="2"
+  className="rotate-45"
+  style={{ filter: "drop-shadow(0px 1px 2px rgba(0, 0, 0, 0.25))" }}
+/>
+```
 
 ## Examples
 
-### With Customer
+### Basic Navigation Button
 
 ```tsx copy
-const LoggedInExample = () => {
-  const customer = {
-    id: "cust_123",
-    email: "user@example.com",
-    // ... other customer properties
+<button 
+  onClick={() => router.back()} 
+  className="inline-flex items-center gap-1 text-sm text-ui-fg-subtle hover:text-ui-fg-base"
+>
+  <Back size="14" />
+  <span>Back</span>
+</button>
+```
+
+### Standalone Icon Button
+
+```tsx copy
+<button 
+  aria-label="Go back" 
+  onClick={() => navigate(-1)}
+  className="flex items-center justify-center w-8 h-8 rounded-full bg-ui-bg-base hover:bg-ui-bg-base-hover"
+>
+  <Back size="20" />
+</button>
+```
+
+### Within a Header
+
+```tsx copy
+<header className="border-b border-ui-border-base px-4 py-3">
+  <div className="flex items-center">
+    <button 
+      onClick={() => history.goBack()} 
+      className="mr-4"
+      aria-label="Go back"
+    >
+      <Back size="20" />
+    </button>
+    <h1 className="text-lg font-medium">Product Details</h1>
+  </div>
+</header>
+```
+
+### Custom Animation
+
+```tsx copy
+<style jsx>{`
+  .back-icon {
+    transition: transform 0.2s ease;
   }
   
-  return (
-    <AccountLayout customer={customer}>
-      <h1>Welcome back!</h1>
-      <p>Your account details...</p>
-    </AccountLayout>
-  )
-}
+  .back-icon:hover {
+    transform: translateX(-4px);
+  }
+`}</style>
+
+<Back size="24" className="back-icon" />
 ```
 
-### Without Customer
+## Accessibility
 
-```tsx copy
-const LoggedOutExample = () => {
-  return (
-    <AccountLayout customer={null}>
-      <h1>Please log in</h1>
-      <p>Login form goes here...</p>
-    </AccountLayout>
-  )
-}
-```
+When using this icon in interactive elements:
 
-## Best Practices
+- Always provide appropriate `aria-label` attributes for icon-only buttons
+- Consider adding appropriate focus styles to enhance keyboard navigation
+- Ensure sufficient color contrast between the icon and its background
+- Pair with text when used for important navigation to improve clarity
 
-1. Always provide a customer prop, even if null, to ensure proper rendering
-2. Use semantic HTML within the content area
-3. Ensure child components respect the layout's padding and width constraints
-4. Consider the responsive nature of the layout when designing child components
+## Technical Details
 
-## Related Components
+The component uses:
 
-- AccountNav: Provides the navigation sidebar
-- UnderlineLink: Used within the navigation for interactive elements
+- React's functional component pattern with TypeScript support
+- SVG paths for drawing the icon geometry
+- prop spreading for flexible attribute handling
+- Default prop values for consistent appearance
+- Proper typing via the imported `IconProps` interface

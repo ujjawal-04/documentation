@@ -1,194 +1,149 @@
 ---
-title: 'AccountNav'
-description: 'A navigation component for managing user account sections and authentication state.'
+title: 'Checkbox'
+description: 'A reusable checkbox component with an associated label that provides consistent styling and accessibility features.'
 ---
 
-# AccountNav Component
+# Checkbox
 
-The `AccountNav` component provides navigation for users to manage their account settings, including profile information, addresses, orders, and logout functionality. It adapts its layout for both mobile and desktop views.
-
-## Installation
-
-First, ensure you have the component in your project:
-
-```tsx copy
-import AccountNav from "@components/AccountNav"
-```
-
-## Props
-
-| Prop Name | Type | Required | Description |
-|-----------|------|----------|-------------|
-| `customer` | `HttpTypes.StoreCustomer \| null` | Yes | The currently logged-in customer's data |
-
-## Usage
-
-Here's a basic example of how to use the AccountNav component:
-
-```tsx copy
-import AccountNav from "@components/AccountNav"
-
-const MyAccountPage = ({ customer }) => {
-  return (
-    <div>
-      <AccountNav customer={customer} />
-      {/* Rest of your account page content */}
-    </div>
-  )
-}
-```
+The `Checkbox ` component is a wrapper around the Medusa UI Checkbox component that adds a properly associated label. It provides a consistent interface for checkbox interactions with proper accessibility attributes.
 
 ## Features
 
-### Responsive Design
-- **Desktop View**: Full navigation menu with all options visible
-- **Mobile View**: Condensed navigation with appropriate layout adjustments
-- Automatic adaptation based on screen size
+- Consistent checkbox styling
+- Properly associated label
+- Customizable label text
+- Controlled checkbox state
+- Accessibility attributes
+- Test ID support
 
-### Navigation Options
-- Profile settings
-- Address management
-- Order history 
-- Logout functionality
+## Props
 
-### Active State Handling
-- Visual indication of current section
-- Uses `clx` utility for conditional styling
-- Highlights active navigation item
+| Prop | Type | Required | Description |
+|------|------|----------|-------------|
+| `checked` | `boolean` | No | The checked state of the checkbox (defaults to true) |
+| `onChange` | `function` | No | Function to call when the checkbox state changes |
+| `label` | `string` | Yes | The text to display next to the checkbox |
+| `name` | `string` | No | The name attribute for the checkbox (useful for forms) |
+| `data-testid` | `string` | No | Test ID for the component |
 
-## Subcomponents
-
-### AccountNavLink
-
-A helper component used internally to create consistent navigation links.
-
-#### Props
-
-| Prop Name | Type | Required | Description |
-|-----------|------|----------|-------------|
-| `href` | `string` | Yes | Destination URL for the link |
-| `route` | `string` | Yes | Current route pathname |
-| `children` | `React.ReactNode` | Yes | Content to display inside the link |
-| `data-testid` | `string` | No | Test identifier for the link |
-
-#### Example Usage
+## Usage
 
 ```tsx copy
-<AccountNavLink 
-  href="/account/orders" 
-  route={route}
-  data-testid="account-nav-orders"
->
-  Orders
-</AccountNavLink>
-```
+import Checkbox from '@/components/Checkbox'
+import { useState } from 'react'
 
-## Behavior
-
-### Authentication Flow
-- Checks for customer data to determine authentication state
-- Provides logout functionality through `signout` function
-- Handles country code for region-specific logout behavior
-
-### Navigation States
-1. **Default State**
-   - Displays user name when on `/account`
-   - Shows all available navigation options
-
-2. **Active Link**
-   - Highlights current section
-   - Provides visual feedback for user location
-
-3. **Mobile State**
-   - Collapses into mobile-friendly layout
-   - Maintains all functionality in compressed format
-
-## Styling
-
-The component uses Tailwind CSS for styling:
-
-```tsx copy
-// Example of styled link
-<div className={clx(
-  "text-sm flex items-center gap-x-2 px-4 py-2 rounded-rounded",
-  {
-    "text-ui-fg-base hover:text-ui-fg-base": href !== route,
-    "bg-ui-bg-subtle font-semibold": href === route,
-  }
-)}>
-  {children}
-</div>
-```
-
-### Style Features
-- Consistent spacing and padding
-- Hover and active states
-- Responsive layout adjustments
-- Clear visual hierarchy
-
-## Dependencies
-
-- Next.js for routing
-- Tailwind CSS for styling
-- `clx` utility for conditional classes
-- Various icon components (`ChevronDown`, `User`, etc.)
-
-## Examples
-
-### Basic Implementation
-
-```tsx copy
-function AccountPage() {
-  const { customer } = useCustomer()
+export default function TermsPage() {
+  const [termsAccepted, setTermsAccepted] = useState(false)
   
   return (
-    <div className="flex flex-col">
-      <AccountNav customer={customer} />
-      <div className="account-content">
-        {/* Account page content */}
-      </div>
+    <div className="my-4">
+      <Checkbox
+        label="I accept the terms and conditions"
+        checked={termsAccepted}
+        onChange={() => setTermsAccepted(!termsAccepted)}
+        name="terms"
+        data-testid="accept-terms-checkbox"
+      />
+      
+      <button 
+        disabled={!termsAccepted}
+        className="mt-4 px-4 py-2 bg-black text-white rounded disabled:opacity-50"
+      >
+        Continue
+      </button>
     </div>
   )
 }
 ```
 
-### With Custom Styling
+## Styling
 
-```tsx copy
-<AccountNav 
-  customer={customer}
-  className="custom-nav-class"
-  data-testid="account-navigation"
-/>
-```
+The component uses Tailwind CSS for styling and includes:
 
-## Testing
+- Consistent spacing between checkbox and label
+- Flexbox layout for alignment
+- Custom text styling for the label
+- Proper vertical alignment with `items-start`
 
-The component includes data-testid attributes for easy testing:
+## States
 
-```tsx copy
-// Example test
-it('should highlight active link', () => {
-  render(<AccountNav customer={mockCustomer} />)
-  const activeLink = screen.getByTestId('account-nav-orders')
-  expect(activeLink).toHaveClass('bg-ui-bg-subtle')
-})
-```
+### Default State
+- Checkbox appears checked (default value is `true`)
+- Label is displayed next to the checkbox
 
-## Best Practices
+### Unchecked State
+- Checkbox appears unchecked when `checked={false}` is provided
+- No visual change to the label
 
-1. Always provide the customer prop
-2. Use within authenticated routes
-3. Place at the top of account-related pages
-4. Maintain consistent navigation structure
-5. Handle loading and error states appropriately
+### Interactive State
+- Checkbox state toggles when clicked
+- The `onChange` callback is triggered
 
 ## Accessibility
 
-The component follows accessibility best practices:
+The component includes several accessibility features:
 
-- Semantic HTML structure
-- Keyboard navigation support
-- ARIA labels where appropriate
-- Focus management
-- High contrast active states
+- Proper `htmlFor` association between label and checkbox
+- `role="checkbox"` attribute
+- `aria-checked` attribute that matches the checked state
+- Clickable label that toggles the checkbox
+- Support for `data-testid` for testing
+
+## Examples
+
+### Basic Usage
+
+```tsx copy
+<CheckboxWithLabel 
+  label="Subscribe to newsletter" 
+/>
+```
+
+### Unchecked by Default
+
+```tsx copy
+<CheckboxWithLabel 
+  label="Add gift wrapping" 
+  checked={false}
+/>
+```
+
+### With onChange Handler
+
+```tsx copy
+<CheckboxWithLabel 
+  label="I agree to the privacy policy" 
+  checked={privacyAccepted}
+  onChange={() => setPrivacyAccepted(!privacyAccepted)}
+/>
+```
+
+### With Form Integration
+
+```tsx copy
+<form onSubmit={handleSubmit}>
+  <CheckboxWithLabel 
+    label="Save my information for faster checkout" 
+    checked={saveInfo}
+    onChange={() => setSaveInfo(!saveInfo)}
+    name="save_info"
+    data-testid="save-info-checkbox"
+  />
+  <button type="submit">Complete Order</button>
+</form>
+```
+
+## Dependencies
+
+- @medusajs/ui (for Checkbox and Label components)
+- react
+
+## Technical Details
+
+The component:
+
+- Uses the Medusa UI components as a foundation
+- Sets default checked state to true
+- Uses a button type for the checkbox rather than a native checkbox input
+- Applies custom styling to ensure consistent appearance
+- Uses `!transform-none` and `!txt-medium` utility classes to override default label styling

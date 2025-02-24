@@ -1,138 +1,179 @@
 ---
-title: 'Account Layout'
-description: 'A layout component for account-related pages that provides a consistent structure with navigation and content areas'
+title: 'PayPal Icon'
+description: 'A customizable PayPal payment icon component with dual-path styling for enhanced visual representation.'
 ---
 
-# Account Layout
+# PayPal Icon
 
-The `AccountLayout` component serves as a wrapper for account-related pages, providing a consistent layout structure with navigation and content areas. It's designed to be responsive and works with the Medusa e-commerce framework.
+The `PayPal` component is an SVG icon that displays the recognizable PayPal payment symbol with a dual-path design. It's commonly used in checkout flows, payment method selectors, and other UI elements related to PayPal payment options.
 
-## Component Overview
+## Features
 
-The AccountLayout component creates a full-width container with a two-column layout on larger screens, featuring:
-- A navigation sidebar (only shown when a customer is logged in)
-- A main content area for child components
-- Responsive design that switches to a single column on mobile devices
+- Customizable size and appearance
+- Consistent stroke width and styling
+- Responsive scaling with proper viewBox
+- Support for additional SVG attributes
+- Clean, recognizable PayPal symbol with dual-path styling
 
 ## Props
 
 | Prop | Type | Required | Description |
 |------|------|----------|-------------|
-| customer | `HttpTypes.StoreCustomer \| null` | Yes | The customer object from Medusa's store API. Used to display account navigation |
-| children | `React.ReactNode` | Yes | The content to be rendered in the main area of the layout |
+| `height` | `string` | No | Height of the icon in pixels (default: "20") |
+| `width` | `string` | No | Width of the icon in pixels (default: "20") |
+| `...attributes` | `SVGAttributes<SVGElement>` | No | Additional attributes passed to the underlying SVG element |
 
 ## Usage
 
 ```tsx copy
-import AccountLayout from './AccountLayout'
-import { StoreCustomer } from '@medusajs/types'
+import PayPal from "@components/icons/PayPal"
 
-const AccountPage = ({ customer }: { customer: StoreCustomer }) => {
+export default function PaymentOptions() {
   return (
-    <AccountLayout customer={customer}>
-      <div>Account content goes here</div>
-    </AccountLayout>
+    <div className="payment-methods flex gap-4 py-4">
+      <button 
+        onClick={() => selectPaymentMethod('paypal')} 
+        className="flex items-center gap-2 p-3 border rounded hover:border-blue-500"
+      >
+        <PayPal />
+        <span>Pay with PayPal</span>
+      </button>
+    </div>
   )
 }
 ```
 
-## Implementation Details
+## Styling
 
-### Layout Structure
+The icon is designed with:
 
-The component uses a nested structure of flex and grid containers:
+- Clean SVG paths for crisp rendering at any size
+- Consistent stroke width (2) for all paths
+- Rounded stroke caps and joins for a polished appearance
+- Default color inheritance via configurable stroke color
+- Proper viewBox settings (0 0 26 25) for responsive scaling
 
-1. Outer container:
-   - Uses `flex-1` for flexible sizing
-   - Applies padding on larger screens with `small:py-12`
+## Customization
 
-2. Inner container:
-   - Maximum width of `max-w-5xl`
-   - Centered with `mx-auto`
-   - White background
-   - Flex column layout
+### Size Variations
 
-3. Grid layout:
-   - Single column by default
-   - Two columns on larger screens using `small:grid-cols-[240px_1fr]`
-   - Fixed 240px sidebar width
-   - Flexible content area width
+```tsx copy
+// Default
+<PayPal />
 
-### Responsive Design
+// Medium
+<PayPal width="30" height="30" />
 
-The layout adapts to different screen sizes:
+// Large
+<PayPal width="40" height="40" />
 
-- **Mobile** (< small breakpoint):
-  - Single column layout
-  - No top/bottom padding
-  - Full width content
+// Custom with preserved aspect ratio
+<PayPal width="50" height="48" />
+```
 
-- **Desktop** (≥ small breakpoint):
-  - Two column layout
-  - 12 units of padding top/bottom
-  - Fixed width sidebar
+### Color Variations
 
-### Navigation
+```tsx copy
+// Default color
+<PayPal />
 
-The `AccountNav` component is conditionally rendered based on the presence of a customer:
-- Only shown when `customer` prop is not null
-- Receives the customer object as a prop
-- Contained within the left column of the grid
+// With custom stroke via style override
+<PayPal style={{ stroke: "#0070ba" }} />
 
-## Dependencies
+// Contextual colors
+<style jsx>{`
+  .paypal-icon path {
+    stroke: var(--color-brand);
+  }
+`}</style>
+<PayPal className="paypal-icon" />
+```
 
-- React
-- UnderlineLink component from common modules
-- AccountNav component
-- Medusa types for customer data
-- Tailwind CSS for styling
+### With Additional SVG Attributes
 
-## Testing
-
-The component includes a data-testid attribute (`account-page`) for easy targeting in tests.
+```tsx copy
+<PayPal 
+  strokeWidth="1.5"
+  className="payment-icon"
+  style={{ filter: "drop-shadow(0px 1px 2px rgba(0, 0, 0, 0.15))" }}
+/>
+```
 
 ## Examples
 
-### With Customer
+### Basic Payment Method Option
 
 ```tsx copy
-const LoggedInExample = () => {
-  const customer = {
-    id: "cust_123",
-    email: "user@example.com",
-    // ... other customer properties
+<div className="payment-option flex items-center gap-2 p-3 border rounded">
+  <PayPal />
+  <span className="font-medium">PayPal</span>
+</div>
+```
+
+### Interactive Payment Button
+
+```tsx copy
+<button 
+  onClick={() => initiatePayPalCheckout()} 
+  className="flex items-center justify-center gap-2 px-4 py-2 bg-blue-50 text-blue-600 rounded-md hover:bg-blue-100"
+>
+  <PayPal width="24" height="24" />
+  <span className="font-medium">Check out with PayPal</span>
+</button>
+```
+
+### Within a Payment Methods List
+
+```tsx copy
+<div className="payment-methods space-y-3">
+  <h3 className="text-sm font-medium text-gray-500 mb-2">Select Payment Method</h3>
+  
+  <label className="flex items-center gap-3 p-3 border rounded cursor-pointer">
+    <input type="radio" name="payment" value="paypal" />
+    <PayPal width="26" height="25" />
+    <span>PayPal</span>
+  </label>
+  
+  {/* Other payment methods... */}
+</div>
+```
+
+### Custom Animation on Hover
+
+```tsx copy
+<style jsx>{`
+  .paypal-icon {
+    transition: transform 0.2s ease;
   }
   
-  return (
-    <AccountLayout customer={customer}>
-      <h1>Welcome back!</h1>
-      <p>Your account details...</p>
-    </AccountLayout>
-  )
-}
+  .payment-btn:hover .paypal-icon {
+    transform: translateY(-2px);
+  }
+`}</style>
+
+<button className="payment-btn flex items-center gap-2">
+  <PayPal className="paypal-icon" />
+  <span>Pay with PayPal</span>
+</button>
 ```
 
-### Without Customer
+## Accessibility
 
-```tsx copy
-const LoggedOutExample = () => {
-  return (
-    <AccountLayout customer={null}>
-      <h1>Please log in</h1>
-      <p>Login form goes here...</p>
-    </AccountLayout>
-  )
-}
-```
+When using this icon in interactive elements:
 
-## Best Practices
+- Always provide appropriate `aria-label` attributes for icon-only buttons
+- Consider adding descriptive text alongside the icon when used in payment contexts
+- Ensure sufficient color contrast between the icon and its background
+- Include proper focus states for keyboard navigation
+- Use semantic HTML elements for interactive payment components
 
-1. Always provide a customer prop, even if null, to ensure proper rendering
-2. Use semantic HTML within the content area
-3. Ensure child components respect the layout's padding and width constraints
-4. Consider the responsive nature of the layout when designing child components
+## Technical Details
 
-## Related Components
+The component uses:
 
-- AccountNav: Provides the navigation sidebar
-- UnderlineLink: Used within the navigation for interactive elements
+- React's functional component pattern
+- SVG paths with precise dimensions for accurate rendering
+- Fixed viewBox settings (0 0 26 25) to maintain proportions
+- Dual-path design for the distinctive PayPal logo representation
+- Standard stroke attributes for consistent styling
+- Rounded caps and joins for a polished appearance

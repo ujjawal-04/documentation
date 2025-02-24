@@ -1,282 +1,129 @@
 ---
-title: "Profile Email"
-description: "Documentation for the ProfileEmail component in the customer profile section"
+title: 'Localized Client Link'
+description: 'A component that automatically includes the current country code in Next.js Link navigation.'
 ---
 
-# Profile Email
+# Localized Client Link
 
-The `ProfileEmail` component provides functionality for displaying and managing a customer's email address within their profile section.
+The `Localized Client Link` component is a wrapper around Next.js's `Link` component that automatically includes the current country code in the URL. This ensures that navigation within the application preserves localization without requiring manual handling of country codes.
 
-## Installation
+## Features
 
-```tsx copy
-import ProfileEmail from "../path/to/ProfileEmail"
-```
+- Automatic preservation of country code in navigation
+- Client-side component for access to route params
+- Maintains all functionality of Next.js Link component
+- Simplifies internationalized routing
+- Passes through all standard Link props
 
 ## Props
 
-| Prop Name | Type | Description |
-|-----------|------|-------------|
-| `customer` | `HttpTypes.StoreCustomer` | The customer object containing email information |
+| Prop | Type | Required | Description |
+|------|------|----------|-------------|
+| `href` | `string` | Yes | The destination path (without country code) |
+| `children` | `React.ReactNode` | No | The content to render inside the link |
+| `className` | `string` | No | CSS classes to apply to the link |
+| `onClick` | `function` | No | Function to call when the link is clicked |
+| `passHref` | `boolean` | No | Whether to pass the href to the child component |
+| `...props` | `any` | No | Any additional props to pass to the Next.js Link component |
 
 ## Usage
 
-Basic implementation of the component:
-
 ```tsx copy
-<ProfileEmail customer={customerData} />
-```
+import LocalizedClientLink from '@/components/LocalizedClientLink'
 
-## Implementation Example
-
-Here's a complete example showing how to use the ProfileEmail component:
-
-```tsx copy
-import { ProfileEmail } from "../path/to/ProfileEmail"
-import { useCustomer } from "@lib/hooks/use-customer"
-
-export default function EmailSection() {
-  const { customer } = useCustomer()
-  
-  if (!customer) {
-    return <div>Loading...</div>
-  }
-  
+export default function ProductCard({ product }) {
   return (
-    <div className="max-w-xl mx-auto py-8">
-      <h2 className="text-xl font-bold mb-4">Email Settings</h2>
-      <ProfileEmail customer={customer} />
+    <div className="product-card">
+      <img src={product.thumbnail} alt={product.title} />
+      <h3>{product.title}</h3>
+      <p>${product.price}</p>
+      
+      <LocalizedClientLink 
+        href={`/products/${product.handle}`}
+        className="text-blue-600 hover:underline"
+      >
+        View Details
+      </LocalizedClientLink>
     </div>
   )
 }
 ```
 
-## Features
+## Implementation Details
 
-### Email Display
-- Shows current email address
-- Provides clear visual indication of current email
-- Maintains consistent styling with profile section
+This component uses:
+- `"use client"` directive indicating it's a client component
+- Next.js's `useParams` hook to access the current route parameters
+- Extracts the `countryCode` from the URL params
+- Prefixes the provided `href` with the country code
+- Passes all props to the underlying Link component
 
-### Email Management
-- Form for updating email (placeholder functionality)
-- Validation for email format
-- Success and error state handling
+## Behavior
 
-### State Management
-- Tracks form submission state
-- Provides feedback on action success/failure
-- Handles loading states appropriately
+When a user navigates through your application:
 
-## Component Structure
+1. The component extracts the current country code from the URL (e.g., "us", "ca", "uk")
+2. It automatically prepends this code to any link destination
+3. For example, if the current URL is `/us/products` and the link's `href` is `/cart`, the actual navigation will be to `/us/cart`
+4. This preserves the user's localization context throughout their session
 
-### Main Component
+## Examples
+
+### Basic Usage
 
 ```tsx copy
-const ProfileEmail = ({ customer }) => {
-  const [isEditing, setIsEditing] = useState(false)
-  const { state, action } = useActionState()
-
-  const handleSubmit = async (e) => {
-    e.preventDefault()
-    // Email update functionality placeholder
-    // Will be implemented when supported by MedusaJS
-  }
-
-  return (
-    <AccountInfo label="Email">
-      {!isEditing ? (
-        <EmailDisplay 
-          email={customer.email} 
-          onEdit={() => setIsEditing(true)} 
-        />
-      ) : (
-        <EmailForm 
-          currentEmail={customer.email}
-          onSubmit={handleSubmit}
-          onCancel={() => setIsEditing(false)}
-          state={state}
-        />
-      )}
-    </AccountInfo>
-  )
-}
+<LocalizedClientLink href="/products">
+  Browse Products
+</LocalizedClientLink>
 ```
 
-### Email Form Component
+### With Additional Props
 
 ```tsx copy
-const EmailForm = ({ currentEmail, onSubmit, onCancel, state }) => {
-  return (
-    <form onSubmit={onSubmit} className="space-y-4">
-      <Input
-        label="Email"
-        name="email"
-        type="email"
-        required
-        defaultValue={currentEmail}
-        className="bg-teal-100"
-      />
-      <div className="flex justify-end space-x-2">
-        <button 
-          type="button" 
-          onClick={onCancel}
-          className="btn-secondary"
-        >
-          Cancel
-        </button>
-        <button 
-          type="submit"
-          className="btn-primary"
-          disabled={state.loading}
-        >
-          Save Changes
-        </button>
-      </div>
-    </form>
-  )
-}
+<LocalizedClientLink 
+  href="/account" 
+  className="btn btn-primary"
+  onClick={() => console.log('Navigating to account')}
+>
+  My Account
+</LocalizedClientLink>
 ```
 
-## State Management
+### In Navigation Menu
 
 ```tsx copy
-const useActionState = () => {
-  const [state, setState] = useState({
-    loading: false,
-    error: null,
-    success: false
-  })
-
-  const action = async (callback) => {
-    setState({ loading: true, error: null, success: false })
-    try {
-      await callback()
-      setState({ loading: false, error: null, success: true })
-    } catch (error) {
-      setState({ loading: false, error: error.message, success: false })
-    }
-  }
-
-  return { state, action }
-}
+<nav className="flex gap-4">
+  <LocalizedClientLink href="/">Home</LocalizedClientLink>
+  <LocalizedClientLink href="/products">Products</LocalizedClientLink>
+  <LocalizedClientLink href="/about">About Us</LocalizedClientLink>
+  <LocalizedClientLink href="/contact">Contact</LocalizedClientLink>
+</nav>
 ```
 
-## Usage with Loading State
+### With Dynamic Path
 
 ```tsx copy
-const EmailSection = () => {
-  const { customer, isLoading } = useCustomer()
-
-  if (isLoading) {
-    return (
-      <div className="space-y-4">
-        <div className="h-8 bg-gray-100 rounded animate-pulse" />
-        <div className="h-12 bg-gray-100 rounded animate-pulse" />
-      </div>
-    )
-  }
-
-  return <ProfileEmail customer={customer} />
-}
-```
-
-## Styling
-
-The component uses consistent styling with the profile section:
-
-```tsx copy
-<div className="rounded-lg border p-4">
-  <div className="flex items-center justify-between">
-    <span className="text-gray-700">{customer.email}</span>
-    <button 
-      onClick={onEdit}
-      className="text-blue-600 hover:text-blue-700"
-    >
-      Edit
-    </button>
-  </div>
-</div>
-```
-
-## Accessibility
-
-The component implements these accessibility features:
-
-- Proper form labels
-- ARIA attributes for state changes
-- Keyboard navigation support
-- Clear error messaging
-- Focus management
-
-## Best Practices
-
-1. Email format validation
-2. Clear success/error feedback
-3. Proper loading states
-4. Form field labels
-5. Responsive design
-6. Keyboard accessibility
-7. Clean state management
-
-## Known Limitations
-
-1. Email updates are currently not supported by MedusaJS backend
-2. Placeholder implementation for future functionality
-3. Limited to single email address per customer
-
-## Testing
-
-Example test cases:
-
-```tsx copy
-describe('ProfileEmail', () => {
-  it('displays current email', () => {
-    const mockCustomer = {
-      email: 'test@example.com'
-    }
-    
-    render(<ProfileEmail customer={mockCustomer} />)
-    
-    expect(screen.getByText('test@example.com')).toBeInTheDocument()
-  })
-
-  it('shows form when edit is clicked', async () => {
-    const mockCustomer = {
-      email: 'test@example.com'
-    }
-    
-    render(<ProfileEmail customer={mockCustomer} />)
-    
-    await userEvent.click(screen.getByText('Edit'))
-    expect(screen.getByRole('form')).toBeInTheDocument()
-  })
-})
+<LocalizedClientLink href={`/categories/${category.slug}`}>
+  {category.name}
+</LocalizedClientLink>
 ```
 
 ## Dependencies
 
-- React
-- AccountInfo component
-- Input component
-- Form validation utilities
-- State management hooks
+- next/link (for the base Link component)
+- next/navigation (for useParams hook)
+- react (for component structure)
+
+## Technical Notes
+
+- This is a client component as indicated by the "use client" directive
+- It requires the application to use Next.js's App Router
+- The URL structure should follow the pattern `/{countryCode}/path`
+- The component assumes that `countryCode` is available in the route parameters
+- All standard Next.js Link props are supported through props spreading
 
 ## Related Components
 
-- AccountInfo: Wrapper component
-- Input: Form input field
-- EmailDisplay: Shows current email
-- EmailForm: Handles email editing
-
-## Future Enhancements
-
-1. Implement email update functionality when supported by MedusaJS
-2. Add email verification flow
-3. Support multiple email addresses
-4. Add email preferences management
-5. Implement notification settings
-
----
-
-This component provides a foundation for email management within the customer profile section, ready to be extended with full functionality when supported by the backend.
+- `InteractiveLink` - Uses LocalizedClientLink with specific styling
+- Navigation components that need to preserve localization
+- Any component that generates links within a localized application

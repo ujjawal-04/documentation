@@ -1,271 +1,175 @@
 ---
-title: "Profile Phone"
-description: "A React component for updating a customer's phone number in their profile"
+title: 'Radio'
+description: 'A customizable radio button component that provides visual feedback for selection states with accessible implementation.'
 ---
 
-# Profile Phone
+# Radio
 
-The `ProfilePhone` component provides functionality for customers to view and update their phone number within their profile settings.
+The `Radio` component is a custom-styled radio button that offers enhanced visual styling while maintaining proper accessibility attributes. It's designed to provide clear visual feedback for checked, unchecked, hover, and focus states.
 
-## Installation
+## Features
 
-```tsx copy
-import ProfilePhone from "@modules/account/components/profile-phone"
-```
+- Custom styled radio button with consistent design
+- Visual indication of checked state
+- Enhanced hover and focus states
+- Proper accessibility attributes
+- Support for testing with data attributes
+- Smooth transitions between states
 
 ## Props
 
-| Prop Name | Type | Description |
-|-----------|------|-------------|
-| `customer` | `HttpTypes.StoreCustomer` | The customer object containing user data |
+| Prop | Type | Required | Description |
+|------|------|----------|-------------|
+| `checked` | `boolean` | Yes | Determines if the radio button is selected |
+| `data-testid` | `string` | No | Custom test ID for testing frameworks (default: 'radio-button') |
 
 ## Usage
 
-Basic implementation of the component:
-
 ```tsx copy
-<ProfilePhone customer={customerData} />
-```
+import Radio from "@components/Radio"
 
-## Implementation Example
+export default function PaymentMethodSelector() {
+  const [selectedMethod, setSelectedMethod] = useState("credit")
 
-Here's a complete example showing how to use the ProfilePhone component:
-
-```tsx copy
-import { ProfilePhone } from "@modules/account/components/profile-phone"
-import { useCustomer } from "@lib/hooks/use-customer"
-
-export default function ContactSection() {
-  const { customer } = useCustomer()
-  
-  if (!customer) {
-    return <div>Loading...</div>
-  }
-  
   return (
-    <div className="max-w-xl mx-auto py-8">
-      <h2 className="text-xl font-bold mb-4">Contact Information</h2>
-      <ProfilePhone customer={customer} />
+    <div className="payment-options">
+      <div className="flex items-center gap-2 mb-2">
+        <Radio checked={selectedMethod === "credit"} />
+        <label 
+          onClick={() => setSelectedMethod("credit")}
+          className="text-sm cursor-pointer"
+        >
+          Credit Card
+        </label>
+      </div>
+      <div className="flex items-center gap-2">
+        <Radio checked={selectedMethod === "paypal"} />
+        <label 
+          onClick={() => setSelectedMethod("paypal")}
+          className="text-sm cursor-pointer"
+        >
+          PayPal
+        </label>
+      </div>
     </div>
   )
 }
 ```
 
-## Component Implementation
+## Styling
 
-Here's the full implementation of the ProfilePhone component:
+The component uses Tailwind CSS for styling and includes:
+
+- Design system token-based styling (`bg-ui-bg-base`, `bg-ui-bg-interactive`)
+- Shadow utilities for borders and focus states
+- Proper size definitions for both the outer and inner elements
+- Group-based styling for different states (checked, unchecked, hover, focus)
+- Smooth transitions for state changes
+
+## States
+
+### Unchecked State
+- Displays an empty circle with a subtle border
+- Shows the base background color
+
+### Checked State
+- Displays a filled circle with a contrasting center dot
+- Uses interactive background color to indicate selection
+- Maintains the inner dot with contrasting background
+
+### Hover State
+- Enhances the border shadow when hovered
+- Provides visual feedback for interactivity
+
+### Focus State
+- Shows a distinctive focus ring when the component has focus
+- Maintains accessibility for keyboard navigation
+
+### Disabled State (styling provided but not implemented in props)
+- Shows muted colors when disabled
+- Removes shadows for a visually disabled appearance
+
+## Accessibility
+
+The component implements proper accessibility features:
+
+- Uses `role="radio"` to ensure correct semantics
+- Implements `aria-checked` attribute to communicate state
+- Uses `data-state` attributes for styling and potential screen reader enhancements
+- Maintains focus outlines for keyboard navigation
+- Uses appropriate HTML button element as the base
+
+## Examples
+
+### Basic Usage
 
 ```tsx copy
-import React, { useEffect, useActionState } from "react"
-import Input from "@modules/common/components/input"
-import AccountInfo from "../account-info"
-import { HttpTypes } from "@medusajs/types"
-import { updateCustomer } from "@lib/data/customer"
+<Radio checked={true} />
+```
 
-const ProfilePhone: React.FC<{ customer: HttpTypes.StoreCustomer }> = ({ 
-  customer 
-}) => {
-  const [successState, setSuccessState] = React.useState(false)
+### With Custom Test ID
 
-  const updateCustomerPhone = async (
-    _currentState: Record<string, unknown>,
-    formData: FormData
-  ) => {
-    const customer = {
-      phone: formData.get("phone") as string,
-    }
+```tsx copy
+<Radio checked={false} data-testid="payment-radio" />
+```
 
-    try {
-      await updateCustomer(customer)
-      return { success: true, error: null }
-    } catch (error: any) {
-      return { success: false, error: error.toString() }
-    }
-  }
+### Within a Radio Group
 
-  const [state, formAction] = useActionState(updateCustomerPhone, {
-    error: false,
-    success: false,
-  })
+```tsx copy
+const options = ["Small", "Medium", "Large"]
+const [selected, setSelected] = useState("Medium")
 
-  const clearState = () => {
-    setSuccessState(false)
-  }
+return (
+  <div role="radiogroup" aria-label="Size options">
+    {options.map(option => (
+      <div key={option} className="flex items-center gap-2 mb-2">
+        <Radio checked={selected === option} />
+        <label 
+          onClick={() => setSelected(option)}
+          className="text-sm cursor-pointer"
+        >
+          {option}
+        </label>
+      </div>
+    ))}
+  </div>
+)
+```
 
-  useEffect(() => {
-    setSuccessState(state.success)
-  }, [state])
+### With Form Integration
 
-  return (
-    <form action={formAction} className="w-full">
-      <AccountInfo
-        label="Phone"
-        currentInfo={`${customer.phone}`}
-        isSuccess={successState}
-        isError={!!state.error}
-        errorMessage={state.error}
-        clearState={clearState}
-        data-testid="account-phone-editor"
+```tsx copy
+<div className="form-field">
+  <div className="text-sm font-medium mb-2">Delivery Options</div>
+  <div role="radiogroup" aria-label="Delivery options">
+    <div className="flex items-center gap-2 mb-2">
+      <Radio checked={formValues.delivery === "standard"} />
+      <label 
+        onClick={() => setFormValues({...formValues, delivery: "standard"})}
+        className="text-sm cursor-pointer"
       >
-        <div className="grid grid-cols-1 gap-y-2">
-          <Input
-            label="Phone"
-            name="phone"
-            type="phone"
-            autoComplete="phone"
-            required
-            defaultValue={customer.phone ?? ""}
-            data-testid="phone-input"
-          />
-        </div>
-      </AccountInfo>
-    </form>
-  )
-}
-
-export default ProfilePhone
+        Standard Delivery (3-5 days)
+      </label>
+    </div>
+    <div className="flex items-center gap-2">
+      <Radio checked={formValues.delivery === "express"} />
+      <label 
+        onClick={() => setFormValues({...formValues, delivery: "express"})}
+        className="text-sm cursor-pointer"
+      >
+        Express Delivery (1-2 days)
+      </label>
+    </div>
+  </div>
+</div>
 ```
 
-## Features
+## Technical Details
 
-### Phone Number Management
-- Displays current phone number
-- Provides form for updates
-- Handles form submission
-- Shows success/error feedback
+The component uses:
 
-### State Management
-- Uses useActionState for form handling
-- Manages success and error states
-- Provides clear state feedback
-- Handles state clearing
-
-### Form Validation
-- Required field validation
-- Phone number format checking
-- Error message display
-- Success confirmation
-
-## Component Structure
-
-The component is built using several key elements:
-
-1. Form Container
-   - Handles form submission
-   - Manages action state
-   - Provides data-testid for testing
-
-2. AccountInfo Wrapper
-   - Displays current phone number
-   - Shows success/error states
-   - Provides clear state functionality
-
-3. Input Field
-   - Phone number input
-   - Autocomplete support
-   - Required field validation
-   - Default value handling
-
-## State Management
-
-```tsx copy
-const [state, formAction] = useActionState(updateCustomerPhone, {
-  error: false,
-  success: false,
-})
-
-const clearState = () => {
-  setSuccessState(false)
-}
-
-useEffect(() => {
-  setSuccessState(state.success)
-}, [state])
-```
-
-## Error Handling
-
-```tsx copy
-const updateCustomerPhone = async (
-  _currentState: Record<string, unknown>,
-  formData: FormData
-) => {
-  try {
-    await updateCustomer({ phone: formData.get("phone") as string })
-    return { success: true, error: null }
-  } catch (error: any) {
-    return { success: false, error: error.toString() }
-  }
-}
-```
-
-## Testing
-
-Example test cases:
-
-```tsx copy
-describe('ProfilePhone', () => {
-  it('displays current phone number', () => {
-    const mockCustomer = {
-      phone: '+1234567890'
-    }
-    
-    render(<ProfilePhone customer={mockCustomer} />)
-    
-    expect(screen.getByText('+1234567890')).toBeInTheDocument()
-  })
-
-  it('handles phone number update', async () => {
-    const mockCustomer = {
-      phone: '+1234567890'
-    }
-    
-    render(<ProfilePhone customer={mockCustomer} />)
-    
-    const input = screen.getByTestId('phone-input')
-    await userEvent.type(input, '+9876543210')
-    await userEvent.click(screen.getByText('Save'))
-    
-    expect(await screen.findByText('Changes saved successfully')).toBeInTheDocument()
-  })
-})
-```
-
-## Dependencies
-
-- React
-- Input component
-- AccountInfo component
-- useActionState hook
-- Customer update utilities
-
-## Related Components
-
-- AccountInfo: Wrapper component
-- Input: Form input
-- ProfileEmail: Email management
-- ProfileName: Name management
-
-## Future Enhancements
-
-1. Implement real-time phone number validation
-2. Add international phone number support
-3. Implement phone number verification
-4. Add format standardization
-5. Support multiple phone numbers
-6. Add phone type categorization (mobile/home/work)
-7. Implement SMS verification
-
-## Best Practices
-
-1. Phone number validation
-2. Clear error messaging
-3. Success feedback
-4. Proper input masking
-5. International format support
-6. Accessibility compliance
-7. Form field labels
-
----
-
-This component provides a straightforward way for customers to manage their phone number information while maintaining consistency with the account management interface.
+- Nested divs for creating the radio button visual structure
+- Group-based data attributes for styling different states
+- Conditional rendering for the inner dot when checked
+- Shadow utilities for creating borders instead of traditional border properties
+- Transition properties for smooth state changes
