@@ -1,0 +1,219 @@
+# Checkout Summary 
+
+A component that displays a comprehensive summary of the shopping cart, including items, totals, and discount code functionality. It provides a sticky positioning for better user experience during checkout.
+
+## Props
+
+| Prop | Type | Required | Description |
+|------|------|----------|-------------|
+| cart | any | Yes | The cart object containing items, totals, and other cart-related information |
+
+## Component Structure
+
+The CheckoutSummary combines several key features:
+1. Cart items preview
+2. Cart totals calculation
+3. Discount code application
+4. Sticky positioning for better UX
+
+## Usage
+
+```tsx copy
+import CheckoutSummary from "./components/CheckoutSummary"
+
+const CheckoutPage = ({ cart }) => {
+  return (
+    <div className="checkout-container">
+      <CheckoutSummary cart={cart} />
+    </div>
+  )
+}
+```
+
+## Layout Structure
+
+```tsx copy
+<div className="sticky top-0 flex flex-col-reverse small:flex-col gap-y-8 py-8 small:py-0">
+  <div className="w-full bg-white flex flex-col">
+    {/* Content */}
+  </div>
+</div>
+```
+
+## Sub-Components
+
+### Cart Header
+```tsx copy
+<Heading
+  level="h2"
+  className="flex flex-row text-3xl-regular items-baseline"
+>
+  In your Cart
+</Heading>
+```
+
+### Items Preview
+Displays cart items using the ItemsPreviewTemplate:
+```tsx copy
+<ItemsPreviewTemplate cart={cart} />
+```
+
+### Cart Totals
+Shows the cart total calculations:
+```tsx copy
+<CartTotals totals={cart} />
+```
+
+### Discount Code
+Provides discount code input functionality:
+```tsx copy
+<DiscountCode cart={cart} />
+```
+
+## Styling
+
+The component uses a combination of utility classes for:
+
+### Responsive Layout
+- Uses `small:` breakpoint for different layouts
+- Switches between `flex-col` and `flex-col-reverse` based on screen size
+
+### Positioning
+- Implements sticky positioning: `sticky top-0`
+- Maintains proper spacing with `gap-y-8`
+
+### Visual Separation
+- Uses `Divider` component for content separation
+- Applies consistent margin spacing
+
+## Dependencies
+
+### Components
+- `@medusajs/ui`: `Heading`
+- `@modules/cart/templates/preview`: `ItemsPreviewTemplate`
+- `@modules/checkout/components/discount-code`: `DiscountCode`
+- `@modules/common/components/cart-totals`: `CartTotals`
+- `@modules/common/components/divider`: `Divider`
+
+## Responsive Design
+
+The component implements responsive behavior:
+
+### Mobile View
+- Reversed column layout
+- Additional divider visibility
+- Modified padding
+
+### Desktop View
+- Standard column layout
+- Hidden top divider
+- Adjusted padding
+
+## Best Practices
+
+1. Cart Data Handling
+   - Validate cart data before rendering
+   - Handle empty cart states appropriately
+   - Update cart totals when items change
+
+2. Responsive Design
+   - Maintain readability across screen sizes
+   - Ensure sticky positioning works correctly
+   - Properly handle layout changes
+
+3. User Experience
+   - Keep totals visible during checkout
+   - Provide clear item preview
+   - Make discount code entry accessible
+
+## Component Features
+
+### Sticky Positioning
+- Keeps cart summary visible while scrolling
+- Improves user experience during checkout
+- Maintains context during form filling
+
+### Visual Hierarchy
+- Clear heading for cart contents
+- Separated sections with dividers
+- Organized display of information
+
+### Interactive Elements
+- Discount code application
+- Cart items preview
+- Totals calculation
+
+## Technical Considerations
+
+### Performance
+- Efficient rendering of cart items
+- Proper handling of cart updates
+- Optimized sticky positioning
+
+### Accessibility
+- Semantic heading structure
+- Proper ARIA attributes (inherited from sub-components)
+- Keyboard navigation support
+
+### State Management
+- Cart state handled through props
+- Discount code state managed in sub-component
+- Updates reflected in totals
+
+## Related Components
+
+- Main checkout form
+- Cart page
+- Individual cart item components
+- Payment summary components
+
+## Testing Considerations
+
+Key areas to test:
+1. Cart data rendering
+2. Responsive layout changes
+3. Sticky positioning behavior
+4. Discount code functionality
+5. Totals calculation accuracy
+6. Empty cart states
+
+## Future Improvements
+
+Potential enhancements:
+1. Type safety for cart prop
+2. Loading states for async operations
+3. Error handling for invalid cart data
+4. Animation for total updates
+5. Enhanced mobile experience
+6. Additional cart summary features
+
+## Examples
+
+### Basic Implementation
+```tsx copy
+<CheckoutSummary cart={{
+  items: [],
+  total: 0,
+  subtotal: 0,
+  discount_total: 0,
+  shipping_total: 0
+}} />
+```
+
+### With Items and Discount
+```tsx copy
+<CheckoutSummary cart={{
+  items: [
+    {
+      id: "item_1",
+      title: "Product 1",
+      quantity: 2,
+      unit_price: 1000
+    }
+  ],
+  total: 2000,
+  subtotal: 2000,
+  discount_total: 200,
+  shipping_total: 500
+}} />
+```
