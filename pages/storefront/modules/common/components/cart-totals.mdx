@@ -1,183 +1,176 @@
 ---
-title: 'AccountInfo'
-description: 'A reusable account information component that handles edit states, success/error messages, and form submission.'
+title: CartTotals Component
+description: A React component for displaying cart totals in a Medusa.js storefront.
 ---
 
-# AccountInfo
+import CartTotals from "@/modules/common/components/cart-totals";
 
-The `AccountInfo` component is designed to display and edit account-related information. It provides a consistent interface for viewing current information, editing it, and handling success/error states.
+## CartTotals Component
 
-## Features
+The `CartTotals` component is responsible for displaying various price breakdowns of a shopping cart, including subtotal, discounts, and total cost.
 
-- Toggle between view and edit modes
-- Built-in success and error state handling
-- Customizable form content
-- Loading state during form submission
-- Accessible disclosure panels
-- Responsive design
+## Overview
 
-## Props
+```typescript copy
+"use client"
 
-| Prop | Type | Required | Description |
-|------|------|----------|-------------|
-| `label` | `string` | Yes | The label for the account information field |
-| `currentInfo` | `string \| React.ReactNode` | Yes | The current value to display |
-| `isSuccess` | `boolean` | No | Indicates if the update was successful |
-| `isError` | `boolean` | No | Indicates if an error occurred |
-| `errorMessage` | `string` | No | Custom error message (defaults to "An error occurred, please try again") |
-| `clearState` | `function` | Yes | Function to clear the current state |
-| `children` | `React.ReactNode` | No | Content to render in the edit form |
-| `data-testid` | `string` | No | Test ID for the component |
+import { convertToLocale } from "@lib/util/money"
+import React from "react"
+```
 
-## Usage
+### Props
 
-```tsx copy
-import AccountInfo from '@/components/AccountInfo'
+#### `totals` (object, required)
+An object containing the pricing details of the cart. The structure is as follows:
 
-export default function ProfilePage() {
-  const [isSuccess, setIsSuccess] = useState(false)
-  const [isError, setIsError] = useState(false)
-  
-  const clearState = () => {
-    setIsSuccess(false)
-    setIsError(false)
-  }
+| Property         | Type    | Description                                       |
+|-----------------|---------|---------------------------------------------------|
+| `total`         | number  | The final total amount of the cart.              |
+| `subtotal`      | number  | The subtotal before discounts, taxes, and shipping. |
+| `tax_total`     | number  | The total tax amount.                            |
+| `shipping_total`| number  | The total shipping cost.                         |
+| `discount_total`| number  | The total discount applied.                      |
+| `gift_card_total` | number  | The total amount covered by gift cards.        |
+| `currency_code` | string  | The currency code (e.g., `USD`, `EUR`).          |
+| `shipping_subtotal` | number | The subtotal of shipping costs.            |
+
+## Implementation
+
+```typescript copy
+const CartTotals: React.FC<CartTotalsProps> = ({ totals }) => {
+  const {
+    currency_code,
+    total,
+    subtotal,
+    tax_total,
+    discount_total,
+    gift_card_total,
+    shipping_subtotal,
+  } = totals
 
   return (
-    <AccountInfo
-      label="Email"
-      currentInfo="user@example.com"
-      isSuccess={isSuccess}
-      isError={isError}
-      clearState={clearState}
-    >
-      <form>
-        <input
-          type="email"
-          name="email"
-          placeholder="Enter new email"
-          className="w-full p-2 border rounded"
-        />
-      </form>
-    </AccountInfo>
+    <div>
+      <div className="flex flex-col gap-y-2 txt-medium text-ui-fg-subtle ">
+        <div className="flex items-center justify-between">
+          <span className="flex gap-x-1 items-center">
+            Subtotal (excl. shipping and taxes)
+          </span>
+          <span data-testid="cart-subtotal" data-value={subtotal || 0}>
+            {convertToLocale({ amount: subtotal ?? 0, currency_code })}
+          </span>
+        </div>
+        {!!discount_total && (
+          <div className="flex items-center justify-between">
+            <span>Discount</span>
+            <span
+              className="text-ui-fg-interactive"
+              data-testid="cart-discount"
+              data-value={discount_total || 0}
+            >
+              - {convertToLocale({ amount: discount_total ?? 0, currency_code })}
+            </span>
+          </div>
+        )}
+        {!!gift_card_total && (
+          <div className="flex items-center justify-between">
+            <span>Gift card</span>
+            <span
+              className="text-ui-fg-interactive"
+              data-testid="cart-gift-card-amount"
+              data-value={gift_card_total || 0}
+            >
+              - {convertToLocale({ amount: gift_card_total ?? 0, currency_code })}
+            </span>
+          </div>
+        )}
+      </div>
+      <div className="h-px w-full border-b border-gray-200 my-4" />
+      <div className="flex items-center justify-between text-ui-fg-base mb-2 txt-medium ">
+        <span>Total</span>
+        <span
+          className="txt-xlarge-plus"
+          data-testid="cart-total"
+          data-value={total || 0}
+        >
+          {convertToLocale({ amount: total ?? 0, currency_code })}
+        </span>
+      </div>
+      <div className="h-px w-full border-b border-gray-200 mt-4" />
+    </div>
   )
+}
+
+export default CartTotals
+```
+
+### Example Usage
+
+```tsx copy
+import CartTotals from "@/modules/common/components/cart-totals";
+
+const cartTotalsData = {
+  total: 5000,
+  subtotal: 4000,
+  tax_total: 500,
+  shipping_total: 500,
+  discount_total: 1000,
+  gift_card_total: 500,
+  currency_code: "USD",
+  shipping_subtotal: 500,
+};
+
+export default function CartPage() {
+  return <CartTotals totals={cartTotalsData} />;
 }
 ```
 
-## Styling
+## Features
+- Displays cart breakdown including subtotal, discounts, and final total.
+- Supports currency localization via `convertToLocale` function.
+- Conditionally renders discounts and gift card amounts when applicable.
+- Provides a clear and structured summary of the cart for the user.
+- Easy integration into any checkout or cart summary page.
 
-The component uses Tailwind CSS for styling and includes:
+## Configuration
 
-- Custom teal-colored buttons (`bg-[#008080]`)
-- Hover states for buttons
-- Smooth transitions for disclosure panels
-- Responsive width adjustments
-- Consistent text styles and spacing
+### Styling Example
+If you want to change the text color and spacing, you can modify the component's CSS:
 
-## States
+```css copy
+.cart-totals {
+  color: #333;
+  padding: 1rem;
+}
 
-### View Mode
-- Displays the current information
-- Shows an "Edit" button
-- No form fields visible
-
-### Edit Mode
-- Displays the form fields (provided as children)
-- Shows "Cancel" and "Save changes" buttons
-- Cancel returns to view mode
-- Save triggers form submission
-
-### Success State
-- Shows a green badge with success message
-- Automatically closes edit mode
-- Success message fades out
-
-### Error State
-- Shows a red badge with error message
-- Keeps edit mode open
-- Allows retry
-
-### Loading State
-- Shows loading indicator on save button
-- Prevents multiple submissions
-
-## Accessibility
-
-The component uses the Headless UI Disclosure component for accessible expanding/collapsing sections and includes:
-
-- Proper ARIA attributes
-- Keyboard navigation support
-- Clear visual states
-- Test IDs for testing
-
-## Examples
-
-### Basic Usage
-
-```tsx copy
-<AccountInfo
-  label="Username"
-  currentInfo="johndoe"
-  clearState={() => {}}
->
-  <input
-    type="text"
-    placeholder="Enter new username"
-    className="w-full p-2 border rounded"
-  />
-</AccountInfo>
+.cart-totals .total {
+  font-weight: bold;
+  font-size: 1.2rem;
+}
 ```
 
-### With Custom Error Message
+Or, if using TailwindCSS:
 
 ```tsx copy
-<AccountInfo
-  label="Password"
-  currentInfo="********"
-  errorMessage="Password must be at least 8 characters"
-  clearState={() => {}}
->
-  <input
-    type="password"
-    placeholder="Enter new password"
-    className="w-full p-2 border rounded"
-  />
-</AccountInfo>
+<div className="p-4 text-gray-800">
+  <CartTotals totals={cartTotalsData} />
+</div>
 ```
 
-### With React Node as Current Info
-
-```tsx copy
-<AccountInfo
-  label="Status"
-  currentInfo={<Badge color="green">Active</Badge>}
-  clearState={() => {}}
->
-  <select className="w-full p-2 border rounded">
-    <option value="active">Active</option>
-    <option value="inactive">Inactive</option>
-  </select>
-</AccountInfo>
-```
+## Potential Enhancements
+- Add an option to display a detailed tax breakdown.
+- Provide tooltips for each amount to explain calculations.
+- Include a button for applying discount codes directly within the component.
+- Extend functionality to support multiple currencies dynamically.
 
 ## Dependencies
 
-- @headlessui/react
-- @medusajs/ui
-- react
-- react-dom
+- React
+- TailwindCSS
+- Framer Motion
+- Medusa.js SDK
 
-## Technical Details
+## Best Practices
+- Ensure all currency amounts are properly formatted before display.
+- Handle cases where optional fields (like discounts) may be missing.
+- Keep styles flexible and adaptable for different storefront themes.
 
-The component uses several React hooks:
-
-- `useToggleState` - Custom hook for managing edit state
-- `useFormStatus` - React hook for form submission state
-- `useEffect` - For handling success state changes
-
-The component also implements:
-
-- Debounced state clearing (100ms timeout)
-- Automatic closure on successful update
-- Dynamic height transitions
-- Consistent spacing and alignment
