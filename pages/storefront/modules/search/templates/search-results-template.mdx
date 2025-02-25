@@ -1,219 +1,322 @@
-# Checkout Summary 
+# Search Results Template
 
-A component that displays a comprehensive summary of the shopping cart, including items, totals, and discount code functionality. It provides a sticky positioning for better user experience during checkout.
+A React component that displays search results with filtering, sorting, and pagination capabilities for an e-commerce store.
 
-## Props
+## Syntax
 
-| Prop | Type | Required | Description |
-|------|------|----------|-------------|
-| cart | any | Yes | The cart object containing items, totals, and other cart-related information |
+```jsx copy
+<SearchResultsTemplate
+  query="headphones"
+  ids={["prod_123", "prod_456"]}
+  sortBy="created_at"
+  page="1"
+  countryCode="US"
+/>
+```
 
-## Component Structure
+## Description
 
-The CheckoutSummary combines several key features:
-1. Cart items preview
-2. Cart totals calculation
-3. Discount code application
-4. Sticky positioning for better UX
+The `SearchResultsTemplate` component renders a complete search results page with a header showing the search query and result count, refinement options for filtering and sorting, and paginated product results. It provides a user-friendly interface for exploring search results with clear navigation controls.
 
-## Usage
+### Features:
+- Displays search query and result count in the header
+- Provides a "Clear" link to reset search
+- Shows refinement options for filtering and sorting products
+- Renders paginated product results
+- Handles empty search results gracefully
+- Supports different sorting methods
+- Manages pagination state
+- Responsive layout for different screen sizes
 
-```tsx copy
-import CheckoutSummary from "./components/CheckoutSummary"
+## Technical Details
 
-const CheckoutPage = ({ cart }) => {
+### Dependencies
+
+```javascript copy
+import { Heading, Text } from "@medusajs/ui"
+import Link from "next/link"
+
+import RefinementList from "@modules/store/components/refinement-list"
+import { SortOptions } from "@modules/store/components/refinement-list/sort-products"
+import PaginatedProducts from "@modules/store/templates/paginated-products"
+import LocalizedClientLink from "@modules/common/components/localized-client-link"
+```
+
+### Types
+
+```typescript copy
+type SearchResultsTemplateProps = {
+  query: string
+  ids: string[]
+  sortBy?: SortOptions
+  page?: string
+  countryCode: string
+}
+```
+
+### Component Structure
+
+```javascript copy
+import { Heading, Text } from "@medusajs/ui"
+import Link from "next/link"
+
+import RefinementList from "@modules/store/components/refinement-list"
+import { SortOptions } from "@modules/store/components/refinement-list/sort-products"
+import PaginatedProducts from "@modules/store/templates/paginated-products"
+import LocalizedClientLink from "@modules/common/components/localized-client-link"
+
+type SearchResultsTemplateProps = {
+  query: string
+  ids: string[]
+  sortBy?: SortOptions
+  page?: string
+  countryCode: string
+}
+
+const SearchResultsTemplate = ({
+  query,
+  ids,
+  sortBy,
+  page,
+  countryCode,
+}: SearchResultsTemplateProps) => {
+  const pageNumber = page ? parseInt(page) : 1
+  
   return (
-    <div className="checkout-container">
-      <CheckoutSummary cart={cart} />
-    </div>
+    <>
+      <div className="flex justify-between border-b w-full py-6 px-8 small:px-14 items-center">
+        <div className="flex flex-col items-start">
+          <Text className="text-ui-fg-muted">Search Results for:</Text>
+          <Heading>
+            {decodeURI(query)} ({ids.length})
+          </Heading>
+        </div>
+        <LocalizedClientLink
+          href="/store"
+          className="txt-medium text-ui-fg-subtle hover:text-ui-fg-base"
+        >
+          Clear
+        </LocalizedClientLink>
+      </div>
+      <div className="flex flex-col small:flex-row small:items-start p-6">
+        {ids.length > 0 ? (
+          <>
+            <RefinementList sortBy={sortBy || "created_at"} search />
+            <div className="content-container">
+              <PaginatedProducts
+                productsIds={ids}
+                sortBy={sortBy}
+                page={pageNumber}
+                countryCode={countryCode}
+              />
+            </div>
+          </>
+        ) : (
+          <Text className="ml-8 small:ml-14 mt-3">No results.</Text>
+        )}
+      </div>
+    </>
   )
 }
+
+export default SearchResultsTemplate
 ```
 
 ## Layout Structure
 
-```tsx copy
-<div className="sticky top-0 flex flex-col-reverse small:flex-col gap-y-8 py-8 small:py-0">
-  <div className="w-full bg-white flex flex-col">
-    {/* Content */}
+### Header Section
+```jsx copy
+<div className="flex justify-between border-b w-full py-6 px-8 small:px-14 items-center">
+  <div className="flex flex-col items-start">
+    <Text className="text-ui-fg-muted">Search Results for:</Text>
+    <Heading>
+      {decodeURI(query)} ({ids.length})
+    </Heading>
   </div>
+  <LocalizedClientLink
+    href="/store"
+    className="txt-medium text-ui-fg-subtle hover:text-ui-fg-base"
+  >
+    Clear
+  </LocalizedClientLink>
 </div>
 ```
 
-## Sub-Components
-
-### Cart Header
-```tsx copy
-<Heading
-  level="h2"
-  className="flex flex-row text-3xl-regular items-baseline"
->
-  In your Cart
-</Heading>
-```
-
-### Items Preview
-Displays cart items using the ItemsPreviewTemplate:
-```tsx copy
-<ItemsPreviewTemplate cart={cart} />
-```
-
-### Cart Totals
-Shows the cart total calculations:
-```tsx copy
-<CartTotals totals={cart} />
-```
-
-### Discount Code
-Provides discount code input functionality:
-```tsx copy
-<DiscountCode cart={cart} />
+### Results Section
+```jsx copy
+<div className="flex flex-col small:flex-row small:items-start p-6">
+  {ids.length > 0 ? (
+    <>
+      <RefinementList sortBy={sortBy || "created_at"} search />
+      <div className="content-container">
+        <PaginatedProducts
+          productsIds={ids}
+          sortBy={sortBy}
+          page={pageNumber}
+          countryCode={countryCode}
+        />
+      </div>
+    </>
+  ) : (
+    <Text className="ml-8 small:ml-14 mt-3">No results.</Text>
+  )}
+</div>
 ```
 
 ## Styling
 
-The component uses a combination of utility classes for:
+- **Header Section:**
+  - `flex justify-between border-b w-full py-6 px-8 small:px-14 items-center` creates a full-width header with appropriate spacing and a bottom border
+  - Uses different horizontal padding for mobile and desktop (`px-8 small:px-14`)
+  - Places title on the left and clear link on the right
 
-### Responsive Layout
-- Uses `small:` breakpoint for different layouts
-- Switches between `flex-col` and `flex-col-reverse` based on screen size
+- **Results Section:**
+  - Uses `flex flex-col small:flex-row` for a responsive layout:
+    - Stacked (column) layout on mobile devices
+    - Side-by-side (row) layout on larger screens
+  - Consistent padding with `p-6`
+  - Special margin for "No results" message with `ml-8 small:ml-14 mt-3`
 
-### Positioning
-- Implements sticky positioning: `sticky top-0`
-- Maintains proper spacing with `gap-y-8`
+- **Text Styling:**
+  - Search label uses `text-ui-fg-muted` for subtle appearance
+  - Clear link uses `text-ui-fg-subtle hover:text-ui-fg-base` for subtle text with hover effect
 
-### Visual Separation
-- Uses `Divider` component for content separation
-- Applies consistent margin spacing
+## Props
 
-## Dependencies
+The component accepts the following props:
 
-### Components
-- `@medusajs/ui`: `Heading`
-- `@modules/cart/templates/preview`: `ItemsPreviewTemplate`
-- `@modules/checkout/components/discount-code`: `DiscountCode`
-- `@modules/common/components/cart-totals`: `CartTotals`
-- `@modules/common/components/divider`: `Divider`
+| Prop | Type | Required | Description |
+|------|------|----------|-------------|
+| `query` | string | Yes | The search query string |
+| `ids` | string[] | Yes | Array of product IDs matching the search query |
+| `sortBy` | SortOptions | No | Current sort option (defaults to "created_at") |
+| `page` | string | No | Current page number as a string (defaults to "1") |
+| `countryCode` | string | Yes | Country code for region-specific product information |
 
-## Responsive Design
+## Child Components
 
-The component implements responsive behavior:
-
-### Mobile View
-- Reversed column layout
-- Additional divider visibility
-- Modified padding
-
-### Desktop View
-- Standard column layout
-- Hidden top divider
-- Adjusted padding
-
-## Best Practices
-
-1. Cart Data Handling
-   - Validate cart data before rendering
-   - Handle empty cart states appropriately
-   - Update cart totals when items change
-
-2. Responsive Design
-   - Maintain readability across screen sizes
-   - Ensure sticky positioning works correctly
-   - Properly handle layout changes
-
-3. User Experience
-   - Keep totals visible during checkout
-   - Provide clear item preview
-   - Make discount code entry accessible
-
-## Component Features
-
-### Sticky Positioning
-- Keeps cart summary visible while scrolling
-- Improves user experience during checkout
-- Maintains context during form filling
-
-### Visual Hierarchy
-- Clear heading for cart contents
-- Separated sections with dividers
-- Organized display of information
-
-### Interactive Elements
-- Discount code application
-- Cart items preview
-- Totals calculation
-
-## Technical Considerations
-
-### Performance
-- Efficient rendering of cart items
-- Proper handling of cart updates
-- Optimized sticky positioning
-
-### Accessibility
-- Semantic heading structure
-- Proper ARIA attributes (inherited from sub-components)
-- Keyboard navigation support
-
-### State Management
-- Cart state handled through props
-- Discount code state managed in sub-component
-- Updates reflected in totals
-
-## Related Components
-
-- Main checkout form
-- Cart page
-- Individual cart item components
-- Payment summary components
-
-## Testing Considerations
-
-Key areas to test:
-1. Cart data rendering
-2. Responsive layout changes
-3. Sticky positioning behavior
-4. Discount code functionality
-5. Totals calculation accuracy
-6. Empty cart states
-
-## Future Improvements
-
-Potential enhancements:
-1. Type safety for cart prop
-2. Loading states for async operations
-3. Error handling for invalid cart data
-4. Animation for total updates
-5. Enhanced mobile experience
-6. Additional cart summary features
+### Required Components
+- `Text` and `Heading`: UI components for text display
+- `RefinementList`: Component for filtering and sorting products
+- `PaginatedProducts`: Component to display products with pagination
+- `LocalizedClientLink`: Component for localized navigation links
 
 ## Examples
 
-### Basic Implementation
-```tsx copy
-<CheckoutSummary cart={{
-  items: [],
-  total: 0,
-  subtotal: 0,
-  discount_total: 0,
-  shipping_total: 0
-}} />
+### Basic Usage
+
+```jsx copy
+import SearchResultsTemplate from "@modules/store/templates/search-results-template"
+
+export default function SearchPage({ searchParams }) {
+  const { q, ids, sort, page, country } = searchParams
+
+  return (
+    <SearchResultsTemplate
+      query={q || ""}
+      ids={ids ? ids.split(",") : []}
+      sortBy={sort}
+      page={page}
+      countryCode={country || "US"}
+    />
+  )
+}
 ```
 
-### With Items and Discount
-```tsx copy
-<CheckoutSummary cart={{
-  items: [
-    {
-      id: "item_1",
-      title: "Product 1",
-      quantity: 2,
-      unit_price: 1000
-    }
-  ],
-  total: 2000,
-  subtotal: 2000,
-  discount_total: 200,
-  shipping_total: 500
-}} />
+### Server Component Implementation
+
+```jsx copy
+import { getProductsByIds } from "@lib/data"
+import SearchResultsTemplate from "@modules/store/templates/search-results-template"
+
+export default async function SearchPage({ searchParams }) {
+  const { q, sort, page } = searchParams
+  const countryCode = "US"
+  
+  // Fetch product IDs based on search query from your backend
+  const searchResults = await fetchSearchResults(q)
+  const productIds = searchResults.map(result => result.id)
+  
+  return (
+    <SearchResultsTemplate
+      query={q || ""}
+      ids={productIds}
+      sortBy={sort}
+      page={page}
+      countryCode={countryCode}
+    />
+  )
+}
+
+async function fetchSearchResults(query) {
+  // Implementation depends on your search backend
+  // ...
+}
 ```
+
+## Conditional Rendering
+
+The component handles empty search results with a conditional rendering approach:
+
+```jsx copy
+{ids.length > 0 ? (
+  <>
+    <RefinementList sortBy={sortBy || "created_at"} search />
+    <div className="content-container">
+      <PaginatedProducts
+        productsIds={ids}
+        sortBy={sortBy}
+        page={pageNumber}
+        countryCode={countryCode}
+      />
+    </div>
+  </>
+) : (
+  <Text className="ml-8 small:ml-14 mt-3">No results.</Text>
+)}
+```
+
+## URL Decoding
+
+The component properly decodes the URL-encoded search query for display:
+
+```jsx copy
+<Heading>
+  {decodeURI(query)} ({ids.length})
+</Heading>
+```
+
+## Responsive Design
+
+The component implements responsive design with different layouts:
+- Mobile: Vertical layout with the refinement list above products
+- Desktop: Horizontal layout with the refinement list beside products
+
+CSS classes that enable this:
+```
+flex flex-col small:flex-row small:items-start
+```
+
+## Pagination Handling
+
+The component converts the page parameter from string to number:
+
+```jsx copy
+const pageNumber = page ? parseInt(page) : 1
+```
+
+This ensures proper pagination functionality with the `PaginatedProducts` component.
+
+## Browser Support
+
+The component works in modern browsers supporting:
+- CSS Flexbox layout
+- React components
+- CSS media queries for responsive design
+- JavaScript ES6 features like destructuring and template literals
+
+## Related Components
+
+- `RefinementList`: Provides filtering and sorting options
+- `PaginatedProducts`: Displays paginated product listings
+- `LocalizedClientLink`: Handles localized navigation

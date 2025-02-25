@@ -1,0 +1,383 @@
+# Search Box Wrapper
+
+A React component that provides the state management and functionality for search inputs, creating a bridge between Algolia's InstantSearch and custom search UI components.
+
+## Syntax
+
+```jsx copy
+<SearchBoxWrapper placeholder="Search products...">
+  {(state) => <YourCustomSearchInput {...state} />}
+</SearchBoxWrapper>
+```
+
+## Description
+
+The `SearchBoxWrapper` component manages search input state and functionality, connecting Algolia's InstantSearch with custom UI components through a render prop pattern. It handles search value changes, form submission, input focus, and synchronization with InstantSearch's query state.
+
+### Features:
+- Manages search input state with React hooks
+- Synchronizes with InstantSearch query refinements
+- Provides input focus management
+- Handles search form submission with routing
+- Offers input reset functionality
+- Uses render prop pattern for flexible UI rendering
+- Supports customizable placeholder text
+
+## Technical Details
+
+### Dependencies
+
+```javascript copy
+import { useRouter } from "next/navigation"
+import {
+  ChangeEvent,
+  FormEvent,
+  RefObject,
+  useEffect,
+  useRef,
+  useState,
+} from "react"
+import { UseSearchBoxProps, useSearchBox } from "react-instantsearch"
+```
+
+### Types
+
+```typescript copy
+export type ControlledSearchBoxProps = React.ComponentProps<"div"> & {
+  inputRef: RefObject<HTMLInputElement | null>
+  onChange(event: ChangeEvent): void
+  onReset(event: FormEvent): void
+  onSubmit?(event: FormEvent): void
+  placeholder?: string
+  value: string
+}
+
+type SearchBoxProps = {
+  children: (state: {
+    value: string
+    inputRef: RefObject<HTMLInputElement | null>
+    onChange: (event: ChangeEvent<HTMLInputElement>) => void
+    onReset: () => void
+    placeholder: string
+  }) => React.ReactNode
+  placeholder?: string
+} & UseSearchBoxProps
+```
+
+### Component Structure
+
+```javascript copy
+import { useRouter } from "next/navigation"
+import {
+  ChangeEvent,
+  FormEvent,
+  RefObject,
+  useEffect,
+  useRef,
+  useState,
+} from "react"
+import { UseSearchBoxProps, useSearchBox } from "react-instantsearch"
+
+export type ControlledSearchBoxProps = React.ComponentProps<"div"> & {
+  inputRef: RefObject<HTMLInputElement | null>
+  onChange(event: ChangeEvent): void
+  onReset(event: FormEvent): void
+  onSubmit?(event: FormEvent): void
+  placeholder?: string
+  value: string
+}
+
+type SearchBoxProps = {
+  children: (state: {
+    value: string
+    inputRef: RefObject<HTMLInputElement | null>
+    onChange: (event: ChangeEvent<HTMLInputElement>) => void
+    onReset: () => void
+    placeholder: string
+  }) => React.ReactNode
+  placeholder?: string
+} & UseSearchBoxProps
+
+const SearchBoxWrapper = ({
+  children,
+  placeholder = "Search products...",
+  ...rest
+}: SearchBoxProps) => {
+  const { query, refine } = useSearchBox(rest)
+  const [value, setValue] = useState(query)
+  const inputRef = useRef<HTMLInputElement>(null)
+  
+  const router = useRouter()
+  
+  const onReset = () => {
+    setValue("")
+  }
+  
+  const onChange = (event: ChangeEvent<HTMLInputElement>) => {
+    setValue(event.currentTarget.value)
+  }
+  
+  const onSubmit = () => {
+    if (value) {
+      router.push(`/results/${value}`)
+    }
+  }
+  
+  useEffect(() => {
+    if (query !== value) {
+      refine(value)
+    }
+    // We don't want to track when the InstantSearch query changes.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [value])
+  
+  useEffect(() => {
+    // We bypass the state update if the input is focused to avoid concurrent
+    // updates when typing.
+    if (document.activeElement !== inputRef.current && query !== value) {
+      setValue(query)
+    }
+    // We don't want to track when the React state value changes.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [query])
+  
+  useEffect(() => {
+    if (inputRef.current) {
+      inputRef.current.focus()
+    }
+  }, [])
+  
+  const state = {
+    value,
+    inputRef,
+    onChange,
+    onSubmit,
+    onReset,
+    placeholder,
+  }
+  
+  return children(state) as React.ReactElement
+}
+
+export default SearchBoxWrapper
+```
+
+## Component Architecture
+
+The component uses a render prop pattern to provide search functionality to custom UI components:
+
+```jsx copy
+<SearchBoxWrapper>
+  {(state) => <YourCustomSearchComponent {...state} />}
+</SearchBoxWrapper>
+```
+
+## State Management
+
+### Local State
+```javascript copy
+const [value, setValue] = useState(query)
+const inputRef = useRef<HTMLInputElement>(null)
+```
+
+### State Synchronization with InstantSearch
+```javascript copy
+useEffect(() => {
+  if (query !== value) {
+    refine(value)
+  }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+}, [value])
+
+useEffect(() => {
+  // We bypass the state update if the input is focused to avoid concurrent
+  // updates when typing.
+  if (document.activeEvent !== inputRef.current && query !== value) {
+    setValue(query)
+  }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+}, [query])
+```
+
+## Event Handlers
+
+### Input Change
+```javascript copy
+const onChange = (event: ChangeEvent<HTMLInputElement>) => {
+  setValue(event.currentTarget.value)
+}
+```
+
+### Reset Input
+```javascript copy
+const onReset = () => {
+  setValue("")
+}
+```
+
+### Form Submission with Routing
+```javascript copy
+const onSubmit = () => {
+  if (value) {
+    router.push(`/results/${value}`)
+  }
+}
+```
+
+## Auto-Focus
+
+The component automatically focuses the input field when mounted:
+
+```javascript copy
+useEffect(() => {
+  if (inputRef.current) {
+    inputRef.current.focus()
+  }
+}, [])
+```
+
+## Render Prop Pattern
+
+The component provides state to child components through a render prop:
+
+```javascript copy
+const state = {
+  value,
+  inputRef,
+  onChange,
+  onSubmit,
+  onReset,
+  placeholder,
+}
+
+return children(state) as React.ReactElement
+```
+
+## Props
+
+| Prop          | Type                      | Default                | Description                                 |
+|---------------|--------------------------|------------------------|---------------------------------------------|
+| children      | Function                 | Required               | Render prop function that receives state    |
+| placeholder   | string                   | "Search products..."   | Placeholder text for search input           |
+| ...rest       | UseSearchBoxProps        | -                      | Props passed to useSearchBox hook           |
+
+## State Props Provided to Children
+
+| Prop          | Type                                        | Description                                 |
+|---------------|-------------------------------------------|---------------------------------------------|
+| value         | string                                    | Current search input value                   |
+| inputRef      | RefObject&lt;HTMLInputElement&gt;         | Reference to the input element              |
+| onChange      | (event: ChangeEvent) => void             | Handler for input change events             |
+| onReset       | () => void                               | Function to clear the input                  |
+| onSubmit      | () => void                               | Function to submit the search query          |
+| placeholder   | string                                    | Placeholder text for the input              |
+
+## Examples
+
+### Basic Usage with Custom Input Component
+
+```jsx copy
+import SearchBoxWrapper from "./SearchBoxWrapper"
+
+// Custom search input component
+const CustomSearchInput = ({ value, inputRef, onChange, onReset, onSubmit, placeholder }) => {
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    onSubmit();
+  }
+  
+  return (
+    <form onSubmit={handleSubmit} className="relative">
+      <input
+        ref={inputRef}
+        type="search"
+        value={value}
+        onChange={onChange}
+        placeholder={placeholder}
+        className="w-full p-2 border rounded"
+      />
+      {value && (
+        <button 
+          type="button" 
+          onClick={onReset}
+          className="absolute right-10 top-2"
+        >
+          Clear
+        </button>
+      )}
+      <button type="submit" className="absolute right-2 top-2">
+        Search
+      </button>
+    </form>
+  )
+}
+
+// Usage in a component
+export default function SearchBar() {
+  return (
+    <div className="max-w-md mx-auto">
+      <SearchBoxWrapper placeholder="Find products...">
+        {(state) => <CustomSearchInput {...state} />}
+      </SearchBoxWrapper>
+    </div>
+  )
+}
+```
+
+### Integration with InstantSearch
+
+```jsx copy
+import { InstantSearch } from 'react-instantsearch'
+import SearchBoxWrapper from "./SearchBoxWrapper"
+import SearchBox from "./SearchBox"
+import Hits from "./Hits"
+import algoliasearch from 'algoliasearch/lite'
+
+const searchClient = algoliasearch('YOUR_APP_ID', 'YOUR_SEARCH_KEY')
+
+export default function SearchPage() {
+  return (
+    <InstantSearch searchClient={searchClient} indexName="products">
+      <div className="container mx-auto py-8">
+        <h1 className="text-2xl font-bold mb-4">Search Products</h1>
+        <SearchBoxWrapper>
+          {(props) => <SearchBox {...props} />}
+        </SearchBoxWrapper>
+        <Hits />
+      </div>
+    </InstantSearch>
+  )
+}
+```
+
+## Navigation Integration
+
+The component integrates with Next.js routing to navigate to a search results page:
+
+```javascript copy
+const router = useRouter()
+
+const onSubmit = () => {
+  if (value) {
+    router.push(`/results/${value}`)
+  }
+}
+```
+
+## ESLint Configurations
+
+The component uses ESLint disable comments to prevent unnecessary dependency warnings in effects:
+
+```javascript copy
+// We don't want to track when the InstantSearch query changes.
+// eslint-disable-next-line react-hooks/exhaustive-deps
+```
+
+## Browser Support
+
+The component works in modern browsers supporting:
+
+- React and React hooks
+- Next.js routing
+- DOM APIs (document.activeElement)
+- Modern JavaScript features

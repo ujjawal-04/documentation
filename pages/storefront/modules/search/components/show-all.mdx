@@ -1,0 +1,229 @@
+# Show All
+
+A React component that displays contextual messaging in search results, providing either a "no results" message or a "view all" link based on search state.
+
+## Syntax
+
+```jsx copy
+<ShowAll />
+```
+
+## Description
+
+The `ShowAll` component provides context-aware messaging in search results. It shows different UI states based on the current search query and results count, offering a "View all" link when there are more results than can be displayed in the current view.
+
+### Features:
+- Displays "No results found" message when a search returns no hits
+- Shows a "View all" link when there are more results than displayed
+- Automatically handles responsive behavior based on screen width
+- Conditionally renders based on search state
+- Integrates with Algolia InstantSearch hooks
+- Properly handles server-side rendering
+
+## Technical Details
+
+### Dependencies
+
+```javascript copy
+import { Container, Text } from "@medusajs/ui"
+import { useHits, useSearchBox } from "react-instantsearch"
+import InteractiveLink from "@modules/common/components/interactive-link"
+```
+
+### Component Structure
+
+```javascript copy
+import { Container, Text } from "@medusajs/ui"
+import { useHits, useSearchBox } from "react-instantsearch"
+import InteractiveLink from "@modules/common/components/interactive-link"
+
+const ShowAll = () => {
+  const { hits } = useHits()
+  const { query } = useSearchBox()
+  const width = typeof window !== "undefined" ? window.innerWidth : 0
+  
+  if (query === "") return null
+  if (hits.length > 0 && hits.length <= 6) return null
+  
+  if (hits.length === 0) {
+    return (
+      <Container
+        className="flex gap-2 justify-center h-fit py-2"
+        data-testid="no-search-results-container"
+      >
+        <Text>No results found.</Text>
+      </Container>
+    )
+  }
+  
+  return (
+    <Container className="flex sm:flex-col small:flex-row gap-2 justify-center items-center h-fit py-4 small:py-2">
+      <Text>Showing the first {width > 640 ? 6 : 3} results.</Text>
+      <InteractiveLink href={`/results/${query}`}>View all</InteractiveLink>
+    </Container>
+  )
+}
+
+export default ShowAll
+```
+
+## Conditional Rendering Logic
+
+The component implements several conditional rendering patterns:
+
+1. Returns null (renders nothing) when:
+   ```javascript copy
+   if (query === "") return null
+   if (hits.length > 0 && hits.length <= 6) return null
+   ```
+
+2. Returns "No results found" message when:
+   ```javascript copy
+   if (hits.length === 0) {
+     return (
+       <Container
+         className="flex gap-2 justify-center h-fit py-2"
+         data-testid="no-search-results-container"
+       >
+         <Text>No results found.</Text>
+       </Container>
+     )
+   }
+   ```
+
+3. Returns "View all" message with link when there are more than 6 results:
+   ```javascript copy
+   return (
+     <Container className="flex sm:flex-col small:flex-row gap-2 justify-center items-center h-fit py-4 small:py-2">
+       <Text>Showing the first {width > 640 ? 6 : 3} results.</Text>
+       <InteractiveLink href={`/results/${query}`}>View all</InteractiveLink>
+     </Container>
+   )
+   ```
+
+## Layout Structure
+
+### No Results Message
+```jsx copy
+<Container
+  className="flex gap-2 justify-center h-fit py-2"
+  data-testid="no-search-results-container"
+>
+  <Text>No results found.</Text>
+</Container>
+```
+
+### View All Message and Link
+```jsx copy
+<Container className="flex sm:flex-col small:flex-row gap-2 justify-center items-center h-fit py-4 small:py-2">
+  <Text>Showing the first {width > 640 ? 6 : 3} results.</Text>
+  <InteractiveLink href={`/results/${query}`}>View all</InteractiveLink>
+</Container>
+```
+
+## Styling
+
+- **Containers:**
+  - No Results Container: `flex gap-2 justify-center h-fit py-2`
+  - View All Container: `flex sm:flex-col small:flex-row gap-2 justify-center items-center h-fit py-4 small:py-2`
+  
+- **Responsive Behavior:**
+  - Uses `sm:flex-col` for column layout on small screens
+  - Uses `small:flex-row` for row layout on larger screens
+  - Adjusts padding with `py-4 small:py-2`
+
+## Algolia Integration
+
+The component uses Algolia InstantSearch hooks:
+- `useHits()`: To access the current search results
+- `useSearchBox()`: To access the current search query
+
+## Responsive Design
+
+The component implements responsive design:
+- Detects screen width with `const width = typeof window !== "undefined" ? window.innerWidth : 0`
+- Shows different result counts based on screen size: `width > 640 ? 6 : 3`
+- Changes layout direction based on screen size with responsive classes
+
+## Server-Side Rendering Support
+
+The component safely handles server-side rendering by checking for `window` existence:
+```javascript copy
+const width = typeof window !== "undefined" ? window.innerWidth : 0
+```
+
+## Examples
+
+### Basic Usage with InstantSearch
+
+```jsx copy
+import { InstantSearch } from 'react-instantsearch'
+import SearchBox from "./SearchBox"
+import Hits from "./Hits"
+import ShowAll from "./ShowAll"
+import algoliasearch from 'algoliasearch/lite'
+
+const searchClient = algoliasearch('YOUR_APP_ID', 'YOUR_SEARCH_KEY')
+
+export default function SearchResults() {
+  return (
+    <InstantSearch searchClient={searchClient} indexName="products">
+      <div className="container mx-auto py-8">
+        <SearchBox />
+        <Hits />
+        <ShowAll />
+      </div>
+    </InstantSearch>
+  )
+}
+```
+
+### Usage in a Dropdown Search
+
+```jsx copy
+import Dropdown from "./Dropdown"
+import SearchBox from "./SearchBox"
+import ShowAll from "./ShowAll"
+import SearchResults from "./SearchResults"
+
+export default function SearchDropdown() {
+  return (
+    <Dropdown>
+      <div className="p-4">
+        <SearchBox />
+        <div className="max-h-96 overflow-y-auto mt-4">
+          <SearchResults />
+        </div>
+        <div className="border-t mt-2 pt-2">
+          <ShowAll />
+        </div>
+      </div>
+    </Dropdown>
+  )
+}
+```
+
+## Navigation Integration
+
+The component links to a dedicated results page using the current search query:
+```jsx copy
+<InteractiveLink href={`/results/${query}`}>View all</InteractiveLink>
+```
+
+## Accessibility
+
+- Uses Medusa UI's accessible components
+- Implements appropriate testing attributes with `data-testid="no-search-results-container"`
+- Uses semantic HTML with proper text elements
+- Maintains appropriate text contrast and spacing
+- Provides clear context for search results state
+
+## Browser Support
+
+The component works in modern browsers supporting:
+
+- React and React hooks
+- Algolia InstantSearch hooks
+- Window width detection (with SSR fallback)
+- CSS Flexbox
+- CSS responsive classes

@@ -1,202 +1,333 @@
-# Checkout Form 
+# Search Modal
 
-An asynchronous server component that orchestrates the complete checkout process, managing shipping methods, payment options, and customer information.
+A React component that displays a modal search interface with instant search functionality, allowing users to search for products in an overlay.
 
-## Props
+## Syntax
 
-| Prop | Type | Required | Description |
-|------|------|----------|-------------|
-| cart | HttpTypes.StoreCart \| null | Yes | The current cart object containing items and checkout information |
-| customer | HttpTypes.StoreCustomer \| null | Yes | Customer information if available |
+```jsx copy
+<SearchModal />
+```
 
-## Component Structure
+## Description
 
-The CheckoutForm coordinates four main checkout steps:
+The `SearchModal` component creates a full-screen overlay with a search input and results display. It's designed to provide a focused search experience with a backdrop blur effect and keyboard navigation support. The component handles its own lifecycle, including closing when clicking outside or pressing the escape key.
 
-1. Address Collection (`Addresses`)
-2. Shipping Method Selection (`Shipping`)
-3. Payment Method Selection (`Payment`)
-4. Order Review (`Review` - currently commented out)
+### Features:
+- Full-screen modal overlay with blur effect
+- Integrated InstantSearch functionality
+- Responsive design for different screen sizes
+- Automatic focus on search input
+- Close on escape key or outside click
+- Prevents background scrolling when open
+- Clean visual styling with backdrop blur
+- Accessibility considerations for keyboard navigation
 
-## Usage
+## Technical Details
 
-```tsx copy
-import CheckoutForm from "./components/CheckoutForm"
+### Dependencies
 
-const CheckoutPage = async () => {
-  const cart = await fetchCart()
-  const customer = await fetchCustomer()
+```javascript copy
+"use client"
+import { InstantSearch } from "react-instantsearch"
+import { useRouter } from "next/navigation"
+import { MagnifyingGlassMini } from "@medusajs/icons"
+import { SEARCH_INDEX_NAME, searchClient } from "@lib/search-client"
+import Hit from "@modules/search/components/hit"
+import Hits from "@modules/search/components/hits"
+import SearchBox from "@modules/search/components/search-box"
+import { useEffect, useRef } from "react"
+```
 
+### Component Structure
+
+```javascript copy
+"use client"
+
+import { InstantSearch } from "react-instantsearch"
+import { useRouter } from "next/navigation"
+import { MagnifyingGlassMini } from "@medusajs/icons"
+
+import { SEARCH_INDEX_NAME, searchClient } from "@lib/search-client"
+import Hit from "@modules/search/components/hit"
+import Hits from "@modules/search/components/hits"
+import SearchBox from "@modules/search/components/search-box"
+import { useEffect, useRef } from "react"
+
+export default function SearchModal() {
+  const router = useRouter()
+  const searchRef = useRef(null)
+  
+  // close modal on outside click
+  const handleOutsideClick = (event: MouseEvent) => {
+    if (event.target === searchRef.current) {
+      router.back()
+    }
+  }
+  
+  useEffect(() => {
+    window.addEventListener("click", handleOutsideClick)
+    // cleanup
+    return () => {
+      window.removeEventListener("click", handleOutsideClick)
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
+  
+  // disable scroll on body when modal is open
+  useEffect(() => {
+    document.body.style.overflow = "hidden"
+    return () => {
+      document.body.style.overflow = "unset"
+    }
+  }, [])
+  
+  // on escape key press, close modal
+  useEffect(() => {
+    const handleEsc = (event: KeyboardEvent) => {
+      if (event.key === "Escape") {
+        router.back()
+      }
+    }
+    window.addEventListener("keydown", handleEsc)
+    
+    // cleanup
+    return () => {
+      window.removeEventListener("keydown", handleEsc)
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
+  
   return (
-    <div className="container">
-      <CheckoutForm 
-        cart={cart}
-        customer={customer}
-      />
+    <div className="relative z-[75]">
+      <div className="fixed inset-0 bg-opacity-75 backdrop-blur-md opacity-100 h-screen w-screen" />
+      <div className="fixed inset-0 px-5 sm:p-0" ref={searchRef}>
+        <div className="flex flex-col justify-start w-full h-fit transform p-5 items-center text-left align-middle transition-all max-h-[75vh] bg-transparent shadow-none">
+          {/* @ts-ignore */}
+          <InstantSearch
+            indexName={SEARCH_INDEX_NAME}
+            searchClient={searchClient}
+          >
+            <div
+              className="flex absolute flex-col h-fit w-full sm:w-fit"
+              data-testid="search-modal-container"
+            >
+              <div className="w-full flex items-center gap-x-2 p-4 bg-[rgba(3,7,18,0.5)] text-ui-fg-on-color backdrop-blur-2xl rounded-rounded">
+                <MagnifyingGlassMini />
+                <SearchBox />
+              </div>
+              <div className="flex-1 mt-6">
+                <Hits hitComponent={Hit} />
+              </div>
+            </div>
+          </InstantSearch>
+        </div>
+      </div>
     </div>
   )
 }
 ```
 
-## Data Fetching
+## Layout Structure
 
-The component fetches necessary data for the checkout process:
-
-```typescript copy
-// Fetch available shipping methods
-const shippingMethods = await listCartShippingMethods(cart.id)
-
-// Payment methods configuration
-const paymentMethods = [
-  { id: 'pp_stripe_stripe', is_enabled: true },
-  { id: 'pp_system_default', is_enabled: true },
-  { id: 'pp_zelle_default', is_enabled: true },
-  { id: 'pp_crypto_default', is_enabled: true },
-]
-```
-
-## Payment Methods
-
-The component supports multiple payment providers:
-
-- Stripe (`pp_stripe_stripe`)
-- System Default (`pp_system_default`)
-- Zelle (`pp_zelle_default`)
-- Cryptocurrency (`pp_crypto_default`)
-
-## Component Layout
-
-Uses a responsive grid layout:
-
-```tsx copy
-<div className="w-full grid grid-cols-1 gap-y-8">
-  <Addresses ... />
-  <Shipping ... />
-  <Payment ... />
-  {/* <Review ... /> */}
+### Modal Container and Backdrop
+```jsx copy
+<div className="relative z-[75]">
+  <div className="fixed inset-0 bg-opacity-75 backdrop-blur-md opacity-100 h-screen w-screen" />
+  <div className="fixed inset-0 px-5 sm:p-0" ref={searchRef}>
+    {/* Modal Content */}
+  </div>
 </div>
 ```
 
-## Sub-Components
-
-### Addresses Component
-Handles collection and validation of shipping and billing addresses:
-```tsx copy
-<Addresses 
-  cart={cart} 
-  customer={customer} 
-/>
+### Search Interface Container
+```jsx copy
+<div className="flex flex-col justify-start w-full h-fit transform p-5 items-center text-left align-middle transition-all max-h-[75vh] bg-transparent shadow-none">
+  {/* InstantSearch Component */}
+</div>
 ```
 
-### Shipping Component
-Manages shipping method selection:
-```tsx copy
-<Shipping 
-  cart={cart} 
-  availableShippingMethods={shippingMethods} 
-/>
+### InstantSearch Implementation
+```jsx copy
+<InstantSearch
+  indexName={SEARCH_INDEX_NAME}
+  searchClient={searchClient}
+>
+  <div
+    className="flex absolute flex-col h-fit w-full sm:w-fit"
+    data-testid="search-modal-container"
+  >
+    {/* Search Box */}
+    {/* Search Results */}
+  </div>
+</InstantSearch>
 ```
 
-### Payment Component
-Handles payment method selection and processing:
-```tsx copy
-<Payment 
-  cart={cart} 
-  availablePaymentMethods={paymentMethods} 
-/>
+### Search Box
+```jsx copy
+<div className="w-full flex items-center gap-x-2 p-4 bg-[rgba(3,7,18,0.5)] text-ui-fg-on-color backdrop-blur-2xl rounded-rounded">
+  <MagnifyingGlassMini />
+  <SearchBox />
+</div>
 ```
 
-### Review Component (Optional)
-Final order review step (currently disabled):
-```tsx copy
-{/* <Review cart={cart} /> */}
+### Search Results
+```jsx copy
+<div className="flex-1 mt-6">
+  <Hits hitComponent={Hit} />
+</div>
 ```
 
-## Error Handling
+## Styling
 
-The component implements basic error handling:
+- **Modal Backdrop:** Uses `fixed inset-0 bg-opacity-75 backdrop-blur-md opacity-100 h-screen w-screen` for a semi-transparent blurred background.
+- **Modal Container:** Uses `relative z-[75]` to ensure the modal appears above other page elements.
+- **Search Area:** 
+  - Full width on mobile (`w-full`)
+  - Auto width on desktop (`sm:w-fit`)
+  - Limited height (`max-h-[75vh]`) to prevent overflow on smaller screens
+- **Search Box:** 
+  - Uses `bg-[rgba(3,7,18,0.5)] text-ui-fg-on-color backdrop-blur-2xl rounded-rounded` for a semi-transparent dark background with additional blur
+  - Contains search icon and input field with proper padding and spacing
+- **Search Results:** Uses `flex-1 mt-6` to fill available space with top margin
 
-- Returns null if cart is not available
-- Returns null if shipping or payment methods cannot be fetched
-- Sub-components handle their own error states
+## Interaction Behaviors
 
-## Dependencies
+The component implements several key interaction behaviors:
 
-### External Libraries
-- `@medusajs/types`: For type definitions
-- Data fetching utilities from `@lib/data`
+### Click Outside to Close
+```javascript copy
+// close modal on outside click
+const handleOutsideClick = (event: MouseEvent) => {
+  if (event.target === searchRef.current) {
+    router.back()
+  }
+}
 
-### Internal Components
-- `@modules/checkout/components/addresses`
-- `@modules/checkout/components/payment`
-- `@modules/checkout/components/review`
-- `@modules/checkout/components/shipping`
-
-## Best Practices
-
-1. Validate cart existence before processing
-2. Ensure all required methods are available
-3. Handle loading and error states appropriately
-4. Maintain proper order of checkout steps
-5. Provide clear feedback for each step
-6. Implement proper type checking
-
-## Data Flow
-
-```mermaid
-graph TD
-    A[CheckoutForm] --> B[Fetch Shipping Methods]
-    A --> C[Configure Payment Methods]
-    B --> D[Render Components]
-    C --> D
-    D --> E[Addresses]
-    D --> F[Shipping]
-    D --> G[Payment]
-    D --> H[Review]
+useEffect(() => {
+  window.addEventListener("click", handleOutsideClick)
+  // cleanup
+  return () => {
+    window.removeEventListener("click", handleOutsideClick)
+  }
+}, [])
 ```
 
-## Technical Considerations
+### Disable Background Scrolling
+```javascript copy
+// disable scroll on body when modal is open
+useEffect(() => {
+  document.body.style.overflow = "hidden"
+  return () => {
+    document.body.style.overflow = "unset"
+  }
+}, [])
+```
 
-### Server Component
-- Uses the `async` keyword for server-side rendering
-- Handles data fetching before component render
-- Provides data to client-side sub-components
+### Escape Key to Close
+```javascript copy
+// on escape key press, close modal
+useEffect(() => {
+  const handleEsc = (event: KeyboardEvent) => {
+    if (event.key === "Escape") {
+      router.back()
+    }
+  }
+  window.addEventListener("keydown", handleEsc)
+  
+  // cleanup
+  return () => {
+    window.removeEventListener("keydown", handleEsc)
+  }
+}, [])
+```
 
-### Performance
-- Minimizes client-side data fetching
-- Loads payment methods configuration statically
-- Implements null checks for efficient rendering
+## Child Components
 
-### Type Safety
-- Uses Medusa HTTP types for proper type checking
-- Implements null checks for optional props
-- Ensures type safety in sub-component props
+### Required Components
+- `InstantSearch`: Provides the search functionality framework
+- `SearchBox`: Renders the search input field
+- `Hits`: Displays the search results
+- `Hit`: Individual search result component (referenced in the document)
+- `MagnifyingGlassMini`: Icon for the search input
 
-## Testing Considerations
+## Examples
 
-Key areas to test:
-1. Cart validation
-2. Shipping method availability
-3. Payment method configuration
-4. Component rendering with various prop combinations
-5. Error state handling
-6. Data fetching failures
-7. Sub-component integration
+### Basic Usage
 
-## Customization
+```jsx copy
+// In a route handler or page component
+import { useRouter } from "next/navigation"
 
-The component can be customized by:
-1. Modifying the payment methods array
-2. Adjusting the grid layout classes
-3. Enabling/disabling the Review step
-4. Adding additional checkout steps
-5. Modifying the data fetching logic
+export default function ProductPage() {
+  const router = useRouter()
 
-## Future Improvements
+  const openSearchModal = () => {
+    router.push("/search")
+  }
 
-Potential enhancements:
-1. Re-enable Review step with proper integration
-2. Add progress indicator for checkout steps
-3. Implement better error handling and recovery
-4. Add loading states for data fetching
-5. Enhance type safety with stricter types
+  return (
+    <div>
+      <button onClick={openSearchModal}>Search Products</button>
+      {/* Rest of page content */}
+    </div>
+  )
+}
+```
+
+### Implementation in a Route
+
+```jsx copy
+// app/search/page.tsx
+export default function SearchPage() {
+  return <SearchModal />
+}
+```
+
+### With Custom Search Client Configuration
+
+```jsx copy
+// lib/search-client.ts
+import algoliasearch from "algoliasearch/lite"
+
+export const SEARCH_INDEX_NAME = process.env.NEXT_PUBLIC_SEARCH_INDEX_NAME || "products"
+
+export const searchClient = algoliasearch(
+  process.env.NEXT_PUBLIC_SEARCH_APP_ID || "",
+  process.env.NEXT_PUBLIC_SEARCH_API_KEY || ""
+)
+```
+
+## Navigation
+
+The component uses Next.js router to handle navigation:
+- Uses `router.back()` to close the modal, returning to the previous page
+- This approach maintains browser history properly
+
+## Responsive Design
+
+The component adapts to different screen sizes:
+- Mobile: Full-width search interface with horizontal padding (`px-5`)
+- Desktop: Auto-width search interface without horizontal padding (`sm:p-0`)
+
+## Accessibility
+
+- Implements keyboard navigation with Escape key support
+- Maintains proper focus management
+- Uses semantic HTML structure
+- Includes data-testid attributes for testing
+- Prevents background content scrolling when modal is open
+- Appropriate z-index to ensure modal appears above other content
+
+## Browser Support
+
+The component relies on modern browser features:
+- CSS Flexbox layout
+- Backdrop filter for blur effects
+- Event listeners for keyboard and mouse events
+- React hooks for lifecycle management
+
+## Performance Considerations
+
+- Cleans up event listeners in useEffect return functions
+- Uses refs instead of direct DOM manipulation
+- Restores body scroll state on component unmount

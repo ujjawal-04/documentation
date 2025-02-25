@@ -1,132 +1,256 @@
-# Address Select
+# Hit
 
-The `Address Select` component creates a dropdown list for selecting shipping addresses. It uses the Headless UI Listbox component to create an accessible address selection interface with a custom design.
+A React component that displays a product search result item with thumbnail and title, linking to the product detail page.
 
-## Overview
+## Syntax
 
-The `Address Select` component allows users to select from a list of previously saved addresses. It displays address details in a dropdown format and supports keyboard navigation and screen readers.
+```jsx copy
+<Hit hit={productData} />
+```
 
-## Props
+## Description
 
-The component accepts the following props:
+The `Hit` component renders an individual product search result, displaying the product thumbnail and title in a clean, clickable card format. It's typically used within search results listings to present products in a consistent, visually appealing manner.
 
-### addresses
-- Type: `HttpTypes.StoreCustomerAddress[]`
-- Required: Yes
-- Description: An array of address objects containing customer address information.
+### Features:
+- Displays product thumbnail image
+- Shows product title
+- Links directly to the product detail page
+- Maintains consistent styling for search results
+- Responsive design for different screen sizes
+- Appropriate data-testid attributes for testing
 
-### addressInput
-- Type: `HttpTypes.StoreCartAddress | null`
-- Required: Yes
-- Description: The currently selected address in the cart, or null if no address is selected.
+## Technical Details
 
-### onSelect
-- Type: `(address: HttpTypes.StoreCartAddress | undefined, email?: string) => void`
-- Required: Yes
-- Description: Callback function that is called when a new address is selected.
+### Dependencies
 
-## Address Object Structure
+```javascript copy
+import { Text } from "@medusajs/ui"
+import Thumbnail from "@modules/products/components/thumbnail"
+import LocalizedClientLink from "@modules/common/components/localized-client-link"
+import { HttpTypes } from "@medusajs/types"
+```
 
-Each address object in the `addresses` array should contain the following properties:
+### Types
 
 ```typescript copy
-{
+export type ProductHit = {
   id: string
-  first_name: string
-  last_name: string
-  company?: string
-  address_1: string
-  address_2?: string
-  city: string
-  postal_code: string
-  province?: string
-  country_code: string
+  title: string
+  handle: string
+  description: string | null
+  thumbnail: string | null
+  variants: HttpTypes.StoreProductVariant[]
+  collection_handle: string | null
+  collection_id: string | null
+}
+
+type HitProps = {
+  hit: ProductHit
 }
 ```
+
+### Component Structure
+
+```javascript copy
+import { Text } from "@medusajs/ui"
+import Thumbnail from "@modules/products/components/thumbnail"
+import LocalizedClientLink from "@modules/common/components/localized-client-link"
+import { HttpTypes } from "@medusajs/types"
+
+export type ProductHit = {
+  id: string
+  title: string
+  handle: string
+  description: string | null
+  thumbnail: string | null
+  variants: HttpTypes.StoreProductVariant[]
+  collection_handle: string | null
+  collection_id: string | null
+}
+
+type HitProps = {
+  hit: ProductHit
+}
+
+const Hit = ({ hit }: HitProps) => {
+  return (
+    <LocalizedClientLink
+      href={`/products/${hit.handle}`}
+      data-testid="search-result"
+    >
+      <div
+        key={hit.id}
+        className="flex flex-col w-full p-2 bg-white rounded-lg items-center justify-center"
+      >
+        <Thumbnail
+          thumbnail={hit.thumbnail}
+          size="square"
+          className="group h-32 w-32 sm:h-[200px] sm:w-[200px] !border-0"
+        />
+        <div className="flex flex-col justify-between group py-1 text-center">
+          <div className="flex flex-col">
+            <Text
+              className="text-ui-fg-subtle"
+              data-testid="search-result-title"
+            >
+              {hit.title}
+            </Text>
+          </div>
+        </div>
+      </div>
+    </LocalizedClientLink>
+  )
+}
+
+export default Hit
+```
+
+## Layout Structure
+
+### Link Container
+```jsx copy
+<LocalizedClientLink
+  href={`/products/${hit.handle}`}
+  data-testid="search-result"
+>
+  {/* Content */}
+</LocalizedClientLink>
+```
+
+### Product Card
+```jsx copy
+<div
+  key={hit.id}
+  className="flex flex-col w-full p-2 bg-white rounded-lg items-center justify-center"
+>
+  {/* Thumbnail and product information */}
+</div>
+```
+
+### Thumbnail
+```jsx copy
+<Thumbnail
+  thumbnail={hit.thumbnail}
+  size="square"
+  className="group h-32 w-32 sm:h-[200px] sm:w-[200px] !border-0"
+/>
+```
+
+### Product Information
+```jsx copy
+<div className="flex flex-col justify-between group py-1 text-center">
+  <div className="flex flex-col">
+    <Text
+      className="text-ui-fg-subtle"
+      data-testid="search-result-title"
+    >
+      {hit.title}
+    </Text>
+  </div>
+</div>
+```
+
+## Styling
+
+- **Container:** Uses `flex flex-col w-full p-2 bg-white rounded-lg items-center justify-center` for a clean card-like appearance with centered content.
+- **Thumbnail:**
+  - Uses `group h-32 w-32 sm:h-[200px] sm:w-[200px] !border-0` for responsive sizing
+  - Small screens: 128px × 128px (h-32 w-32)
+  - Larger screens: 200px × 200px (sm:h-[200px] sm:w-[200px])
+  - Explicitly removes borders with `!border-0`
+- **Product Information:** Uses `flex flex-col justify-between group py-1 text-center` for centered text with vertical padding.
+- **Product Title:** Styled with `text-ui-fg-subtle` for subtle, non-emphasized text color.
+
+## Product Navigation
+
+The component creates a link to the product detail page using the product handle:
+```jsx copy
+<LocalizedClientLink href={`/products/${hit.handle}`} data-testid="search-result">
+  {/* Content */}
+</LocalizedClientLink>
+```
+
+## Child Components
+
+### Required Components
+- `Thumbnail`: Displays the product image
+- `Text`: Renders text with appropriate styling
+- `LocalizedClientLink`: Provides localized navigation to the product page
 
 ## Examples
 
 ### Basic Usage
 
 ```jsx copy
-import AddressSelect from "@modules/common/components/address-select"
+import Hit from "./Hit"
 
-function ShippingForm() {
-  const addresses = [
-    {
-      id: "addr_1",
-      first_name: "John",
-      last_name: "Doe",
-      address_1: "123 Main St",
-      city: "Boston",
-      postal_code: "02101",
-      country_code: "US"
-    }
-  ]
-
-  const handleAddressSelect = (address) => {
-    // Handle address selection
-    console.log("Selected address:", address)
-  }
-
+export default function SearchResults({ products }) {
   return (
-    <AddressSelect
-      addresses={addresses}
-      addressInput={null}
-      onSelect={handleAddressSelect}
-    />
+    <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
+      {products.map((product) => (
+        <Hit key={product.id} hit={product} />
+      ))}
+    </div>
   )
 }
 ```
 
-## Features
+### With Algolia InstantSearch
+```jsx copy
+import { InstantSearch, Hits } from 'react-instantsearch-dom'
+import Hit from "./Hit"
+import algoliasearch from 'algoliasearch/lite'
 
-- Accessible dropdown menu using Headless UI
-- Keyboard navigation support
-- Visual feedback for selected address
-- Optional company name display
-- Formatted address display including:
-  - Full name
-  - Street address (with optional second line)
-  - City and postal code
-  - Province (if provided)
-  - Country code
+const searchClient = algoliasearch('YOUR_APP_ID', 'YOUR_SEARCH_KEY')
 
-## Styling
+export default function SearchPage() {
+  return (
+    <InstantSearch searchClient={searchClient} indexName="products">
+      <div className="py-6">
+        <Hits hitComponent={Hit} />
+      </div>
+    </InstantSearch>
+  )
+}
+```
 
-The component uses Tailwind CSS classes for styling and includes:
+## Product Data Structure
 
-- Hover states for address options
-- Focus states for keyboard navigation
-- Custom radio button indicators
-- Transition animations for dropdown
+The component expects a `ProductHit` object with the following structure:
+```typescript copy
+type ProductHit = {
+  id: string               // Unique product ID
+  title: string            // Product name
+  handle: string           // URL slug for the product
+  description: string | null  // Product description (optional)
+  thumbnail: string | null    // URL to product thumbnail image (optional)
+  variants: HttpTypes.StoreProductVariant[]  // Product variants
+  collection_handle: string | null  // Collection handle (optional)
+  collection_id: string | null      // Collection ID (optional)
+}
+```
 
-## Dependencies
+## Responsive Design
 
-- @headlessui/react: For accessible dropdown functionality
-- @medusajs/icons: For chevron icons
-- @medusajs/ui: For utility functions
-- @medusajs/types: For TypeScript types
+The component implements responsive design with different thumbnail sizes:
+- Mobile view: 128px × 128px thumbnail
+- Desktop view: 200px × 200px thumbnail
 
 ## Accessibility
 
-The component implements several accessibility features:
-
-- ARIA attributes via Headless UI
-- Keyboard navigation support
-- Focus management
-- Screen reader announcements for selection changes
+- Uses semantic HTML structure
+- Wraps each product in a link for proper navigation
+- Includes data-testid attributes for testing
+- Text has appropriate contrast with background
+- Centered content improves readability
+- Clear visual hierarchy with thumbnail and title
 
 ## Browser Support
 
-This component relies on modern JavaScript features and React. It should work in all modern browsers that support:
+The component works in modern browsers supporting:
 
-- CSS Grid
-- CSS Flexbox
-- CSS Transitions
-- Modern JavaScript (ES6+)
-
-## See Also
-
-- [Headless UI Listbox Documentation](https://headlessui.dev/react/listbox)
-- [Medusa UI Documentation](https://docs.medusajs.com/ui)
+- CSS Flexbox layout
+- CSS Grid (when used in a grid container)
+- React components
+- CSS media queries for responsive design

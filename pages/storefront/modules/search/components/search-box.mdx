@@ -1,270 +1,332 @@
-# Billing Address
+# Search Box
 
-The `Billing Address` component is a React component that renders a form for collecting billing address information. It provides a comprehensive set of input fields for address details with proper validation and state management.
+A React component that provides a customizable search input field with clear functionality, designed to work with search systems like Algolia's InstantSearch.
 
-## Overview
-
-```typescript copy
-import { HttpTypes } from "@medusajs/types"
-import Input from "@modules/common/components/input"
-import React, { useState } from "react"
-import CountrySelect from "../country-select"
-import Checkbox from "@modules/common/components/checkbox"
-
-const BillingAddress = ({ cart }: { cart: HttpTypes.StoreCart | null }) => {
-  // Component implementation
-}
-```
-
-## Props
-
-```typescript copy
-type BillingAddressProps = {
-  cart: HttpTypes.StoreCart | null
-}
-```
-
-### cart
-- Type: `HttpTypes.StoreCart | null`
-- Required: Yes
-- Description: The current cart object containing existing billing address information, if any.
-
-## State Management
-
-The component uses React's useState hook to manage form data:
-
-```typescript copy
-const [formData, setFormData] = useState<any>({
-  "billing_address.first_name": cart?.billing_address?.first_name || "",
-  "billing_address.last_name": cart?.billing_address?.last_name || "",
-  "billing_address.address_1": cart?.billing_address?.address_1 || "",
-  "billing_address.company": cart?.billing_address?.company || "",
-  "billing_address.postal_code": cart?.billing_address?.postal_code || "",
-  "billing_address.city": cart?.billing_address?.city || "",
-  "billing_address.country_code": cart?.billing_address?.country_code || "US",
-  "billing_address.province": cart?.billing_address?.province || "",
-  "billing_address.phone": cart?.billing_address?.phone || "",
-})
-```
-
-## Event Handlers
-
-```typescript copy
-const handleChange = (
-  e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
-) => {
-  setFormData({
-    ...formData,
-    [e.target.name]: e.target.value,
-  })
-}
-```
-
-## Form Structure
-
-The component renders a form with the following fields:
-
-### Country Selection
-```typescript copy
-<CountrySelect
-  aria-label="Country"
-  name="billing_address.country_code"
-  autoComplete="country"
-  region={cart?.region}
-  value={formData["billing_address.country_code"]}
-  onChange={handleChange}
-  required
-  data-testid="billing-country-select"
-/>
-```
-
-### Personal Information
-```typescript copy
-<div className="grid grid-cols-2 gap-4">
-  <div>
-    <Input
-      label="First name"
-      type="text"
-      name="billing_address.first_name"
-      value={formData["billing_address.first_name"]}
-      onChange={handleChange}
-      required
-      data-testid="billing-first-name-input"
-    />
-  </div>
-  <div>
-    <Input
-      label="Last name"
-      type="text"
-      name="billing_address.last_name"
-      value={formData["billing_address.last_name"]}
-      onChange={handleChange}
-      required
-      data-testid="billing-last-name-input"
-    />
-  </div>
-</div>
-```
-
-### Company Information
-```typescript copy
-<Input
-  label="Company"
-  type="text"
-  name="billing_address.company"
-  value={formData["billing_address.company"]}
-  onChange={handleChange}
-  data-testid="billing-company-input"
-/>
-```
-
-### Address Details
-```typescript copy
-<Input
-  label="Address"
-  type="text"
-  name="billing_address.address_1"
-  value={formData["billing_address.address_1"]}
-  onChange={handleChange}
-  required
-  data-testid="billing-address-input"
-/>
-
-<Input
-  label="Apartment, suite, etc."
-  type="text"
-  name="billing_address.address_2"
-  value={formData["billing_address.address_2"]}
-  onChange={handleChange}
-/>
-```
-
-### Location Information
-```typescript copy
-<div className="grid md:grid-cols-3 grid-cols-2 gap-4">
-  <div className="col-span-2 md:col-span-1">
-    <Input
-      label="City"
-      type="text"
-      name="billing_address.city"
-      value={formData["billing_address.city"]}
-      onChange={handleChange}
-      required
-      data-testid="billing-city-input"
-    />
-  </div>
-  <div>
-    <Input
-      label="State / Province"
-      type="text"
-      name="billing_address.province"
-      value={formData["billing_address.province"]}
-      onChange={handleChange}
-      required
-      data-testid="billing-province-input"
-    />
-  </div>
-  <div>
-    <Input
-      label="Postal Code"
-      type="text"
-      name="billing_address.postal_code"
-      value={formData["billing_address.postal_code"]}
-      onChange={handleChange}
-      required
-      data-testid="billing-postal-input"
-    />
-  </div>
-</div>
-```
-
-### Contact Information
-```typescript copy
-<Input
-  label="Phone"
-  type="tel"
-  name="billing_address.phone"
-  value={formData["billing_address.phone"]}
-  onChange={handleChange}
-  data-testid="billing-phone-input"
-/>
-```
-
-## Usage Example
+## Syntax
 
 ```jsx copy
-import BillingAddress from "@modules/checkout/components/billing-address"
+<SearchBox />
+```
 
-function CheckoutPage() {
-  const cart = {
-    billing_address: {
-      first_name: "John",
-      last_name: "Doe",
-      address_1: "123 Main St",
-      city: "Boston",
-      postal_code: "02101",
-      country_code: "US",
-      province: "MA",
-      phone: "+1234567890"
+## Description
+
+The `SearchBox` component creates a controlled search input field that handles user input, submission, and clearing of search queries. It consists of a main wrapper component and a controlled input component that manages form state and user interactions.
+
+### Features:
+- Clean, minimalist search input interface
+- Controlled input behavior for seamless integration with search libraries
+- Clear button that appears when search has content
+- Form submission handling with proper event management
+- Focus management for improved user experience
+- Compatible with InstantSearch and similar search solutions
+- Fully customizable styling and behavior
+
+## Technical Details
+
+### Dependencies
+
+```javascript copy
+import { XMarkMini } from "@medusajs/icons"
+import { FormEvent } from "react"
+import { useRouter } from "next/navigation"
+import SearchBoxWrapper, {
+  ControlledSearchBoxProps,
+} from "../search-box-wrapper"
+```
+
+### Types
+
+```typescript copy
+// Imported from search-box-wrapper
+interface ControlledSearchBoxProps {
+  inputRef: React.RefObject<HTMLInputElement>
+  onChange: (event: React.ChangeEvent<HTMLInputElement>) => void
+  onReset: (event: React.FormEvent) => void
+  onSubmit?: (event: React.FormEvent) => void
+  placeholder?: string
+  value: string
+  [key: string]: any
+}
+```
+
+### Component Structure
+
+```javascript copy
+import { XMarkMini } from "@medusajs/icons"
+import { FormEvent } from "react"
+import { useRouter } from "next/navigation"
+
+import SearchBoxWrapper, {
+  ControlledSearchBoxProps,
+} from "../search-box-wrapper"
+
+const ControlledSearchBox = ({
+  inputRef,
+  onChange,
+  onReset,
+  onSubmit,
+  placeholder,
+  value,
+  ...props
+}: ControlledSearchBoxProps) => {
+  const handleSubmit = (event: FormEvent) => {
+    event.preventDefault()
+    event.stopPropagation()
+    
+    if (onSubmit) {
+      onSubmit(event)
+    }
+    
+    if (inputRef.current) {
+      inputRef.current.blur()
     }
   }
-
+  
+  const handleReset = (event: FormEvent) => {
+    event.preventDefault()
+    event.stopPropagation()
+    
+    onReset(event)
+    
+    if (inputRef.current) {
+      inputRef.current.focus()
+    }
+  }
+  
   return (
-    <BillingAddress cart={cart} />
+    <div {...props} className="w-full">
+      <form action="" noValidate onSubmit={handleSubmit} onReset={handleReset}>
+        <div className="flex items-center justify-between">
+          <input
+            ref={inputRef}
+            data-testid="search-input"
+            autoComplete="off"
+            autoCorrect="off"
+            autoCapitalize="off"
+            placeholder={placeholder}
+            spellCheck={false}
+            type="search"
+            value={value}
+            onChange={onChange}
+            className="txt-compact-large h-6 placeholder:text-ui-fg-on-color placeholder:transition-colors focus:outline-none flex-1 bg-transparent "
+          />
+          {value && (
+            <button
+              onClick={handleReset}
+              type="button"
+              className="items-center justify-center text-ui-fg-on-color focus:outline-none gap-x-2 px-2 txt-compact-large flex"
+            >
+              <XMarkMini />
+            </button>
+          )}
+        </div>
+      </form>
+    </div>
   )
 }
+
+const SearchBox = () => {
+  const router = useRouter()
+  
+  return (
+    <SearchBoxWrapper>
+      {(props) => {
+        return (
+          <>
+            <ControlledSearchBox {...props} />
+          </>
+        )
+      }}
+    </SearchBoxWrapper>
+  )
+}
+
+export default SearchBox
+```
+
+## Component Architecture
+
+The component is composed of two main parts:
+
+1. **ControlledSearchBox**: A controlled input component that handles form submission and input clearing.
+2. **SearchBox**: A wrapper component that uses the `SearchBoxWrapper` to connect the input to search functionality.
+
+## Layout Structure
+
+### ControlledSearchBox Container
+```jsx copy
+<div {...props} className="w-full">
+  <form action="" noValidate onSubmit={handleSubmit} onReset={handleReset}>
+    <div className="flex items-center justify-between">
+      {/* Input and clear button */}
+    </div>
+  </form>
+</div>
+```
+
+### Search Input
+```jsx copy
+<input
+  ref={inputRef}
+  data-testid="search-input"
+  autoComplete="off"
+  autoCorrect="off"
+  autoCapitalize="off"
+  placeholder={placeholder}
+  spellCheck={false}
+  type="search"
+  value={value}
+  onChange={onChange}
+  className="txt-compact-large h-6 placeholder:text-ui-fg-on-color placeholder:transition-colors focus:outline-none flex-1 bg-transparent "
+/>
+```
+
+### Clear Button (Conditional)
+```jsx copy
+{value && (
+  <button
+    onClick={handleReset}
+    type="button"
+    className="items-center justify-center text-ui-fg-on-color focus:outline-none gap-x-2 px-2 txt-compact-large flex"
+  >
+    <XMarkMini />
+  </button>
+)}
 ```
 
 ## Styling
 
-The component uses Tailwind CSS for styling:
-- Layout: `max-w-[800px]`, `mx-auto`, `space-y-4`
-- Grid system: `grid`, `grid-cols-2`, `grid-cols-3`
-- Responsive design: `md:grid-cols-3`, `md:col-span-1`
-- Spacing: `gap-4`
+- **Container:** Uses `w-full` to span the full width of its parent.
+- **Input Field:**
+  - Text styling with `txt-compact-large`
+  - Height of `h-6` (1.5rem)
+  - Placeholder styling with `placeholder:text-ui-fg-on-color placeholder:transition-colors`
+  - Focus state with `focus:outline-none`
+  - Background with `bg-transparent`
+  - Layout with `flex-1` to fill available space
+- **Clear Button:**
+  - Aligned with `items-center justify-center`
+  - Text color with `text-ui-fg-on-color`
+  - Focus state with `focus:outline-none`
+  - Spacing with `gap-x-2 px-2`
+  - Text styling with `txt-compact-large`
+  - Layout with `flex`
 
-## Testing
+## Event Handling
 
-The component includes data-testid attributes for testing:
-```typescript copy
-data-testid="billing-country-select"
-data-testid="billing-first-name-input"
-data-testid="billing-last-name-input"
-data-testid="billing-company-input"
-data-testid="billing-address-input"
-data-testid="billing-city-input"
-data-testid="billing-province-input"
-data-testid="billing-postal-input"
-data-testid="billing-phone-input"
+### Form Submission
+```javascript copy
+const handleSubmit = (event: FormEvent) => {
+  event.preventDefault()
+  event.stopPropagation()
+  
+  if (onSubmit) {
+    onSubmit(event)
+  }
+  
+  if (inputRef.current) {
+    inputRef.current.blur()
+  }
+}
 ```
 
-## Dependencies
+### Form Reset (Clear Input)
+```javascript copy
+const handleReset = (event: FormEvent) => {
+  event.preventDefault()
+  event.stopPropagation()
+  
+  onReset(event)
+  
+  if (inputRef.current) {
+    inputRef.current.focus()
+  }
+}
+```
 
-- @medusajs/types: TypeScript types for cart and address data
-- Input: Custom input component
-- CountrySelect: Custom country selection component
-- Checkbox: Custom checkbox component
-- React hooks (useState)
+## Integration with SearchBoxWrapper
+
+The `SearchBox` component uses a render prop pattern to integrate with `SearchBoxWrapper`:
+
+```jsx copy
+<SearchBoxWrapper>
+  {(props) => {
+    return (
+      <>
+        <ControlledSearchBox {...props} />
+      </>
+    )
+  }}
+</SearchBoxWrapper>
+```
+
+## Required External Components
+
+### SearchBoxWrapper
+The component expects a `SearchBoxWrapper` that provides the following:
+- Input reference
+- Value state
+- Change handlers
+- Reset handlers
+- Submit handlers
+
+## Examples
+
+### Basic Usage
+
+```jsx copy
+import SearchBox from "./SearchBox"
+
+export default function SearchHeader() {
+  return (
+    <div className="sticky top-0 z-10 flex items-center justify-between bg-white p-4 shadow-sm">
+      <div className="flex items-center">
+        <Logo />
+        <div className="ml-6 w-full max-w-md">
+          <SearchBox />
+        </div>
+      </div>
+      <nav>
+        {/* Navigation links */}
+      </nav>
+    </div>
+  )
+}
+```
+
+### With Custom Placeholder
+
+```jsx copy
+// In SearchBoxWrapper implementation
+<SearchBoxWrapper placeholder="Search for products...">
+  {(props) => (
+    <ControlledSearchBox {...props} />
+  )}
+</SearchBoxWrapper>
+```
+
+## Focus Management
+
+The component implements focus management for better user experience:
+- On form submission, the input is blurred to hide the keyboard on mobile devices
+- On form reset (clear button click), focus returns to the input to allow immediate continued searching
 
 ## Accessibility
 
-- Required field indication
-- Proper input labels
-- ARIA labels for country select
-- Semantic HTML structure
-- Proper input types (text, tel)
-- Form autocomplete support
+- Uses semantic HTML with proper form elements
+- Includes data-testid attributes for testing
+- Properly manages focus states
+- Uses button element for the clear action
+- Maintains ARIA best practices with form elements
+- Prevents default form submission behavior
+- Implements proper type attributes for input and buttons
 
-## Responsive Design
+## Browser Support
 
-The component implements responsive design through Tailwind CSS:
-- Default grid layout for mobile (2 columns)
-- Enhanced grid layout for medium screens and up (3 columns)
-- Flexible width constraints
-- Responsive spacing
+The component works in modern browsers supporting:
 
-## See Also
-
-- [Medusa Documentation](https://docs.medusajs.com)
-- [React Forms Documentation](https://react.dev/reference/react-dom/components/input)
-- [Tailwind CSS Grid](https://tailwindcss.com/docs/grid-template-columns)
+- React and React hooks
+- CSS Flexbox layout
+- Next.js navigation
+- Modern form elements
+- Focus management methods
