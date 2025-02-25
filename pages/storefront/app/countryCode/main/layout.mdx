@@ -1,0 +1,103 @@
+---
+title: Layout
+description: Comprehensive layout component for handling page structure, cart context, and global UI elements
+---
+
+# Layout
+
+## Overview
+
+The Page Layout component is a crucial server-side rendered component in the application that provides a consistent structure for all pages. It manages global state, renders common UI elements, and wraps child pages with necessary context providers.
+
+## Key Features
+
+### Global Components
+- **Navigation Bar**: Rendered on every page
+- **Footer**: Consistent footer across the entire application
+- **Cart Context Provider**: Manages cart-related state globally
+
+### Conditional Rendering
+- **Cart Mismatch Banner**: Displayed when there's a discrepancy between customer and cart data
+- **Free Shipping Price Nudge**: Shows shipping incentives based on cart contents
+
+## Technical Implementation
+
+### Imports
+The component relies on several key imports:
+- Next.js Metadata for SEO configuration
+- Custom data retrieval functions for cart and customer
+- Layout components (Nav, Footer)
+- Special components like Cart Mismatch Banner
+- Cart Context Provider
+
+### Server-Side Data Fetching
+```typescript
+const customer = await retrieveCustomer()
+const cart = await retrieveCart()
+```
+
+Data is fetched server-side before rendering, ensuring:
+- Up-to-date customer information
+- Current cart state
+- Shipping options availability
+
+### Metadata Configuration
+```typescript
+export const metadata: Metadata = {
+  metadataBase: new URL(getBaseURL()),
+}
+```
+Sets the base URL for metadata, supporting SEO and proper link resolution.
+
+## Rendering Structure
+
+```jsx
+<CartProvider>
+  <Nav />
+  {customer && cart && (
+    <CartMismatchBanner />
+  )}
+  {cart && (
+    <FreeShippingPriceNudge />
+  )}
+  {props.children}
+  <Footer />
+</CartProvider>
+```
+
+### Rendering Logic
+1. Wrap entire layout with CartProvider
+2. Render Navigation
+3. Conditionally show Cart Mismatch Banner
+4. Conditionally show Free Shipping Price Nudge
+5. Render page-specific content (children)
+6. Render Footer
+
+## Best Practices
+
+- **Server-Side Rendering**: Fetches data before rendering
+- **Conditional Rendering**: Only shows components when relevant data exists
+- **Separation of Concerns**: Keeps layout logic separate from page content
+- **Context Management**: Uses CartProvider for global state
+
+## Potential Improvements
+- Add error boundaries
+- Implement loading states
+- Add more sophisticated caching mechanisms
+- Enhance conditional rendering logic
+
+## Performance Considerations
+- Server-side data fetching reduces client-side load
+- Minimal client-side JavaScript
+- Efficient conditional rendering
+
+## Use Cases
+- E-commerce platforms
+- Applications with complex cart interactions
+- Sites requiring consistent global layout and state management
+
+## Dependencies
+- Next.js
+- Medusa.js (for cart and shipping types)
+- Custom context providers
+- Various layout and shipping components
