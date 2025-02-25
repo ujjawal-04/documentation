@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { ReactNode } from 'react';
 import { DocsThemeConfig } from 'nextra-theme-docs';
 
 const config: DocsThemeConfig = {
@@ -10,7 +10,7 @@ const config: DocsThemeConfig = {
   footer: {
     text: 'RUO Docs',
   },
-  head: ({ title }) => (
+  head: ({ title }: { title?: string }): ReactNode => (
     <>
       <title>{title ? `${title} – RUO Documentation` : 'RUO Documentation'}</title>
     </>
