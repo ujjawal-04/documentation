@@ -1,5 +1,5 @@
-import React from 'react'
-import { DocsThemeConfig } from 'nextra-theme-docs'
+import React from 'react';
+import { DocsThemeConfig } from 'nextra-theme-docs';
 
 const config: DocsThemeConfig = {
   logo: <span>RUO Documentation</span>,
@@ -8,8 +8,13 @@ const config: DocsThemeConfig = {
   },
   docsRepositoryBase: 'https://github.com/RUO-2025/storefront/',
   footer: {
-    text: 'Nextra Docs Template',
+    text: 'RUO Docs',
   },
-}
+  head: ({ title }) => (
+    <>
+      <title>{title ? `${title} – RUO Documentation` : 'RUO Documentation'}</title>
+    </>
+  ),
+};
 
-export default config
+export default config;
