@@ -1,0 +1,240 @@
+---
+title: Product
+description: Individual product display page with dynamic rendering and static generation
+---
+
+# Product Page
+
+## Overview
+
+The Product Page displays detailed information about a specific product. It leverages Next.js features for Static Site Generation (SSG) with dynamic rendering capabilities to ensure optimal performance and up-to-date content. The component fetches product data based on the product handle and country code, then passes this information to a specialized template component for rendering.
+
+## Configuration
+
+```typescript copy
+export const dynamic = "force-dynamic" // Ensures SSG (prevents SSR)
+```
+
+This configuration directive forces dynamic rendering, ensuring the page is generated at request time rather than during server-side rendering.
+
+## Imports
+
+```typescript copy
+import { Metadata } from "next"
+import { notFound } from "next/navigation"
+import { listProducts } from "@lib/data/products"
+import { getRegion, listRegions } from "@lib/data/regions"
+import ProductTemplate from "@modules/products/templates"
+```
+
+### Key Imports
+- `Metadata`: Next.js type for page metadata
+- `notFound`: Next.js utility for rendering 404 pages
+- `listProducts`: Function for fetching product data
+- `getRegion`, `listRegions`: Functions for retrieving regional information
+- `ProductTemplate`: Core component for displaying product details
+
+## Props Interface
+
+```typescript copy
+type Props = {
+  params: { countryCode: string; handle: string }
+}
+```
+
+The component accepts:
+- `params`: URL parameters
+  - `countryCode`: The country code for regional pricing and availability
+  - `handle`: The unique product identifier in the URL
+
+## Static Site Generation
+
+```typescript copy
+export async function generateStaticParams() {
+  try {
+    console.log("Generating static params...")
+    
+    const regions = await listRegions()
+    if (!regions || regions.length === 0) {
+      console.warn("No regions found!")
+      return []
+    }
+    
+    const countryCodes = regions.map((r) => r.countries?.map((c) => c.iso_2)).flat()
+        
+    if (!countryCodes || countryCodes.length === 0) {
+      console.warn("No country codes found!")
+      return []
+    }
+    
+    const products = await listProducts({
+      countryCode: "US",
+      queryParams: { fields: "handle" },
+    }).then(({ response }) => response.products)
+    
+    if (!products || products.length === 0) {
+      console.warn("No products found!")
+      return []
+    }
+    
+    return countryCodes
+      .map((countryCode) =>
+        products.map((product) => ({
+          countryCode,
+          handle: product.handle,
+        }))
+      )
+      .flat()
+      .filter((param) => param.handle)
+  } catch (error) {
+    console.error("Error generating static paths:", error)
+    return []
+  }
+}
+```
+
+### SSG Process
+- Attempts to fetch all available regions
+- Extracts country codes from these regions
+- Fetches basic product data (handles only) using "US" as a default country code
+- Creates combinations of country codes and product handles
+- Returns these combinations for Next.js to pre-render at build time
+- Implements comprehensive error handling and logging
+- Filters out any potentially undefined product handles
+
+## Dynamic Metadata Generation
+
+```typescript copy
+export async function generateMetadata({ params }: Props): Promise<Metadata> {
+  const { handle, countryCode } = await params
+  const region = await getRegion(countryCode)
+  
+  if (!region) {
+    notFound()
+  }
+  
+  const product = await listProducts({
+    countryCode,
+    queryParams: { handle },
+  }).then(({ response }) => response.products[0])
+  
+  if (!product) {
+    notFound()
+  }
+  
+  return {
+    title: `${product.title} | Medusa Store`,
+    description: product.title,
+    openGraph: {
+      title: `${product.title} | Medusa Store`,
+      description: product.title,
+      images: product.thumbnail ? [product.thumbnail] : [],
+    },
+    revalidate: 60,  // Ensures caching but allows updates every 60s
+  }
+}
+```
+
+### Metadata Features
+- Dynamically generates page metadata based on product information
+- Creates SEO-friendly titles combining product title and store name
+- Sets up Open Graph metadata for social sharing
+- Includes product thumbnail as OG image when available
+- Configures revalidation period of 60 seconds for updated content
+- Handles missing products or regions by redirecting to 404 page
+
+## Component Structure
+
+```typescript copy
+export default async function ProductPage({ params }: Props) {
+  const { countryCode, handle } = await params
+  const region = await getRegion(countryCode)
+  
+  if (!region) {
+    notFound()
+  }
+  
+  const pricedProduct = await listProducts({
+    countryCode,
+    queryParams: { handle },
+  }).then(({ response }) => response.products[0])
+  
+  if (!pricedProduct) {
+    notFound()
+  }
+  
+  return (
+    <ProductTemplate
+      product={pricedProduct}
+      region={region}
+      countryCode={countryCode}
+    />
+  )
+}
+```
+
+### Component Characteristics
+- Asynchronous server component
+- Extracts URL parameters for country code and product handle
+- Fetches regional information based on country code
+- Retrieves detailed product information including pricing
+- Handles missing data by redirecting to 404 page
+- Delegates UI rendering to the `ProductTemplate` component
+
+## Data Fetching
+
+The component performs two main data fetching operations:
+1. Retrieves regional information using the `getRegion` function
+2. Fetches product details using the `listProducts` function with:
+   - Country code for regional pricing
+   - Product handle for identifying the specific product
+   - Implicitly includes all product fields by not specifying field limitations
+
+## Error Handling
+- Checks for missing region data and redirects to 404 if not found
+- Verifies product existence and redirects to 404 if not found
+- Implements thorough error handling in static path generation
+- Uses console warnings and errors for debugging issues
+
+## Component Breakdown
+
+### ProductPage Component
+- Acts as a data fetching and routing wrapper
+- Handles URL parameters
+- Manages error scenarios
+- Passes data to template component
+
+### ProductTemplate Component (imported)
+- Receives product data, region information, and country code
+- Handles the actual UI rendering of product details
+
+## Design Pattern
+This component demonstrates advanced Next.js patterns:
+- Static Site Generation with dynamic fallback
+- Dynamic metadata generation for SEO
+- Separation of data fetching from UI rendering
+- Proper error handling throughout the component lifecycle
+- Incremental Static Regeneration via revalidate directive
+
+## Potential Improvements
+- Consider implementing a loading state
+- Add more detailed error handling for specific API failures
+- Enhance metadata with structured data for rich search results
+- Optimize image handling in Open Graph metadata
+- Fix comment that incorrectly states "Ensures SSG (prevents SSR)" when it actually ensures dynamic rendering
+
+## Performance Optimization
+- Static generation for core product pages
+- 60-second revalidation period balances freshness and performance
+- Efficient data fetching with field selection in static path generation
+- Dynamic rendering allows for real-time inventory and pricing updates
+
+## Related Components
+- `ProductTemplate` - Core UI component for displaying product details
+- Product variant selectors
+- Add to cart components
+- Product recommendation components
+
+## URL Structure
+The page supports a URL structure like:
+- `/:countryCode/products/:handle`

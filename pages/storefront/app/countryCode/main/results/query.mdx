@@ -1,0 +1,171 @@
+---
+title: Results
+description: Search results page displaying filtered products based on user queries
+---
+
+# Results
+
+## Overview
+
+The Search Results page displays products that match a user's search query. It leverages a search API to retrieve relevant product IDs, then passes these to a template component for rendering. The component supports sorting and pagination to enhance the search experience.
+
+## Imports
+
+```typescript copy
+import { Metadata } from "next"
+import SearchResultsTemplate from "@modules/search/templates/search-results-template"
+import { search } from "@modules/search/actions"
+import { SortOptions } from "@modules/store/components/refinement-list/sort-products"
+```
+
+### Key Imports
+- `Metadata`: Next.js type for page metadata
+- `SearchResultsTemplate`: Template component for displaying search results
+- `search`: Function that performs the actual search operation
+- `SortOptions`: Type definition for product sorting capabilities
+
+## Metadata
+
+```typescript copy
+export const metadata: Metadata = {
+  title: "Search",
+  description: "Explore all of our products.",
+}
+```
+
+Static metadata for the page:
+- Page title: "Search"
+- Meta description: "Explore all of our products."
+
+## Props Interface
+
+```typescript copy
+type Params = {
+  params: Promise<{ query: string; countryCode: string }>
+  searchParams: Promise<{
+    sortBy?: SortOptions
+    page?: string
+  }>
+}
+```
+
+The component accepts:
+- `params`: URL parameters wrapped in a Promise
+  - `query`: The search term entered by the user
+  - `countryCode`: The country code for regional pricing and availability
+- `searchParams`: Query parameters wrapped in a Promise
+  - `sortBy`: Optional parameter specifying the sorting method for results
+  - `page`: Optional parameter for pagination control
+
+## Component Structure
+
+```typescript copy
+export default async function SearchResults(props: Params) {
+  const searchParams = await props.searchParams;
+  const params = await props.params;
+  const { query } = params
+  const { sortBy, page } = searchParams
+  
+  const hits = await search(query).then((data) => data)
+  
+  const ids = hits
+    .map((h) => h.objectID || h.id)
+    .filter((id): id is string => {
+      return typeof id === "string"
+    })
+  
+  return (
+    <SearchResultsTemplate
+      query={query}
+      ids={ids}
+      sortBy={sortBy}
+      page={page}
+      countryCode={params.countryCode}
+    />
+  )
+}
+```
+
+### Component Characteristics
+- Asynchronous server component
+- Extracts and awaits URL parameters and query parameters
+- Performs a search operation based on the query parameter
+- Processes search results to extract product IDs
+- Filters out any non-string IDs for type safety
+- Delegates rendering to the SearchResultsTemplate component
+
+## Data Flow
+
+The component follows a clear data flow pattern:
+1. Extracts search query and other parameters from the request
+2. Calls the search function with the query to get matching products
+3. Processes the search results to extract valid product IDs
+4. Passes the IDs and other parameters to the template component
+
+## Search Processing
+
+```typescript copy
+const hits = await search(query).then((data) => data)
+
+const ids = hits
+  .map((h) => h.objectID || h.id)
+  .filter((id): id is string => {
+    return typeof id === "string"
+  })
+```
+
+The search processing involves:
+- Calling the `search` function with the user's query
+- Extracting product identifiers from the search results
+- Using a fallback pattern (`objectID || h.id`) to handle different ID field names
+- Filtering the results to ensure only valid string IDs are passed to the template
+- Using TypeScript type predicate to maintain type safety
+
+## UI Components
+
+The component does not directly implement any UI, instead it:
+- Acts as a data processing component
+- Delegates all UI rendering to the SearchResultsTemplate
+- Passes processed search results and parameters to the template
+
+## Design Pattern
+
+This component demonstrates:
+- Separation of concerns between data processing and UI rendering
+- Use of Next.js async server components
+- Promise resolution for router parameters
+- Type-safe data processing with TypeScript
+- Clear delegation of rendering responsibilities
+
+## Potential Improvements
+- Add error handling for failed search operations
+- Implement search result caching for improved performance
+- Add logging for search analytics
+- Consider implementing search suggestions
+- Support advanced filtering options beyond basic sorting
+
+## Related Components
+- `SearchResultsTemplate`: Template component for rendering the search results
+- Search input component
+- Pagination components
+- Sorting components (referenced by SortOptions type)
+- Product card components (likely used within SearchResultsTemplate)
+
+## URL Structure
+The page supports a URL structure like:
+- `/:countryCode/search/:query`
+- With query parameters: `?sortBy=price_asc&page=2`
+
+## Component Purpose
+This component serves as:
+- A bridge between the search API and the UI
+- A processor for search results
+- A controller that prepares data for the template component
+- A handler for search parameters and pagination
+
+## Architectural Considerations
+- Follows the controller-template pattern
+- Separates search logic from presentation concerns
+- Enables type safety through TypeScript interfaces and type predicates
+- Leverages Next.js's async server components for promise resolution
+- Uses a clean extraction pattern for IDs from search results

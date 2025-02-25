@@ -1,0 +1,253 @@
+---
+title: FAQ 
+description: Frequently Asked Questions page with interactive accordion
+---
+
+# FAQ
+
+## Overview
+
+The FAQ page provides customers with a comprehensive list of frequently asked questions in an interactive accordion format. The page uses client-side rendering with interactive elements to improve user experience, allowing visitors to expand and collapse question sections as needed.
+
+## Imports
+
+```typescript copy
+"use client";
+
+import { useState } from "react";
+import { motion } from "framer-motion";
+import Link from "next/link";
+import { Plus } from "lucide-react";
+```
+
+### Key Imports
+- `"use client"` directive: Marks this as a client component
+- `useState`: React hook for managing component state
+- `motion`: Component from Framer Motion for animations
+- `Link`: Next.js component for client-side navigation
+- `Plus`: Icon component from Lucide React library
+
+## Data Structure
+
+```typescript copy
+const faqs = [
+  {
+    question: "What sets Power Peptides apart from other peptide suppliers?",
+    answer:
+      "Power Peptides stands at the forefront of peptide research and development through our commitment to exceptional quality and scientific innovation. Our advanced proprietary processes deliver industry-leading purity and consistency. Through strategic partnerships with internationally recognized research chemical manufacturers, we provide premium-grade products while maintaining competitive pricing.",
+  },
+  // Additional FAQ items...
+];
+```
+
+The component uses a static array of FAQ objects, each containing:
+- `question`: The FAQ question text
+- `answer`: The detailed answer text
+
+## Component Structure
+
+```typescript copy
+export default function FAQPage() {
+  const [openIndexes, setOpenIndexes] = useState<number[]>([]);
+
+  const toggleFAQ = (index: number) => {
+    setOpenIndexes(prev => 
+      prev.includes(index) 
+        ? prev.filter(i => i !== index)
+        : [...prev, index]
+    );
+  };
+
+  return (
+    <div className="w-full">
+      {/* Breadcrumb */}
+      <div className="w-full bg-white">
+        {/* Breadcrumb content */}
+      </div>
+
+      {/* Hero Section */}
+      <div className="w-full relative isolate bg-gradient-to-r from-blue-50 to-blue-200">
+        {/* Hero content */}
+      </div>
+
+      {/* FAQ Section */}
+      <div className="max-w-screen-2xl mx-auto p-6">
+        {/* FAQ accordion items */}
+      </div>
+    </div>
+  );
+}
+```
+
+### Component Characteristics
+- Client-side React component
+- Uses React state to track which FAQ items are expanded
+- Features three main sections: breadcrumb navigation, hero section, and FAQ accordion
+- Implements interactive accordion with animations
+
+## State Management
+
+```typescript copy
+const [openIndexes, setOpenIndexes] = useState<number[]>([]);
+
+const toggleFAQ = (index: number) => {
+  setOpenIndexes(prev => 
+    prev.includes(index) 
+      ? prev.filter(i => i !== index)
+      : [...prev, index]
+  );
+};
+```
+
+The component uses:
+- An array of indices to track which FAQ items are currently open
+- A toggle function that either adds or removes an index from the open array
+- TypeScript typing for state variables
+
+## Layout Details
+
+### Breadcrumb Navigation
+```typescript copy
+<div className="w-full bg-white">
+  <div className="max-w-screen-2xl mx-auto px-6 py-4">
+    <div className="flex items-center text-sm">
+      <Link href="/" className="text-gray-600 hover:text-gray-900">Home</Link>
+      <span className="mx-2 text-gray-400">{">"}</span>
+      <span className="text-gray-900">Frequently Asked Questions (FAQs)</span>
+    </div>
+  </div>
+</div>
+```
+
+- Full-width white background
+- Centered content with maximum width
+- Small text size with hover effects
+- Simple ">" separator for breadcrumb items
+
+### Hero Section
+```typescript copy
+<div className="w-full relative isolate bg-gradient-to-r from-blue-50 to-blue-200">
+  <div className="max-w-screen-2xl mx-auto px-6 py-16">
+    <div className="space-y-0 pl-8">
+      <h1 className="text-[60px] font-bold text-gray-900 leading-none">
+        Frequently Asked
+      </h1>
+      <h1 className="text-[60px] font-bold text-gray-900 leading-tight">
+        Questions (FAQs)
+      </h1>
+    </div>
+    <div className="space-y-1 mt-4 pl-8">
+      <p className="text-lg text-gray-700">
+        Need Help or Have a Quick Question? Review our frequently asked questions.
+      </p>
+      <p className="text-lg text-gray-700">
+        This is the fastest way to solve most problems.
+      </p>
+    </div>
+  </div>
+</div>
+```
+
+- Full-width gradient background (light blue)
+- Large, bold heading split across two lines
+- Left padding for text elements
+- Explanatory subtext encouraging self-service
+
+### FAQ Accordion Section
+```typescript copy
+<div className="max-w-screen-2xl mx-auto p-6">
+  <div className="space-y-4 pl-16 pt-4">
+    {faqs.map((faq, index) => (
+      <div key={index}>
+        <button
+          className={`flex items-center w-full text-left text-lg font-semibold py-6 ${
+            index !== 0 ? 'border-t border-gray-300' : ''
+          }`}
+          onClick={() => toggleFAQ(index)}
+        >
+          <motion.div
+            animate={{ rotate: openIndexes.includes(index) ? 90 : 0 }}
+            transition={{ duration: 0.2 }}
+          >
+            <Plus className="w-6 h-6 text-gray-400" />
+          </motion.div>
+          <span className="ml-4">{faq.question}</span>
+        </button>
+        <motion.div
+          initial={{ height: 0, opacity: 0 }}
+          animate={{
+            height: openIndexes.includes(index) ? "auto" : 0,
+            opacity: openIndexes.includes(index) ? 1 : 0,
+          }}
+          transition={{ duration: 0.3 }}
+          className="overflow-hidden"
+        >
+          <p className="pb-6 text-gray-700">{faq.answer}</p>
+        </motion.div>
+      </div>
+    ))}
+  </div>
+</div>
+```
+
+- Mapped FAQ items with unique key for each
+- Button toggle with Framer Motion rotation animation for the Plus icon
+- Conditional border styling to separate FAQ items
+- Animated height and opacity transitions for answer content
+- Overflow handling for smooth animations
+
+## Animation Details
+
+The component uses Framer Motion for two animations:
+1. **Icon Rotation**: The Plus icon rotates 90 degrees when an FAQ item is expanded
+   ```typescript copy
+   <motion.div
+     animate={{ rotate: openIndexes.includes(index) ? 90 : 0 }}
+     transition={{ duration: 0.2 }}
+   >
+   ```
+
+2. **Content Expansion**: The answer content smoothly expands and fades in
+   ```typescript copy
+   <motion.div
+     initial={{ height: 0, opacity: 0 }}
+     animate={{
+       height: openIndexes.includes(index) ? "auto" : 0,
+       opacity: openIndexes.includes(index) ? 1 : 0,
+     }}
+     transition={{ duration: 0.3 }}
+     className="overflow-hidden"
+   >
+   ```
+
+## Design Considerations
+- Clean, modern interface with ample whitespace
+- Responsive layout with maximum width constraints
+- Visual hierarchy with large hero text and clear question formatting
+- Subtle animations to enhance user experience
+- Consistent text styling and spacing
+
+## Accessibility Considerations
+- Interactive elements use semantic button tags
+- Adequate text contrast for readability
+- Animation durations are kept short for reduced motion sensitivity
+- Text is left-aligned for better readability
+
+## Performance Optimization
+- Client-side component with minimal dependencies
+- Static data array to avoid unnecessary data fetching
+- Efficient state management with single state variable
+- Optimized animations with hardware acceleration
+
+## Potential Improvements
+- Add aria attributes for better screen reader support
+- Implement keyboard navigation for the accordion
+- Add anchor links for direct navigation to specific questions
+- Consider server-side rendering with hydration for improved SEO
+- Add search functionality for finding specific questions
+
+## Related Components
+- Contact page component
+- Support page components
+- Product information components
+- Navigation components

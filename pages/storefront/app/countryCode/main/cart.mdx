@@ -1,0 +1,154 @@
+---
+title: Cart
+description: Customer shopping cart page
+---
+
+# Cart
+
+## Overview
+
+The Cart page displays the customer's current shopping cart contents and allows them to proceed with checkout. It retrieves the cart and customer data, then renders the cart template component.
+
+## Imports
+
+```typescript copy
+import { retrieveCart } from "@lib/data/cart"
+import { retrieveCustomer } from "@lib/data/customer"
+import CartTemplate from "@modules/cart/templates"
+import { Metadata } from "next"
+import { notFound } from "next/navigation"
+import { SortOptions } from "@modules/store/components/refinement-list/sort-products"
+import ProductStrip from "@modules/product-strip/templates"
+```
+
+### Key Imports
+- `retrieveCart`: Function to fetch the customer's cart data
+- `retrieveCustomer`: Function to fetch customer data
+- `CartTemplate`: Component that displays the cart UI
+- `Metadata`: Next.js type for page metadata
+- `notFound`: Next.js utility for rendering 404 pages
+- `SortOptions`: Type for product sorting options (imported but unused)
+- `ProductStrip`: Component for displaying product strips (imported but unused)
+
+## Metadata Configuration
+
+```typescript copy
+export const metadata: Metadata = {
+  title: "Cart",
+  description: "View your cart",
+}
+```
+
+The metadata provides:
+- A simple title for the page
+- A concise description of the page's purpose
+
+## Type Definitions
+
+```typescript copy
+type Params = {
+  searchParams: Promise<{
+    sortBy?: SortOptions
+    page?: string
+  }>
+  params: Promise<{
+    countryCode: string
+  }>
+}
+```
+
+Note: This type is defined but not currently used in the component.
+
+## Component Structure
+
+```typescript copy
+export default async function Cart() {
+  const cart = await retrieveCart()
+  const customer = await retrieveCustomer()
+
+  if (!cart) {
+    return notFound()
+  }
+
+  return <CartTemplate cart={cart} customer={customer} />
+}
+```
+
+### Component Characteristics
+- Asynchronous server component
+- Fetches cart and customer data
+- Handles missing cart data by redirecting to 404 page
+- Delegates UI rendering to the `CartTemplate` component
+- Does not rely on the defined `Params` type
+
+## Data Fetching
+
+The component fetches two key data points:
+1. **Cart data** - Retrieved using `retrieveCart()`
+2. **Customer data** - Retrieved using `retrieveCustomer()`
+
+If the cart data is unavailable, the component redirects to a 404 page. However, the component will still render even if customer data is not available.
+
+## Error Handling
+- Checks for missing cart data
+- Uses Next.js `notFound()` function to redirect to 404 page when cart is missing
+- Does not explicitly handle errors for customer data retrieval
+
+## Component Breakdown
+
+### Cart Component
+- Acts as a data fetching wrapper
+- Handles the cart existence check
+- Passes retrieved data to the UI component
+
+### CartTemplate Component (imported)
+- Receives cart and customer data as props
+- Handles the actual UI rendering
+- Likely includes cart items, totals, and checkout options
+
+## Design Pattern
+This component follows common Next.js patterns:
+- Separation of data fetching from UI rendering
+- Error handling at the page level
+- Core logic delegation to a template component
+
+## Code Observations
+- The `Params` type is defined but not used in the component
+- `SortOptions` and `ProductStrip` are imported but not used
+- There is a duplicate import of `Metadata`
+
+## Potential Improvements
+- Remove unused imports and type definitions
+- Add loading states during data fetching
+- Implement error handling for customer data retrieval
+- Consider empty cart state handling instead of 404 redirect
+- Add cart data refresh mechanism
+
+## Accessibility Considerations
+- Cart status should be clearly communicated
+- Interactive elements should be properly labeled
+- Quantity adjustments should be accessible
+
+## Performance Optimization
+- Server component for improved initial load
+- Efficient error handling
+- Potential for optimistic UI updates
+
+## Related Components
+- `CartTemplate` - Core UI component for the cart
+- Cart item components
+- Quantity adjustment components
+- Price and total calculation components
+- Checkout button/form components
+
+## User Flow
+The cart page typically fits into a broader shopping flow:
+1. User adds items to cart from product pages
+2. User navigates to cart page to review items
+3. User adjusts quantities or removes items if needed
+4. User proceeds to checkout from the cart page
+
+## Best Practices Implemented
+- Clear separation of concerns
+- Proper error handling for missing cart
+- Descriptive component naming

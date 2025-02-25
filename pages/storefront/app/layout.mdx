@@ -1,0 +1,67 @@
+---
+title: Layout
+description: Root layout setup for the Next.js application
+---
+
+# Layout
+
+This document explains the root layout configuration for the Next.js application, which sets up the base HTML structure and metadata for the entire application.
+
+## Imports
+
+```typescript copy
+import { getBaseURL } from "@lib/util/env"
+import { Metadata } from "next"
+import "styles/globals.css"
+```
+
+### Key Imports
+- `getBaseURL()`: A utility function to retrieve the base URL of the application
+- `Metadata`: Next.js type for defining metadata
+- `globals.css`: Global stylesheet import
+
+## Metadata Configuration
+
+```typescript copy
+export const metadata: Metadata = {
+  metadataBase: new URL(getBaseURL()),
+}
+```
+
+The `metadata` object sets the base URL for the application using the `getBaseURL()` utility function. This helps in generating absolute URLs for metadata and other application-wide settings.
+
+## Layout Structure
+
+```typescript copy
+export default function RootLayout(props: { children: React.ReactNode }) {
+  return (
+    <html lang="en" data-mode="light">
+      <body>
+        <main className="relative">{props.children}</main>
+      </body>
+    </html>
+  )
+}
+```
+
+### Layout Details
+- Sets the language to English
+- Applies a light mode data attribute
+- Wraps child components in a `<main>` tag with a relative positioning
+- Allows for nested page components to be rendered within the `children` prop
+
+## Key Characteristics
+- Provides a consistent base structure for all pages
+- Sets global language and mode
+- Enables flexible page rendering through child components
+- Applies a base CSS class for relative positioning
+
+## Best Practices
+- Keep the root layout minimal
+- Use for global configurations and wrappers
+- Import global styles here
+- Set application-wide metadata
+
+## Notes
+- Ensure `getBaseURL()` is correctly implemented
+- The `data-mode="light"` can be dynamically changed for theme switching

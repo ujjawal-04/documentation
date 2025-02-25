@@ -1,0 +1,144 @@
+---
+title: Orders
+description: Customer order history and management page
+---
+
+# Orders
+
+## Overview
+
+The Orders page provides customers with a comprehensive view of their order history. This page is part of the customer account section and allows users to track, review, and manage their previous purchases.
+
+## Imports
+
+```typescript copy
+import { Metadata } from "next"
+import OrderOverview from "@modules/account/components/order-overview"
+import { notFound } from "next/navigation"
+import { listOrders } from "@lib/data/orders"
+import Divider from "@modules/common/components/divider"
+import TransferRequestForm from "@modules/account/components/transfer-request-form"
+```
+
+### Key Imports
+- `Metadata`: Next.js type for page metadata
+- `OrderOverview`: Component that displays order history
+- `notFound`: Next.js utility for rendering 404 pages
+- `listOrders`: Function to retrieve customer order data
+- `Divider`: UI component for visual separation
+- `TransferRequestForm`: Component for order transfers (currently commented out)
+
+## Metadata Configuration
+
+```typescript copy
+export const metadata: Metadata = {
+  title: "Orders",
+  description: "Overview of your previous orders.",
+}
+```
+
+The metadata provides:
+- A clear title for the page
+- A concise description of the page's purpose
+
+## Component Structure
+
+```typescript copy
+export default async function Orders() {
+  const orders = await listOrders()
+
+  if (!orders) {
+    notFound()
+  }
+
+  return (
+    <div className="w-full" data-testid="orders-page-wrapper">
+      <div className="mb-8 flex flex-col gap-y-4">
+        <h1 className="text-2xl-semi">Orders</h1>
+        <p className="text-base-regular">
+          View your previous orders and their status. You can also create
+          returns or exchanges for your orders if needed.
+        </p>
+      </div>
+      <div>
+        <OrderOverview orders={orders} />
+        {/* <Divider className="my-16" />
+        <TransferRequestForm /> */}
+      </div>
+    </div>
+  )
+}
+```
+
+### Component Characteristics
+- Asynchronous server component
+- Fetches order data
+- Handles missing data with 404 redirect
+- Renders order history interface
+- Contains commented-out code for future features
+
+## Data Fetching
+
+The component fetches order data using the `listOrders()` function. If the data fetch fails or returns no orders, the page redirects to a 404 Not Found page.
+
+## Layout Details
+- Full-width container
+- Header section with title and description
+- 8px margin bottom on the header section
+- Vertical flex layout with 4px gap between heading elements
+
+## Component Breakdown
+
+### Heading Section
+- Large, semi-bold text for page title
+- Regular base text for description
+- Explains the purpose and additional functionality (returns/exchanges)
+
+### OrderOverview Component
+- Receives orders data as props
+- Handles the display of order history
+- Likely includes sorting, filtering, and detail views
+
+### Commented Code
+- Contains commented-out `Divider` and `TransferRequestForm` components
+- Suggests planned additional functionality for order transfers
+- Divider would provide visual separation between sections with 16px margin
+
+## Error Handling
+- Checks for missing order data
+- Uses Next.js `notFound()` function to redirect to 404 page
+- Ensures users don't see partially rendered or broken pages
+
+## Design Considerations
+- Clean, focused interface
+- Clear instructions for users
+- Consistent with the application's UI styling
+- Data-testid attribute for automated testing
+
+## Future Functionality
+- The commented-out code suggests planned features:
+  - Visual separation between order history and transfer requests
+  - Ability to submit transfer requests for orders
+
+## Potential Improvements
+- Add loading states during data fetching
+- Implement filtering options for orders
+- Add pagination for users with many orders
+- Include order search functionality
+
+## Accessibility Considerations
+- Semantic HTML structure
+- Clear, descriptive headings
+- Logical organization of order information
+- Appropriate text contrast
+
+## Performance Optimization
+- Server component for improved initial load
+- Efficient data fetching
+- Potential for pagination or virtualization with large order sets
+
+## Related Components
+- `OrderOverview` - Core component for displaying order history
+- `TransferRequestForm` - Future component for order transfers
+- Order detail components
+- Customer account navigation components

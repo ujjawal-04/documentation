@@ -1,0 +1,144 @@
+---
+title: Product Strip
+description: Product overview page with sorting and pagination capabilities
+---
+
+# Product Strip
+
+## Overview
+
+The Product Strip Page displays a comprehensive view of products in a strip layout format. It supports pagination and sorting functionality to enhance the browsing experience. This component acts as a wrapper that passes parameters to the ProductStrip template component.
+
+## Imports
+
+```typescript copy
+import { Metadata } from "next"
+import { SortOptions } from "@modules/store/components/refinement-list/sort-products"
+import ProductStrip from "@modules/product-strip/templates"
+```
+
+### Key Imports
+- `Metadata`: Next.js type for page metadata (currently commented out)
+- `SortOptions`: Type definition for product sorting capabilities
+- `ProductStrip`: Template component that handles the actual rendering of products
+
+## Props Interface
+
+```typescript copy
+type Params = {
+  searchParams: Promise<{
+    sortBy?: SortOptions
+    page?: string
+  }>
+  params: Promise<{
+    countryCode: string
+  }>
+}
+```
+
+The component accepts:
+- `searchParams`: Query parameters for controlling the display
+  - `sortBy`: Optional parameter specifying the sorting method for products
+  - `page`: Optional parameter for pagination control
+- `params`: URL parameters
+  - `countryCode`: The country code used for regional pricing and availability
+
+## Metadata (Commented Out)
+
+```typescript copy
+// export const metadata: Metadata = {
+//   title: "Store",
+//   description: "Explore all of our products.",
+// }
+```
+
+Static metadata is defined but currently commented out. When uncommented, it would provide:
+- Page title: "Store"
+- Meta description: "Explore all of our products."
+
+## Component Structure
+
+```typescript copy
+export default async function ProductStripPage(props: Params) {
+  const params = await props.params;
+  const searchParams = await props.searchParams;
+  const { sortBy, page } = searchParams
+  
+  return (
+    <ProductStrip
+      sortBy={sortBy}
+      page={page}
+      countryCode={params.countryCode}
+    />
+  )
+}
+```
+
+### Component Characteristics
+- Asynchronous server component
+- Extracts and awaits URL parameters and query parameters
+- Destructures sorting and pagination information from search parameters
+- Delegates rendering to the ProductStrip template component
+- Passes relevant parameters to the template component
+
+## Data Flow
+
+The component follows a simple data flow pattern:
+- Receives Promise-wrapped parameters from Next.js router
+- Resolves the promises to extract actual parameter values
+- Passes these values directly to the template component
+- No data fetching or transformation occurs in this component
+
+## Parameter Handling
+
+The component manages two types of parameters:
+- URL parameters (from the route itself)
+  - `countryCode`: Used for regional settings
+- Search parameters (from the query string)
+  - `sortBy`: Controls the order of displayed products
+  - `page`: Controls which page of products to display
+
+## UI Components
+
+The component does not directly implement any UI, instead it:
+- Acts as a wrapper/controller component
+- Delegates all UI rendering to the ProductStrip template
+- Focuses on parameter extraction and passing
+
+## Design Pattern
+
+This component demonstrates:
+- Separation of concerns between routing/parameter handling and UI rendering
+- Use of Next.js async server components
+- Promise resolution for router parameters
+- Delegating rendering to specialized template components
+
+## Potential Improvements
+- Uncomment and possibly customize the metadata
+- Add default values for parameters
+- Implement error handling for invalid parameters
+- Consider adding server-side validation for parameters
+- Add type safety for SortOptions values
+
+## Related Components
+- `ProductStrip`: Template component that handles the actual UI rendering
+- Pagination components
+- Sorting components (referenced by SortOptions type)
+- Product card components (likely used within ProductStrip)
+
+## URL Structure
+The page likely supports a URL structure like:
+- `/:countryCode/products`
+- With query parameters: `?sortBy=price_asc&page=2`
+
+## Component Purpose
+This component serves as a thin controller layer that:
+- Extracts parameters from the Next.js routing system
+- Prepares these parameters in the format expected by the ProductStrip template
+- Delegates the actual rendering to the specialized template component
+
+## Architectural Considerations
+- Follows the controller-template pattern common in Next.js applications
+- Separates routing concerns from presentation concerns
+- Enables type safety through TypeScript interfaces
+- Leverages Next.js's async server components for promise resolution

@@ -1,0 +1,130 @@
+---
+title: Layout
+description: Layout component for the checkout process
+---
+
+# Checkout Layout
+
+## Overview
+
+The Checkout Layout provides a consistent structure for the checkout process, including navigation, branding, and a call-to-action section.
+
+## Imports
+
+```typescript copy
+import LocalizedClientLink from "@modules/common/components/localized-client-link"
+import ChevronDown from "@modules/common/icons/chevron-down"
+import MedusaCTA from "@modules/layout/components/medusa-cta"
+```
+
+### Key Imports
+- `LocalizedClientLink`: Localized navigation component for client-side routing
+- `ChevronDown`: Chevron icon component
+- `MedusaCTA`: Call-to-action component, likely from Medusa framework
+
+## Component Structure
+
+```typescript copy
+export default function CheckoutLayout({
+  children,
+}: {
+  children: React.ReactNode
+}) {
+  return (
+    <div className="w-full bg-white relative small:min-h-screen">
+      {/* Layout content */}
+    </div>
+  )
+}
+```
+
+### Component Characteristics
+- Accepts child components as a prop
+- Provides a consistent layout for checkout pages
+- Responsive design with minimum screen height
+
+## Layout Breakdown
+
+### Navigation Bar
+
+```typescript copy
+<div className="h-16 bg-white border-b ">
+  <nav className="flex h-full items-center content-container justify-between">
+    {/* Navigation content */}
+  </nav>
+</div>
+```
+
+#### Navigation Elements
+1. **Back to Cart Link**
+   - Uses `LocalizedClientLink`
+   - Includes a chevron icon
+   - Responsive text ("Back to shopping cart" / "Back")
+   - Accessibility test ID: `back-to-cart-link`
+
+2. **Store/Logo Link**
+   - Uses `LocalizedClientLink`
+   - Navigates to homepage
+   - Displays "RUO" text in teal color
+   - Accessibility test ID: `store-link`
+
+### Content Area
+
+```typescript copy
+<div className="relative" data-testid="checkout-container">
+  {children}
+</div>
+```
+- Renders child components
+- Provides a relative positioning context
+- Includes a test ID for accessibility
+
+### Call-to-Action Section
+
+```typescript copy
+<div className="py-4 w-full flex items-center justify-center">
+  <MedusaCTA />
+</div>
+```
+- Centered call-to-action component
+- Vertical padding of 4 units
+
+## Styling Considerations
+
+### Responsive Design
+- White background
+- Minimum screen height on small screens
+- Flexible layout with content container
+
+### Typography and Color
+- Uppercase text styling
+- Subtle text colors with hover states
+- Teal brand color for logo
+
+## Best Practices
+- Use localized client-side navigation
+- Provide clear return and home navigation
+- Maintain consistent branding
+- Include accessibility test IDs
+
+## Potential Improvements
+- Add logo image (currently commented out)
+- Implement theme switching
+- Enhance responsiveness
+- Add more detailed accessibility attributes
+
+## Accessibility Considerations
+- Includes test IDs for testing
+- Provides alternative text for navigation
+- Responsive text for different screen sizes
+- Clear navigation paths
+
+## Performance Optimization
+- Lightweight component structure
+- Minimal rendering overhead
+- Uses client-side navigation
+
+## Customization Points
+- Easy to modify navigation elements
+- Flexible child rendering
+- Simple branding implementation

@@ -1,0 +1,129 @@
+---
+title: main
+description: Main landing page for the Medusa Next.js Starter Template
+---
+
+# Home Page (main)
+
+## Overview
+
+The Home page is the primary landing page for the e-commerce application, designed to provide an engaging and informative entry point for users.
+
+## Imports
+
+```typescript copy
+import { Metadata } from "next"
+import FeaturedProducts from "@modules/home/components/featured-products"
+import Hero from "@modules/home/components/hero"
+import { listCollections } from "@lib/data/collections"
+import { getRegion } from "@lib/data/regions"
+import FeatureSection from "@modules/home/components/features"
+import FAQIntroduction from "@modules/home/components/faqs-intro"
+```
+
+### Key Imports
+- `Metadata`: Next.js type for page metadata
+- `FeaturedProducts`: Component to display highlighted products
+- `Hero`: Landing page hero section component
+- `listCollections`: Function to fetch product collections
+- `getRegion`: Function to retrieve region-specific information
+- `FeatureSection`: Component showcasing key product or site features
+- `FAQIntroduction`: Component for introducing frequently asked questions
+
+## Metadata Configuration
+
+```typescript copy
+export const metadata: Metadata = {
+  title: "Medusa Next.js Starter Template",
+  description: "A performant frontend ecommerce starter template with Next.js 14 and Medusa.",
+}
+```
+
+The metadata provides:
+- A descriptive title for the application
+- A concise description highlighting the template's key attributes
+
+## Component Structure
+
+```typescript copy
+export default async function Home(props: {
+  params: Promise<{ countryCode: string }>
+}) {
+  const params = await props.params
+  const { countryCode } = params
+  const region = await getRegion(countryCode)
+  const { collections } = await listCollections({
+    fields: "id, handle, title",
+  })
+
+  if (!collections || !region) {
+    return null
+  }
+
+  return (
+    <>
+      <Hero />
+      <div className="py-12">
+        <ul className="flex flex-col gap-x-6">
+          <FeaturedProducts collections={collections} region={region} />
+          <FeatureSection />
+          <FAQIntroduction/>
+        </ul>
+      </div>
+    </>
+  )
+}
+```
+
+### Component Characteristics
+- Asynchronous server component
+- Requires country code parameter
+- Fetches region and collection data
+- Renders multiple sections on the home page
+
+### Data Fetching
+- Retrieves region information based on country code
+- Fetches product collections with specific fields
+- Handles potential data fetch failures by returning null
+
+### Page Layout
+- Includes a hero section
+- Uses a vertical flex layout with consistent spacing
+- Renders multiple components:
+  1. Hero
+  2. Featured Products
+  3. Feature Section
+  4. FAQ Introduction
+
+## Layout Details
+
+### Styling
+- Vertical padding of 12 units
+- Flex column layout with horizontal gap
+
+## Design Considerations
+- Modular component approach
+- Region and collection-aware rendering
+- Provides multiple entry points for user engagement
+
+## Best Practices
+- Use server-side data fetching for initial page load
+- Implement null checks for critical data
+- Create reusable, modular components
+- Ensure responsive and consistent layout
+
+## Potential Improvements
+- Add error handling for data fetching
+- Implement caching strategies for collections and region data
+- Consider adding loading states
+- Explore internationalization support
+
+## Performance Optimization
+- Leverage Next.js 14 server components
+- Minimal data fetching
+- Efficient component composition
+
+## Accessibility Considerations
+- Ensure all dynamically loaded components are accessible
+- Provide appropriate ARIA attributes
+- Maintain semantic HTML structure

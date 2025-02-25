@@ -1,0 +1,111 @@
+---
+title: Not Found
+description: Custom error page for handling non-existent routes
+---
+
+# Not Found
+
+## Overview
+
+This page provides a user-friendly experience when a user navigates to a non-existent route in the application.
+
+## Imports
+
+```typescript copy
+import { ArrowUpRightMini } from "@medusajs/icons"
+import { Text } from "@medusajs/ui"
+import { Metadata } from "next"
+import Link from "next/link"
+```
+
+### Key Imports
+- `ArrowUpRightMini`: An icon component from Medusa UI
+- `Text`: A text component from Medusa UI
+- `Metadata`: Next.js type for page metadata
+- `Link`: Next.js routing component for client-side navigation
+
+## Metadata Configuration
+
+```typescript copy
+export const metadata: Metadata = {
+  title: "Not Found",
+  description: "Page does not exist",
+}
+```
+
+The metadata provides:
+- A clear title indicating the page is not found
+- A description explaining the page's status
+
+## Page Structure
+
+```typescript copy
+export default function NotFound() {
+  return (
+    <div className="flex flex-col gap-4 items-center justify-center min-h-[calc(100vh-64px)]">
+      {/* Page content */}
+    </div>
+  )
+}
+```
+
+### Layout Characteristics
+- Centered vertically and horizontally
+- Full viewport height minus 64px (likely for a header)
+- Flexible column layout with consistent spacing
+
+## Components
+
+### Heading
+```tsx copy
+<h1 className="text-2xl-semi text-ui-fg-base">
+  Page not found
+</h1>
+```
+- Large, semi-bold text
+- Uses UI foreground base color
+
+### Description
+```tsx copy
+<p className="text-small-regular text-ui-fg-base">
+  The page you tried to access does not exist.
+</p>
+```
+- Small, regular weight text
+- Uses UI foreground base color
+
+### Return to Homepage Link
+```tsx copy
+<Link
+  className="flex gap-x-1 items-center group"
+  href="/"
+>
+  <Text className="text-ui-fg-interactive">Go to frontpage</Text>
+  <ArrowUpRightMini
+    className="group-hover:rotate-45 ease-in-out duration-150"
+    color="var(--fg-interactive)"
+  />
+</Link>
+```
+
+#### Link Features
+- Flexbox layout with icon and text
+- Interactive color styling
+- Hover effect on the icon (45-degree rotation)
+- Smooth transition animation
+
+## Design Considerations
+- Provides clear messaging about the error
+- Offers a straightforward way to return to the homepage
+- Uses consistent styling with application UI
+
+## Best Practices
+- Keep error messages clear and concise
+- Provide a direct path back to a valid page
+- Use subtle animations to improve user experience
+- Maintain consistent styling with the rest of the application
+
+## Potential Improvements
+- Add analytics tracking for not found events
+- Consider suggesting similar pages or search functionality
+- Implement internationalization for error messages

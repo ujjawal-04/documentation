@@ -1,0 +1,136 @@
+---
+title: Addresses
+description: Customer shipping addresses management page
+---
+
+# Addresses
+
+## Overview
+
+The Addresses page allows customers to view and manage their shipping addresses. This page is part of the customer account section and provides functionality to add, edit, and delete shipping addresses.
+
+## Imports
+
+```typescript copy
+import { Metadata } from "next"
+import { notFound } from "next/navigation"
+import AddressBook from "@modules/account/components/address-book"
+import { getRegion } from "@lib/data/regions"
+import { retrieveCustomer } from "@lib/data/customer"
+```
+
+### Key Imports
+- `Metadata`: Next.js type for page metadata
+- `notFound`: Next.js utility for rendering 404 pages
+- `AddressBook`: Component for managing customer addresses
+- `getRegion`: Function to retrieve region data
+- `retrieveCustomer`: Function to fetch customer data
+
+## Metadata Configuration
+
+```typescript copy
+export const metadata: Metadata = {
+  title: "Addresses",
+  description: "View your addresses",
+}
+```
+
+The metadata provides:
+- A title for the page
+- A descriptive explanation of the page's purpose
+
+## Component Structure
+
+```typescript copy
+export default async function Addresses(props: {
+  params: Promise<{ countryCode: string }>
+}) {
+  const params = await props.params
+  const { countryCode } = params
+  const customer = await retrieveCustomer()
+  const region = await getRegion(countryCode)
+
+  if (!customer || !region) {
+    notFound()
+  }
+
+  return (
+    <div className="w-full" data-testid="addresses-page-wrapper">
+      <div className="mb-8 flex flex-col gap-y-4">
+        <h1 className="text-2xl-semi">Shipping Addresses</h1>
+        <p className="text-base-regular">
+          View and update your shipping addresses, you can add as many as you
+          like. Saving your addresses will make them available during checkout.
+        </p>
+      </div>
+      <AddressBook customer={customer} region={region} />
+    </div>
+  )
+}
+```
+
+### Component Characteristics
+- Asynchronous server component
+- Takes country code from URL parameters
+- Fetches customer and region data
+- Handles missing data with 404 redirect
+- Renders address management interface
+
+## Data Fetching
+
+The component fetches two key data points:
+1. **Customer data** - Retrieved using `retrieveCustomer()`
+2. **Region data** - Retrieved using `getRegion(countryCode)`
+
+If either data fetch fails, the page redirects to a 404 Not Found page.
+
+## Layout Details
+- Full-width container
+- Header section with title and description
+- 8px margin bottom on the header section
+- Vertical flex layout with 4px gap between heading elements
+
+## Component Breakdown
+
+### Heading Section
+- Large, semi-bold text for page title
+- Regular base text for description
+- Explains the purpose and benefits of saving addresses
+
+### AddressBook Component
+- Receives customer and region data as props
+- Handles the core address management functionality
+- Provides UI for adding, editing, and deleting addresses
+
+## Error Handling
+- Checks for missing customer or region data
+- Uses Next.js `notFound()` function to redirect to 404 page
+- Ensures users don't see partially rendered or broken pages
+
+## Design Considerations
+- Clean, focused interface
+- Clear instructions for users
+- Consistent with the application's UI styling
+- Data-testid attribute for testing
+
+## Potential Improvements
+- Add loading states during data fetching
+- Implement error boundaries for more granular error handling
+- Add breadcrumb navigation
+- Introduce address validation
+
+## Accessibility Considerations
+- Semantic HTML structure
+- Clear, descriptive headings
+- Logical tab order through form elements
+- Appropriate text contrast
+
+## Performance Optimization
+- Server component for improved initial load
+- Minimal client-side JavaScript requirements
+- Efficient data fetching
+
+## Related Components
+- `AddressBook` - Core component for address management
+- Customer account navigation components
+- Form components for address entry

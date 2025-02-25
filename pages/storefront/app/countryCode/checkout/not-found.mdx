@@ -1,0 +1,113 @@
+---
+title: Not Found
+description: Custom error page for handling non-existent routes
+---
+
+# Not Found 
+
+## Overview
+
+The Not Found page provides a user-friendly experience when a user attempts to access a non-existent route in the application.
+
+## Imports
+
+```typescript copy
+import InteractiveLink from "@modules/common/components/interactive-link"
+import { Metadata } from "next"
+```
+
+### Key Imports
+- `InteractiveLink`: Custom interactive link component
+- `Metadata`: Next.js type for page metadata
+
+## Metadata Configuration
+
+```typescript copy
+export const metadata: Metadata = {
+  title: "Not Found",
+  description: "The requested page does not exist",
+}
+```
+
+The metadata provides:
+- A title indicating the page is not found
+- A descriptive explanation of the error
+
+## Component Structure
+
+```typescript copy
+export default async function NotFound() {
+  return (
+    <div className="flex flex-col gap-4 items-center justify-center min-h-[calc(100vh-64px)]">
+      <h1 className="text-2xl-semi text-ui-fg-base">Page not found</h1>
+      <p className="text-small-regular text-ui-fg-base">
+        The page you tried to access does not exist.
+      </p>
+      <InteractiveLink href="/">Go to frontpage</InteractiveLink>
+    </div>
+  )
+}
+```
+
+### Component Characteristics
+- Asynchronous server component
+- Centered layout
+- Provides clear error messaging
+- Offers a link back to the homepage
+
+### Layout Details
+- Vertical flex layout
+- Centered both vertically and horizontally
+- Full viewport height minus 64px
+- Consistent spacing between elements
+
+## Component Breakdown
+
+### Heading
+- Large, semi-bold text
+- Uses UI foreground base color
+- Clearly states "Page not found"
+
+### Description
+- Small, regular weight text
+- Uses UI foreground base color
+- Explains that the requested page does not exist
+
+### Navigation Link
+- Uses `InteractiveLink` component
+- Directs users back to the homepage
+- Provides an easy way to continue browsing
+
+## Design Considerations
+- Simple and clean error page design
+- Clear and concise messaging
+- Easy navigation back to the main page
+- Consistent with application's UI styling
+
+## Best Practices
+- Provide clear error communication
+- Offer a direct path back to a valid page
+- Maintain consistent design language
+- Use meaningful and helpful error messages
+
+## Potential Improvements
+- Add more detailed error information
+- Implement search functionality
+- Suggest similar or popular pages
+- Add analytics tracking for page not found events
+
+## Accessibility Considerations
+- Semantic HTML structure
+- Clear, readable error messaging
+- Obvious navigation option
+- Ensures users can easily understand and recover from the error
+
+## Performance Optimization
+- Lightweight component
+- Minimal rendering complexity
+- Server-side rendering for fast initial load
+
+## Customization Points
+- Easy to modify error messaging
+- Flexible link component
+- Simple layout for easy styling adjustments

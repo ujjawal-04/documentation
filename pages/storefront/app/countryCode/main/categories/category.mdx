@@ -1,0 +1,206 @@
+---
+title: Category
+description: Product category display page with static generation support
+---
+
+# Category
+
+## Overview
+
+The Category Page displays products belonging to a specific category. It supports static site generation (SSG) for improved performance and SEO, with dynamic routing based on category handles and country codes.
+
+## Imports
+
+```typescript copy
+import { Metadata } from "next"
+import { notFound } from "next/navigation"
+import { getCategoryByHandle, listCategories } from "@lib/data/categories"
+import { listRegions } from "@lib/data/regions"
+import { StoreRegion } from "@medusajs/types"
+import CategoryTemplate from "@modules/categories/templates"
+import { SortOptions } from "@modules/store/components/refinement-list/sort-products"
+```
+
+### Key Imports
+- `Metadata`: Next.js type for page metadata
+- `notFound`: Next.js utility for rendering 404 pages
+- `getCategoryByHandle`, `listCategories`: Functions for category data retrieval
+- `listRegions`: Function to get available regions
+- `StoreRegion`: Type definition from Medusa
+- `CategoryTemplate`: Core component for displaying category products
+- `SortOptions`: Type for product sorting options
+
+## Props Interface
+
+```typescript copy
+type Props = {
+  params: Promise<{ category: string[]; countryCode: string }>
+  searchParams: Promise<{
+    sortBy?: SortOptions
+    page?: string
+  }>
+}
+```
+
+The component accepts:
+- `params`: URL parameters including category slug and country code
+- `searchParams`: Query parameters for sorting and pagination
+
+## Static Site Generation
+
+```typescript copy
+export async function generateStaticParams() {
+  const product_categories = await listCategories()
+
+  if (!product_categories) {
+    return []
+  }
+
+  const countryCodes = await listRegions().then((regions: StoreRegion[]) =>
+    regions?.map((r) => r.countries?.map((c) => c.iso_2)).flat()
+  )
+
+  const categoryHandles = product_categories.map(
+    (category: any) => category.handle
+  )
+
+  const staticParams = countryCodes
+    ?.map((countryCode: string | undefined) =>
+      categoryHandles.map((handle: any) => ({
+        countryCode,
+        category: [handle],
+      }))
+    )
+    .flat()
+
+  return staticParams
+}
+```
+
+### SSG Process
+- Fetches all product categories
+- Retrieves all available country codes from regions
+- Generates combinations of category handles and country codes
+- Returns these combinations for Next.js to pre-render at build time
+
+## Dynamic Metadata Generation
+
+```typescript copy
+export async function generateMetadata(props: Props): Promise<Metadata> {
+  const params = await props.params
+  try {
+    const productCategory = await getCategoryByHandle(params.category)
+
+    const title = productCategory.name + " | Medusa Store"
+
+    const description = productCategory.description ?? `${title} category.`
+
+    return {
+      title: `${title} | Medusa Store`,
+      description,
+      alternates: {
+        canonical: `${params.category.join("/")}`,
+      },
+    }
+  } catch (error) {
+    notFound()
+  }
+}
+```
+
+### Metadata Features
+- Dynamically generates page metadata based on category information
+- Creates SEO-friendly titles using category name
+- Uses category description when available, or falls back to generated description
+- Sets canonical URL to help search engines identify the primary version of the page
+- Handles errors by redirecting to 404 page
+
+## Component Structure
+
+```typescript copy
+export default async function CategoryPage(props: Props) {
+  const searchParams = await props.searchParams
+  const params = await props.params
+  const { sortBy, page } = searchParams
+
+  const productCategory = await getCategoryByHandle(params.category)
+
+  if (!productCategory) {
+    notFound()
+  }
+
+  return (
+    <CategoryTemplate
+      category={productCategory}
+      sortBy={sortBy}
+      page={page}
+      countryCode={params.countryCode}
+    />
+  )
+}
+```
+
+### Component Characteristics
+- Asynchronous server component
+- Extracts URL and query parameters
+- Fetches category data using the category handle
+- Handles missing category data by redirecting to 404 page
+- Delegates UI rendering to the `CategoryTemplate` component
+
+## Data Fetching
+
+The component fetches category data using the `getCategoryByHandle` function:
+- Uses the category handle from URL parameters
+- Redirects to 404 if category doesn't exist
+- Passes retrieved data to the template component
+
+## Error Handling
+- Uses try/catch in metadata generation
+- Checks for missing category data in the main component
+- Uses Next.js `notFound()` function to redirect to 404 page in both cases
+
+## Component Breakdown
+
+### CategoryPage Component
+- Acts as a data fetching and routing wrapper
+- Handles URL parameters and query parameters
+- Manages error scenarios
+
+### CategoryTemplate Component (imported)
+- Receives category data, sorting preferences, pagination info, and country code
+- Handles the actual UI rendering of products and category information
+
+## Design Pattern
+This component demonstrates advanced Next.js patterns:
+- Static Site Generation for performance optimization
+- Dynamic metadata generation for SEO
+- Separation of data fetching from UI rendering
+- Proper error handling throughout the component lifecycle
+
+## Potential Improvements
+- Add loading states during data fetching
+- Implement more granular error handling
+- Consider incremental static regeneration (ISR) for updated content
+- Add breadcrumb navigation
+
+## Accessibility Considerations
+- Ensure proper heading structure in the template
+- Provide keyboard navigation for product grids
+- Include proper ARIA attributes for interactive elements
+
+## Performance Optimization
+- Static Site Generation for core pages
+- Efficient data fetching
+- Potential for image optimization
+- Consideration for pagination of large product sets
+
+## Related Components
+- `CategoryTemplate` - Core UI component for displaying category products
+- Product card components
+- Sorting and filtering components
+- Pagination components
+
+## URL Structure
+The page supports a dynamic URL structure:
+- `/:countryCode/categories/:categoryHandle` for top-level categories
+- Potentially nested category paths with multiple segments

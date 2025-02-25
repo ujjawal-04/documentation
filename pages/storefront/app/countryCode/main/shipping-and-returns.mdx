@@ -1,0 +1,149 @@
+---
+title: Shipping And Returns
+description: Component displaying shipping policies and return procedures for customers
+---
+
+# Shipping And Returns
+
+## Overview
+
+The Shipping And Returns component displays comprehensive information about the company's shipping policies, delivery options, and return procedures. The component is structured with clear sections covering various aspects of the shipping process and return policies, making it easy for customers to understand the company's practices.
+
+## Imports
+
+```typescript copy
+import React from "react";
+import { Check } from "lucide-react"
+```
+
+### Key Imports
+- `React`: Core React library for component creation
+- `Check`: Icon component from Lucide React library used for visual bullet points in lists
+
+## Component Structure
+
+```typescript copy
+const ShippingAndReturns = () => {
+    return (
+        <div className="content-container mb-24 px-3">
+            <h1 className="mb-6 mt-8 text-4xl font-medium capitalize tracking-tight">Shipping And Returns</h1>
+
+            {/* Section 1: Shipping Options */}
+            <section className="mb-6">
+                <h2 className="my-4 text-2xl font-medium leading-[2rem] tracking-tight">1. Shipping Options</h2>
+                {/* Content */}
+            </section>
+
+            {/* Section 2: International Orders & Mail Forwarding */}
+            <section className="mb-6">
+                <h2 className="my-4 text-2xl font-medium leading-[2rem] tracking-tight">2. International Orders & Mail Forwarding</h2>
+                {/* Content */}
+            </section>
+
+            {/* Additional numbered sections... */}
+            
+            {/* Section 11: Our Commitment to You */}
+            <section className="mb-6">
+                <h2 className="my-4 text-2xl font-medium leading-[2rem] tracking-tight">11. Our Commitment to You</h2>
+                {/* Content */}
+            </section>
+        </div>
+    );
+};
+
+export default ShippingAndReturns;
+```
+
+## Component Characteristics
+- Functional React component with a consistent layout structure
+- Organized with semantic HTML sections for clear organization
+- Uses consistent typography and spacing for readability
+- Includes visual indicators (Check icons) for list items
+- Contains detailed explanations of shipping and return policies with proper heading hierarchy
+
+## Content Organization
+
+### Main Sections
+The component is organized into 11 primary sections:
+1. Shipping Options
+2. International Orders & Mail Forwarding
+3. Product Availability & Shipping Restrictions
+4. Order Tracking
+5. Delayed Shipments
+6. Cancellations
+7. Returns & Replacements Policy
+8. Undelivered Packages
+9. Missing, Wrong, Damaged, or Defective Items
+10. Chargebacks & Payment Disputes
+11. Our Commitment to You
+
+### Section Structure
+Each section follows a consistent pattern:
+- Numbered heading with section title
+- Explanatory paragraphs with consistent styling
+- Bulleted lists with check icons for important points
+- Contact information where relevant
+- Highlighted email addresses for customer support
+
+## UI Components
+
+### Typography Hierarchy
+- Main heading: `text-4xl font-medium capitalize tracking-tight`
+- Section headings: `text-2xl font-medium leading-[2rem] tracking-tight`
+- Body text: `text-base text-gray-600 peer-last:mb-0`
+- List items: Custom styling with check icons
+
+### Layout
+- Container with bottom margin (`mb-24`) and horizontal padding (`px-3`)
+- Consistent spacing between sections (`mb-6`)
+- Vertical spacing within sections using margin utilities
+
+### Interactive Elements
+- Email addresses with distinct styling (`text-[#008080]`)
+- Visual emphasis (Check icons) for list items
+
+## Styling Approach
+- Uses Tailwind CSS utility classes for styling
+- Consistent text colors for different content types
+- Brand colors applied to interactive elements and icons
+- Semantic HTML structure enhances accessibility
+- Custom flex layout for list items with check icons
+
+## Visual Design
+- Check icons in teal color (`text-[#008080]`) provide visual cues for list items
+- Gray text color (`text-gray-600`) for body content improves readability
+- Consistent spacing and typography create a professional appearance
+- Capitalized main heading with appropriate font weight
+
+## User Experience Considerations
+- Clear section numbering for easy reference
+- Consistent formatting throughout the document
+- Visual spacing to improve readability
+- Highlighted contact information for customer inquiries
+- Detailed instructions for various shipping scenarios
+
+## Accessibility Features
+- Semantic HTML structure with proper heading hierarchy
+- Descriptive section titles
+- Consistent navigation through sequential headings
+- Visual indicators (check marks) accompanied by text content
+
+## Potential Improvements
+- Add anchor links for each section for easier navigation
+- Implement collapsible sections for mobile viewing
+- Add structured data for better SEO
+- Include a table of contents at the top
+- Make email addresses clickable with mailto links consistently
+- Fix inconsistent spacing in some list items
+
+## Related Components
+- Privacy Policy component
+- Terms of Service component
+- FAQ component
+- Contact form component
+- Order tracking component
+
+## URL Structure
+The component is likely to be accessed via a URL like:
+- `/shipping-and-returns`
+- `/policies/shipping`

@@ -1,0 +1,147 @@
+---
+title: Terms And Conditions
+description: Component displaying the company's Terms and Conditions for site usage and product purchases
+---
+
+# Terms And Conditions 
+
+## Overview
+
+The Terms And Conditions component displays comprehensive legal information about the company's terms of service, product usage policies, and customer agreements. The component is structured with clear sections covering various legal aspects of using the website and purchasing products, ensuring customers understand their rights and obligations.
+
+## Imports
+
+```typescript copy
+import React from "react";
+```
+
+### Key Imports
+- `React`: Core React library for component creation
+
+## Component Structure
+
+```typescript copy
+const TermsAndConditions = () => {
+    return (
+        <div className="content-container mb-24 px-3">
+            <h1 className="mb-6 mt-8 text-4xl font-medium capitalize tracking-tight">Terms And Conditions</h1>
+
+            {/* Introduction section */}
+            <section className="mb-6">
+                <p className="text-base text-gray-600 peer-last:mb-0">Welcome to the Power Peptides LLC website...</p>
+            </section>
+
+            {/* Section 1: Use of Site and Products */}
+            <section className="mb-6">
+                <h2 className="my-4 text-2xl font-medium leading-[2rem] tracking-tight">1. Use of Site and Products</h2>
+                {/* Subsections and content */}
+            </section>
+
+            {/* Additional numbered sections... */}
+            
+            {/* Contact Information */}
+            <section className="mb-6">
+                <h2 className="my-4 text-2xl font-medium leading-[2rem] tracking-tight">Contact Information</h2>
+                {/* Contact details */}
+            </section>
+        </div>
+    );
+};
+
+export default TermsAndConditions;
+```
+
+## Component Characteristics
+- Functional React component with a clean and organized structure
+- Uses semantic HTML sections for clear organization of legal content
+- Consistent typography and styling for readability
+- Contains detailed explanations of terms and conditions with proper heading hierarchy
+- Structured layout for complex legal information
+
+## Content Organization
+
+### Main Sections
+The component is organized into 10 primary sections plus an introduction and contact information:
+1. Use of Site and Products
+2. Orders and Payment
+3. Returns and Refunds
+4. Intellectual Property
+5. Third-party Content
+6. Indemnity Waiver for Research Compounds
+7. Disclaimer
+8. Governing Law and Jurisdiction
+9. Changes to Terms
+10. Entire Agreement
+
+### Section Structure
+Each section follows a consistent pattern:
+- Numbered heading with section title
+- Explanatory paragraphs with consistent styling
+- Subsections with decimal numbering where applicable (e.g., 1.1, 1.2)
+- Highlighted links or important contact information
+
+## UI Components
+
+### Typography Hierarchy
+- Main heading: `text-4xl font-medium capitalize tracking-tight`
+- Section headings: `text-2xl font-medium leading-[2rem] tracking-tight`
+- Body text: `text-base text-gray-600 peer-last:mb-0`
+- Legal paragraphs: List-style formatting with consistent indentation
+
+### Layout
+- Container with bottom margin (`mb-24`) and horizontal padding (`px-3`)
+- Consistent spacing between sections (`mb-6`)
+- Vertical spacing within sections using margin utilities
+
+### Interactive Elements
+- Website link with distinct styling (`text-[#008080]`)
+- Email address with highlight color
+- Structured layout for complex legal disclaimers
+
+## Styling Approach
+- Uses Tailwind CSS utility classes for styling
+- Consistent text colors for different content types
+- Brand colors applied to interactive elements
+- Semantic HTML structure enhances accessibility
+- Consistent spacing for improved readability of dense legal text
+
+## Legal Content Presentation
+- Clear section numbering for precise reference
+- Decimal subsection numbering for hierarchical organization
+- All-caps formatting for important disclaimers
+- Indentation and list structures for terms enumeration
+- Contact information clearly presented at the end
+
+## User Experience Considerations
+- Clear section organization for finding specific terms
+- Consistent formatting throughout the document
+- Visual spacing to improve readability of dense legal content
+- Highlighted contact information for customer inquiries
+- Structured presentation of complex legal concepts
+
+## Accessibility Features
+- Semantic HTML structure with proper heading hierarchy
+- Descriptive section titles
+- Consistent navigation through sequential headings
+- Clear contact information for inquiries
+- Logical document structure
+
+## Potential Improvements
+- Add anchor links for each section for easier navigation
+- Implement collapsible sections for better usability
+- Add a table of contents at the top
+- Include a "Last Updated" timestamp
+- Make email address consistently clickable with mailto link
+- Consider adding a print-friendly version option
+
+## Related Components
+- Privacy Policy component
+- Shipping and Returns component
+- FAQ component
+- Contact form component
+- Legal information components
+
+## URL Structure
+The component is likely to be accessed via a URL like:
+- `/terms-and-conditions`
+- `/legal/terms`

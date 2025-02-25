@@ -1,0 +1,77 @@
+---
+title: Search
+description: Route component that renders the search modal overlay
+---
+
+# Search
+
+## Overview
+
+The Search Modal Route is a minimal route component that renders a search modal overlay. This component serves as an entry point for displaying the search interface as a modal dialog, typically triggered from various locations throughout the application.
+
+## Imports
+
+```typescript copy
+import SearchModal from "@modules/search/templates/search-modal"
+```
+
+### Key Imports
+- `SearchModal`: Template component that contains the actual search modal UI and functionality
+
+## Component Structure
+
+```typescript copy
+export default function SearchModalRoute() {
+  return <SearchModal />
+}
+```
+
+### Component Characteristics
+- Simple functional component with no parameters
+- Acts as a thin wrapper around the SearchModal template
+- Contains no local state or processing logic
+- Directly renders the imported SearchModal component
+
+## Design Pattern
+
+This component demonstrates:
+- Separation of routing from UI implementation
+- Clean component composition
+- Single responsibility principle - the route component's sole responsibility is connecting the URL route to the appropriate UI component
+
+## Component Purpose
+
+The SearchModalRoute serves as:
+- A dedicated route handler for the search modal feature
+- An entry point that can be targeted by navigation or programmatic routing
+- A clean separation between routing concerns and modal implementation details
+
+## Architectural Considerations
+- Follows Next.js conventions for route components
+- Maintains clean separation between routing and UI concerns
+- Enables the search modal to be accessed via a dedicated route
+- Simplifies testing and maintenance by isolating the routing aspect
+
+## Potential Improvements
+- Add route-specific metadata if needed
+- Consider adding props to customize the modal's initial state based on route parameters
+- Implement error boundaries for the modal component
+
+## Related Components
+- `SearchModal`: The actual modal component containing search functionality
+- Search input components
+- Search results components
+- Navigation components that link to this route
+
+## URL Structure
+The component likely corresponds to a route such as:
+- `/search-modal`
+- `/search/modal`
+- Or as an interstitial route like `/:countryCode/search/modal`
+
+## Usage Scenarios
+This component would typically be used in scenarios such as:
+- Opening a search interface from the main navigation
+- Redirecting to search from empty state screens
+- Providing a dedicated keyboard shortcut target for search functionality
+- Creating a consistent entry point for search across the application

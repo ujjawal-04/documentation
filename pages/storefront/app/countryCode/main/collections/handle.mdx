@@ -1,0 +1,216 @@
+---
+title: Collection
+description: Product collection display page with static generation support
+---
+
+# Collection
+
+## Overview
+
+The Collection Page displays products belonging to a specific collection. It supports static site generation (SSG) for improved performance and SEO, with dynamic routing based on collection handles and country codes.
+
+## Imports
+
+```typescript copy
+import { Metadata } from "next"
+import { notFound } from "next/navigation"
+import { getCollectionByHandle, listCollections } from "@lib/data/collections"
+import { listRegions } from "@lib/data/regions"
+import { StoreCollection, StoreRegion } from "@medusajs/types"
+import CollectionTemplate from "@modules/collections/templates"
+import { SortOptions } from "@modules/store/components/refinement-list/sort-products"
+```
+
+### Key Imports
+- `Metadata`: Next.js type for page metadata
+- `notFound`: Next.js utility for rendering 404 pages
+- `getCollectionByHandle`, `listCollections`: Functions for collection data retrieval
+- `listRegions`: Function to get available regions
+- `StoreCollection`, `StoreRegion`: Type definitions from Medusa
+- `CollectionTemplate`: Core component for displaying collection products
+- `SortOptions`: Type for product sorting options
+
+## Props Interface
+
+```typescript copy
+type Props = {
+  params: Promise<{ handle: string; countryCode: string }>
+  searchParams: Promise<{
+    page?: string
+    sortBy?: SortOptions
+  }>
+}
+```
+
+The component accepts:
+- `params`: URL parameters including collection handle and country code
+- `searchParams`: Query parameters for pagination and sorting
+
+## Constants
+
+```typescript copy
+export const PRODUCT_LIMIT = 12
+```
+
+Defines the number of products to display per page.
+
+## Static Site Generation
+
+```typescript copy
+export async function generateStaticParams() {
+  const { collections } = await listCollections({
+    fields: "*products",
+  })
+
+  if (!collections) {
+    return []
+  }
+
+  const countryCodes = await listRegions().then(
+    (regions: StoreRegion[]) =>
+      regions
+        ?.map((r) => r.countries?.map((c) => c.iso_2))
+        .flat()
+        .filter(Boolean) as string[]
+  )
+
+  const collectionHandles = collections.map(
+    (collection: StoreCollection) => collection.handle
+  )
+
+  const staticParams = countryCodes
+    ?.map((countryCode: string) =>
+      collectionHandles.map((handle: string | undefined) => ({
+        countryCode,
+        handle,
+      }))
+    )
+    .flat()
+
+  return staticParams
+}
+```
+
+### SSG Process
+- Fetches all collections with their products
+- Retrieves all available country codes from regions
+- Generates combinations of collection handles and country codes
+- Returns these combinations for Next.js to pre-render at build time
+- Filters out any potentially undefined country codes with `filter(Boolean)`
+
+## Dynamic Metadata Generation
+
+```typescript copy
+export async function generateMetadata(props: Props): Promise<Metadata> {
+  const params = await props.params
+  const collection = await getCollectionByHandle(params.handle)
+
+  if (!collection) {
+    notFound()
+  }
+
+  const metadata = {
+    title: `${collection.title} | Medusa Store`,
+    description: `${collection.title} collection`,
+  } as Metadata
+
+  return metadata
+}
+```
+
+### Metadata Features
+- Dynamically generates page metadata based on collection information
+- Creates SEO-friendly titles using collection title
+- Generates a simple description based on collection title
+- Handles missing collections by redirecting to 404 page
+
+## Component Structure
+
+```typescript copy
+export default async function CollectionPage(props: Props) {
+  const searchParams = await props.searchParams
+  const params = await props.params
+  const { sortBy, page } = searchParams
+
+  const collection = await getCollectionByHandle(params.handle).then(
+    (collection: StoreCollection) => collection
+  )
+
+  if (!collection) {
+    notFound()
+  }
+
+  return (
+    <CollectionTemplate
+      collection={collection}
+      page={page}
+      sortBy={sortBy}
+      countryCode={params.countryCode}
+    />
+  )
+}
+```
+
+### Component Characteristics
+- Asynchronous server component
+- Extracts URL and query parameters
+- Fetches collection data using the collection handle
+- Handles missing collection data by redirecting to 404 page
+- Delegates UI rendering to the `CollectionTemplate` component
+
+## Data Fetching
+
+The component fetches collection data using the `getCollectionByHandle` function:
+- Uses the collection handle from URL parameters
+- Uses `.then()` for type assertion (though this is redundant)
+- Redirects to 404 if collection doesn't exist
+- Passes retrieved data to the template component
+
+## Error Handling
+- Checks for missing collection data in both metadata generation and the main component
+- Uses Next.js `notFound()` function to redirect to 404 page in both cases
+
+## Component Breakdown
+
+### CollectionPage Component
+- Acts as a data fetching and routing wrapper
+- Handles URL parameters and query parameters
+- Manages error scenarios
+
+### CollectionTemplate Component (imported)
+- Receives collection data, pagination info, sorting preferences, and country code
+- Handles the actual UI rendering of products and collection information
+
+## Design Pattern
+This component demonstrates advanced Next.js patterns:
+- Static Site Generation for performance optimization
+- Dynamic metadata generation for SEO
+- Separation of data fetching from UI rendering
+- Proper error handling throughout the component lifecycle
+
+## Potential Improvements
+- Remove redundant `.then()` in collection data fetching
+- Add loading states during data fetching
+- Consider incremental static regeneration (ISR) for updated content
+- Add breadcrumb navigation
+
+## Accessibility Considerations
+- Ensure proper heading structure in the template
+- Provide keyboard navigation for product grids
+- Include proper ARIA attributes for interactive elements
+
+## Performance Optimization
+- Static Site Generation for core pages
+- Efficient data fetching
+- Potential for image optimization
+- Pagination with PRODUCT_LIMIT of 12 items per page
+
+## Related Components
+- `CollectionTemplate` - Core UI component for displaying collection products
+- Product card components
+- Sorting and filtering components
+- Pagination components
+
+## URL Structure
+The page supports a URL structure like:
+- `/:countryCode/collections/:handle`

@@ -1,0 +1,153 @@
+---
+title: Accept
+description: Order transfer acceptance page with token-based authentication
+---
+
+# Transfer accept
+
+## Overview
+
+The Transfer Page handles the acceptance of order ownership transfers. It validates transfer tokens, processes transfer requests, and displays appropriate success or error messages to users. This page is designed for security and simplicity in the order transfer workflow.
+
+## Imports
+
+```typescript copy
+import { acceptTransferRequest } from "@lib/data/orders"
+import { Heading, Text } from "@medusajs/ui"
+import TransferImage from "@modules/order/components/transfer-image"
+```
+
+### Key Imports
+- `acceptTransferRequest`: Function to process and validate transfer requests
+- `Heading`, `Text`: UI components from Medusa UI library for typography
+- `TransferImage`: Component displaying a visual representation of the transfer process
+
+## Props Interface
+
+```typescript copy
+type Props = {
+  params: {
+    id: string;
+    token: string;
+  }
+}
+```
+
+The component accepts:
+- `params`: URL parameters including order ID and security token
+  - `id`: The unique identifier of the order being transferred
+  - `token`: Security token to validate the transfer request
+
+## Component Structure
+
+```typescript copy
+export default async function TransferPage({
+  params,
+}: {
+  params: { id: string; token: string }
+}) {
+  const { id, token } = params
+  
+  const { success, error } = await acceptTransferRequest(id, token)
+  
+  return (
+    <div className="flex flex-col gap-y-4 items-start w-2/5 mx-auto mt-10 mb-20">
+      <TransferImage />
+      <div className="flex flex-col gap-y-6">
+        {success && (
+          <>
+            <Heading level="h1" className="text-xl text-zinc-900">
+              Order transfered!
+            </Heading>
+            <Text className="text-zinc-600">
+              Order {id} has been successfully transfered to the new owner.
+            </Text>
+          </>
+        )}
+        {!success && (
+          <>
+            <Text className="text-zinc-600">
+              There was an error accepting the transfer. Please try again.
+            </Text>
+            {error && (
+              <Text className="text-red-500">Error message: {error}</Text>
+            )}
+          </>
+        )}
+      </div>
+    </div>
+  )
+}
+```
+
+### Component Characteristics
+- Asynchronous server component
+- Extracts order ID and token from URL parameters
+- Processes transfer request through the `acceptTransferRequest` function
+- Displays different content based on the success or failure of the transfer
+- Shows detailed error messages when available
+
+## Data Processing
+
+The component processes the transfer request using:
+- `acceptTransferRequest` function that accepts the order ID and token
+- Returns an object containing:
+  - `success`: Boolean indicating if the transfer was successful
+  - `error`: Optional error message if the transfer failed
+
+## UI Components
+
+### Page Layout
+- Centered content with responsive width (40% of viewport)
+- Vertical stack layout with appropriate spacing
+- Clear visual hierarchy for content
+
+### Success State
+- Shows a confirmation heading
+- Displays a success message with the order ID referenced
+
+### Error State
+- Shows a general error message
+- Conditionally displays the specific error message if available
+- Uses red text color for error details to indicate issues
+
+## Error Handling
+- Handles failed transfers gracefully
+- Provides user-friendly error messages
+- Shows technical error details when available for troubleshooting
+
+## Visual Elements
+- Includes a `TransferImage` component for visual representation
+- Uses Medusa UI typography components for consistent styling
+- Implements a clean, minimal interface focused on the transfer status
+
+## Security Considerations
+- Requires a valid token for transfer processing
+- Token-based authentication for secure order transfers
+- Server-side validation of transfer requests
+
+## Design Pattern
+This component demonstrates:
+- Clean separation of data processing and UI rendering
+- Conditional rendering based on operation outcome
+- Consistent error handling and user feedback
+
+## Potential Improvements
+- Add a retry mechanism for failed transfers
+- Include a loading state during processing
+- Provide a link back to order details or shop
+- Fix typo in "transfered" to "transferred"
+
+## Accessibility Considerations
+- Uses semantic HTML structure
+- Implements proper heading hierarchy
+- Provides clear error messaging
+
+## Related Components
+- `TransferImage` - Visual element for the transfer process
+- Order management components
+- Authentication and security components
+
+## URL Structure
+The page supports a URL structure like:
+- `/transfer/:id/:token`

@@ -1,0 +1,125 @@
+---
+title: dashboard
+description: Customer account overview page
+---
+
+# dashboard
+
+## Overview
+
+The Account Overview page serves as the main dashboard for customers to access their account information and recent order history. This page provides a centralized entry point to the customer's account section.
+
+## Imports
+
+```typescript copy
+import { Metadata } from "next"
+import Overview from "@modules/account/components/overview"
+import { notFound } from "next/navigation"
+import { retrieveCustomer } from "@lib/data/customer"
+import { listOrders } from "@lib/data/orders"
+```
+
+### Key Imports
+- `Metadata`: Next.js type for page metadata
+- `Overview`: Core component for displaying account dashboard
+- `notFound`: Next.js utility for rendering 404 pages
+- `retrieveCustomer`: Function to fetch customer data
+- `listOrders`: Function to retrieve customer order data
+
+## Metadata Configuration
+
+```typescript copy
+export const metadata: Metadata = {
+  title: "Account",
+  description: "Overview of your account activity.",
+}
+```
+
+The metadata provides:
+- A simple title for the page
+- A concise description of the page's purpose
+
+## Component Structure
+
+```typescript copy
+export default async function OverviewTemplate() {
+  const customer = await retrieveCustomer().catch(() => null)
+  const orders = (await listOrders().catch(() => null)) || null
+
+  if (!customer) {
+    notFound()
+  }
+
+  return <Overview customer={customer} orders={orders} />
+}
+```
+
+### Component Characteristics
+- Asynchronous server component
+- Fetches customer and orders data
+- Handles data fetching errors gracefully
+- Redirects to 404 page when customer data isn't available
+- Delegates UI rendering to the `Overview` component
+
+## Data Fetching
+
+The component fetches two key data points:
+1. **Customer data** - Retrieved using `retrieveCustomer()`
+2. **Orders data** - Retrieved using `listOrders()`
+
+Error handling is implemented with `.catch(() => null)` for both data fetching operations:
+- If customer data fetch fails, it returns null and triggers the notFound() redirect
+- If orders data fetch fails, it defaults to null but doesn't prevent page rendering
+
+## Error Handling
+- Uses try/catch pattern with .catch() for data fetching
+- Checks for missing customer data
+- Uses Next.js `notFound()` function to redirect to 404 page if customer data is missing
+- Allows the page to render even if orders data is unavailable
+
+## Component Breakdown
+
+### OverviewTemplate Component
+- Acts as a data fetching wrapper
+- Handles error scenarios
+- Passes retrieved data to the UI component
+
+### Overview Component (imported)
+- Receives customer and orders data as props
+- Handles the actual UI rendering
+- Likely includes sections for account summary and recent orders
+
+## Design Pattern
+This component follows common Next.js patterns:
+- Separation of data fetching from UI rendering
+- Error handling at the page level
+- Graceful degradation when some data is unavailable
+
+## Potential Improvements
+- Add loading states during data fetching
+- Implement more granular error handling
+- Consider fallback UI when orders are unavailable
+- Add refresh mechanisms for updating data
+
+## Accessibility Considerations
+- Error states should be clearly communicated
+- Loading states should be properly indicated
+- Content organization should follow logical structure
+
+## Performance Optimization
+- Server component for improved initial load
+- Efficient error handling to prevent cascading failures
+- Conditional rendering based on available data
+
+## Related Components
+- `Overview` - Core UI component for the dashboard
+- Customer account navigation components
+- Order summary components
+- Account information display components
+
+## Best Practices Implemented
+- Proper error handling for data fetching
+- Fallback to null for optional data
+- Clear redirect pattern for missing required data
+- Separation of concerns between data and UI
+- Descriptive component naming
