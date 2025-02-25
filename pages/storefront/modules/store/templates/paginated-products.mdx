@@ -1,219 +1,486 @@
-# Checkout Summary 
+# Paginated Products
 
-A component that displays a comprehensive summary of the shopping cart, including items, totals, and discount code functionality. It provides a sticky positioning for better user experience during checkout.
+A React server component that displays a paginated grid of products with advanced sorting, filtering, and pagination capabilities.
+
+## Syntax
+
+```jsx copy
+<PaginatedProducts
+  sortBy="created_at"
+  page={1}
+  collectionId="coll_123"
+  categoryId="cat_456"
+  priceRange="0-100"
+  tags="new,sale"
+  productsIds={["prod_789", "prod_012"]}
+  countryCode="US"
+/>
+```
+
+## Description
+
+The `PaginatedProducts` component fetches and displays a grid of products with support for pagination, sorting, and multiple filtering options. It handles server-side data fetching and client-side filtering to provide a comprehensive product browsing experience. The component adapts its display based on filter criteria and ensures proper region-specific product information.
+
+### Features:
+- Server-side data fetching with pagination
+- Multiple filtering options (collection, category, price, tags)
+- Support for specific product IDs
+- Customizable sorting
+- Client-side post-filtering for price ranges and tags
+- Responsive product grid layout
+- Built-in pagination when multiple pages exist
+- Region-specific product information
+- Precise product count for accurate pagination
+
+## Technical Details
+
+### Dependencies
+
+```javascript copy
+import { listProductsWithSort } from "@lib/data/products"
+import { getRegion } from "@lib/data/regions"
+import { getProductPrice } from "@lib/util/get-product-price"
+import ProductPreview from "@modules/products/components/product-preview"
+import { Pagination } from "@modules/store/components/pagination"
+import { SortOptions } from "@modules/store/components/refinement-list/sort-products"
+```
+
+### Constants
+
+```javascript copy
+const PRODUCT_LIMIT = 8
+```
+
+### Types
+
+```typescript copy
+type PaginatedProductsParams = {
+  limit: number
+  collection_id?: string[]
+  category_id?: string[]
+  id?: string[]
+  order?: string
+  min_price?: number
+  max_price?: number
+  tags?: string[]
+}
+```
+
+### Component Props
+
+```typescript copy
+type PaginatedProductsProps = {
+  sortBy?: SortOptions
+  page: number
+  collectionId?: string
+  categoryId?: string
+  priceRange?: string
+  tags?: string
+  productsIds?: string[]
+  countryCode: string
+}
+```
+
+### Component Structure
+
+```javascript copy
+import { listProductsWithSort } from "@lib/data/products"
+import { getRegion } from "@lib/data/regions"
+import { getProductPrice } from "@lib/util/get-product-price"
+import ProductPreview from "@modules/products/components/product-preview"
+import { Pagination } from "@modules/store/components/pagination"
+import { SortOptions } from "@modules/store/components/refinement-list/sort-products"
+
+const PRODUCT_LIMIT = 8
+
+type PaginatedProductsParams = {
+  limit: number
+  collection_id?: string[]
+  category_id?: string[]
+  id?: string[]
+  order?: string
+  min_price?: number
+  max_price?: number
+  tags?: string[]
+}
+
+export default async function PaginatedProducts({
+  sortBy,
+  page,
+  collectionId,
+  categoryId,
+  productsIds,
+  priceRange,
+  tags,
+  countryCode,
+}: {
+  sortBy?: SortOptions
+  page: number
+  collectionId?: string
+  categoryId?: string
+  priceRange?: string
+  tags?: string
+  productsIds?: string[]
+  countryCode: string
+}) {
+  const queryParams: PaginatedProductsParams = {
+    limit: 12,
+  }
+  
+  if (collectionId) {
+    queryParams["collection_id"] = [collectionId]
+  }
+  
+  if (categoryId) {
+    queryParams["category_id"] = [categoryId]
+  }
+  
+  if (productsIds) {
+    queryParams["id"] = productsIds
+  }
+  
+  if (sortBy === "created_at") {
+    queryParams["order"] = "created_at"
+  }
+  
+  const region = await getRegion(countryCode)
+  
+  if (!region) {
+    return null
+  }
+  
+  let {
+    response: { products, count },
+  } = await listProductsWithSort({
+    page,
+    queryParams,
+    sortBy,
+    countryCode,
+  });
+  
+  // Apply filtering based on price and tags
+  const filteredProducts = products.filter((p) => {
+    const { cheapestPrice } = getProductPrice({ product: p });
+    
+    // Price range check
+    if (priceRange) {
+      const [min, max] = priceRange.split("-").map(Number);
+      const numericPrice = cheapestPrice?.original_price
+        ? parseFloat(cheapestPrice.original_price.replace(/[^\d.]/g, ""))
+        : 0;
+      if (numericPrice && (numericPrice < min || numericPrice > max)) {
+        return false;
+      }
+    }
+    
+    // Tags check
+    if (tags) {
+      const tagArray = tags.split(",").map(tag => tag.trim().toLowerCase());
+      const productTagValues = p.tags?.map(tagObj => tagObj.value.toLowerCase());
+      if (!productTagValues || !tagArray.some(tag => productTagValues.includes(tag))) {
+        return false;
+      }
+    }
+    
+    return true; // Only keep products that pass all checks
+  });
+  
+  // Updated total count after filtering
+  const filteredCount = filteredProducts.length;
+  const totalPages = Math.ceil(filteredCount / PRODUCT_LIMIT);
+  
+  console.log(filteredCount);
+  
+  return (
+    <>
+      <ul
+        className="ais-Hits-list grid w-full grid-cols-2 sm:grid-cols-3 xl:grid-cols-4 gap-x-2 gap-y-2 lg:gap-x-6 lg:gap-y-8"
+        data-testid="products-list"
+      >
+        {filteredProducts
+          .map((p) => (
+            <li key={p.id}>
+              <ProductPreview product={p} region={region} />
+            </li>
+          ))}
+      </ul>
+      {totalPages > 1 && (
+        <Pagination
+          data-testid="product-pagination"
+          page={page}
+          totalPages={totalPages}
+        />
+      )}
+    </>
+  )
+}
+```
+
+## Data Fetching & Processing
+
+### Query Parameters Construction
+The component builds query parameters based on provided props:
+
+```javascript copy
+const queryParams: PaginatedProductsParams = {
+  limit: 12,
+}
+
+if (collectionId) {
+  queryParams["collection_id"] = [collectionId]
+}
+
+if (categoryId) {
+  queryParams["category_id"] = [categoryId]
+}
+
+if (productsIds) {
+  queryParams["id"] = productsIds
+}
+
+if (sortBy === "created_at") {
+  queryParams["order"] = "created_at"
+}
+```
+
+### Region Fetching
+The component fetches region data for correct pricing:
+
+```javascript copy
+const region = await getRegion(countryCode)
+
+if (!region) {
+  return null
+}
+```
+
+### Product Filtering
+After fetching products, additional client-side filtering is applied:
+
+```javascript copy
+// Apply filtering based on price and tags
+const filteredProducts = products.filter((p) => {
+  const { cheapestPrice } = getProductPrice({ product: p });
+  
+  // Price range check
+  if (priceRange) {
+    const [min, max] = priceRange.split("-").map(Number);
+    const numericPrice = cheapestPrice?.original_price
+      ? parseFloat(cheapestPrice.original_price.replace(/[^\d.]/g, ""))
+      : 0;
+    if (numericPrice && (numericPrice < min || numericPrice > max)) {
+      return false;
+    }
+  }
+  
+  // Tags check
+  if (tags) {
+    const tagArray = tags.split(",").map(tag => tag.trim().toLowerCase());
+    const productTagValues = p.tags?.map(tagObj => tagObj.value.toLowerCase());
+    if (!productTagValues || !tagArray.some(tag => productTagValues.includes(tag))) {
+      return false;
+    }
+  }
+  
+  return true; // Only keep products that pass all checks
+});
+```
+
+### Pagination Calculation
+The component calculates total pages based on filtered results:
+
+```javascript copy
+// Updated total count after filtering
+const filteredCount = filteredProducts.length;
+const totalPages = Math.ceil(filteredCount / PRODUCT_LIMIT);
+```
+
+## UI Components
+
+### Product Grid
+```jsx copy
+<ul
+  className="ais-Hits-list grid w-full grid-cols-2 sm:grid-cols-3 xl:grid-cols-4 gap-x-2 gap-y-2 lg:gap-x-6 lg:gap-y-8"
+  data-testid="products-list"
+>
+  {filteredProducts
+    .map((p) => (
+      <li key={p.id}>
+        <ProductPreview product={p} region={region} />
+      </li>
+    ))}
+</ul>
+```
+
+### Pagination Component
+```jsx copy
+{totalPages > 1 && (
+  <Pagination
+    data-testid="product-pagination"
+    page={page}
+    totalPages={totalPages}
+  />
+)}
+```
+
+## Styling
+
+- **Product Grid:**
+  - Uses CSS Grid with responsive columns: `grid grid-cols-2 sm:grid-cols-3 xl:grid-cols-4`
+  - Applies responsive gaps: `gap-x-2 gap-y-2 lg:gap-x-6 lg:gap-y-8`
+  - Full width: `w-full`
+  - Uses Algolia-inspired class naming: `ais-Hits-list`
 
 ## Props
 
 | Prop | Type | Required | Description |
 |------|------|----------|-------------|
-| cart | any | Yes | The cart object containing items, totals, and other cart-related information |
+| `sortBy` | SortOptions | No | The current sort option for products |
+| `page` | number | Yes | Current page number (1-based) |
+| `collectionId` | string | No | ID of the collection to filter products by |
+| `categoryId` | string | No | ID of the category to filter products by |
+| `priceRange` | string | No | Price range filter in format "min-max" |
+| `tags` | string | No | Comma-separated list of product tags to filter by |
+| `productsIds` | string[] | No | Array of specific product IDs to display |
+| `countryCode` | string | Yes | Country code for region-specific pricing |
 
-## Component Structure
+## Examples
 
-The CheckoutSummary combines several key features:
-1. Cart items preview
-2. Cart totals calculation
-3. Discount code application
-4. Sticky positioning for better UX
+### Basic Usage with Collection
 
-## Usage
+```jsx copy
+import PaginatedProducts from "@modules/store/templates/paginated-products"
 
-```tsx copy
-import CheckoutSummary from "./components/CheckoutSummary"
-
-const CheckoutPage = ({ cart }) => {
+export default function CollectionPage({ params, searchParams }) {
+  const { id } = params
+  const { sort, page = "1" } = searchParams
+  
   return (
-    <div className="checkout-container">
-      <CheckoutSummary cart={cart} />
+    <div className="container mx-auto py-8">
+      <h1 className="text-2xl font-bold mb-6">Collection</h1>
+      
+      <PaginatedProducts
+        sortBy={sort}
+        page={parseInt(page)}
+        collectionId={id}
+        countryCode="US"
+      />
     </div>
   )
 }
 ```
 
-## Layout Structure
+### With Price and Tag Filtering
 
-```tsx copy
-<div className="sticky top-0 flex flex-col-reverse small:flex-col gap-y-8 py-8 small:py-0">
-  <div className="w-full bg-white flex flex-col">
-    {/* Content */}
-  </div>
-</div>
+```jsx copy
+import PaginatedProducts from "@modules/store/templates/paginated-products"
+
+export default function FilteredProductsPage({ searchParams }) {
+  const { sort, page = "1", price, tags } = searchParams
+  
+  return (
+    <div className="container mx-auto py-8">
+      <h1 className="text-2xl font-bold mb-6">Filtered Products</h1>
+      
+      <PaginatedProducts
+        sortBy={sort}
+        page={parseInt(page)}
+        priceRange={price}
+        tags={tags}
+        countryCode="US"
+      />
+    </div>
+  )
+}
 ```
 
-## Sub-Components
+### Search Results with Specific Product IDs
 
-### Cart Header
-```tsx copy
-<Heading
-  level="h2"
-  className="flex flex-row text-3xl-regular items-baseline"
->
-  In your Cart
-</Heading>
+```jsx copy
+import PaginatedProducts from "@modules/store/templates/paginated-products"
+import { searchProducts } from "@lib/search"
+
+export default async function SearchResultsPage({ searchParams }) {
+  const { q, sort, page = "1" } = searchParams
+  
+  // Get product IDs from search service
+  const productIds = await searchProducts(q)
+  
+  return (
+    <div className="container mx-auto py-8">
+      <h1 className="text-2xl font-bold mb-6">Search Results for: {q}</h1>
+      
+      <PaginatedProducts
+        sortBy={sort}
+        page={parseInt(page)}
+        productsIds={productIds}
+        countryCode="US"
+      />
+    </div>
+  )
+}
 ```
 
-### Items Preview
-Displays cart items using the ItemsPreviewTemplate:
-```tsx copy
-<ItemsPreviewTemplate cart={cart} />
+## Filtering Logic
+
+The component implements sophisticated filtering logic:
+
+### Price Range Filtering
+```javascript copy
+// Price range check
+if (priceRange) {
+  const [min, max] = priceRange.split("-").map(Number);
+  const numericPrice = cheapestPrice?.original_price
+    ? parseFloat(cheapestPrice.original_price.replace(/[^\d.]/g, ""))
+    : 0;
+  if (numericPrice && (numericPrice < min || numericPrice > max)) {
+    return false;
+  }
+}
 ```
 
-### Cart Totals
-Shows the cart total calculations:
-```tsx copy
-<CartTotals totals={cart} />
+### Tag Filtering
+```javascript copy
+// Tags check
+if (tags) {
+  const tagArray = tags.split(",").map(tag => tag.trim().toLowerCase());
+  const productTagValues = p.tags?.map(tagObj => tagObj.value.toLowerCase());
+  if (!productTagValues || !tagArray.some(tag => productTagValues.includes(tag))) {
+    return false;
+  }
+}
 ```
 
-### Discount Code
-Provides discount code input functionality:
-```tsx copy
-<DiscountCode cart={cart} />
-```
+## Performance Considerations
 
-## Styling
-
-The component uses a combination of utility classes for:
-
-### Responsive Layout
-- Uses `small:` breakpoint for different layouts
-- Switches between `flex-col` and `flex-col-reverse` based on screen size
-
-### Positioning
-- Implements sticky positioning: `sticky top-0`
-- Maintains proper spacing with `gap-y-8`
-
-### Visual Separation
-- Uses `Divider` component for content separation
-- Applies consistent margin spacing
-
-## Dependencies
-
-### Components
-- `@medusajs/ui`: `Heading`
-- `@modules/cart/templates/preview`: `ItemsPreviewTemplate`
-- `@modules/checkout/components/discount-code`: `DiscountCode`
-- `@modules/common/components/cart-totals`: `CartTotals`
-- `@modules/common/components/divider`: `Divider`
+- The component fetches a limited number of products (12) per page
+- Client-side filtering is applied after server-side fetching
+- Conditional rendering of pagination only when needed
+- Price parsing optimized with regex for numeric extraction
+- Case-insensitive tag filtering with toLowerCase()
 
 ## Responsive Design
 
-The component implements responsive behavior:
+The component implements responsive design with different grid layouts:
+- Mobile: 2 columns (grid-cols-2)
+- Tablet: 3 columns (sm:grid-cols-3)
+- Desktop: 4 columns (xl:grid-cols-4)
 
-### Mobile View
-- Reversed column layout
-- Additional divider visibility
-- Modified padding
+Additionally, gap spacing increases on larger screens:
+- Small screens: 8px gaps (gap-x-2 gap-y-2)
+- Large screens: 24px gaps (lg:gap-x-6 lg:gap-y-8)
 
-### Desktop View
-- Standard column layout
-- Hidden top divider
-- Adjusted padding
+## Browser Support
 
-## Best Practices
-
-1. Cart Data Handling
-   - Validate cart data before rendering
-   - Handle empty cart states appropriately
-   - Update cart totals when items change
-
-2. Responsive Design
-   - Maintain readability across screen sizes
-   - Ensure sticky positioning works correctly
-   - Properly handle layout changes
-
-3. User Experience
-   - Keep totals visible during checkout
-   - Provide clear item preview
-   - Make discount code entry accessible
-
-## Component Features
-
-### Sticky Positioning
-- Keeps cart summary visible while scrolling
-- Improves user experience during checkout
-- Maintains context during form filling
-
-### Visual Hierarchy
-- Clear heading for cart contents
-- Separated sections with dividers
-- Organized display of information
-
-### Interactive Elements
-- Discount code application
-- Cart items preview
-- Totals calculation
-
-## Technical Considerations
-
-### Performance
-- Efficient rendering of cart items
-- Proper handling of cart updates
-- Optimized sticky positioning
-
-### Accessibility
-- Semantic heading structure
-- Proper ARIA attributes (inherited from sub-components)
-- Keyboard navigation support
-
-### State Management
-- Cart state handled through props
-- Discount code state managed in sub-component
-- Updates reflected in totals
+The component relies on modern browser features:
+- CSS Grid for responsive layout
+- Async/await for data fetching
+- Modern JavaScript array methods (filter, map, some)
+- Template literals and object destructuring
+- RegExp for string manipulation
 
 ## Related Components
 
-- Main checkout form
-- Cart page
-- Individual cart item components
-- Payment summary components
-
-## Testing Considerations
-
-Key areas to test:
-1. Cart data rendering
-2. Responsive layout changes
-3. Sticky positioning behavior
-4. Discount code functionality
-5. Totals calculation accuracy
-6. Empty cart states
-
-## Future Improvements
-
-Potential enhancements:
-1. Type safety for cart prop
-2. Loading states for async operations
-3. Error handling for invalid cart data
-4. Animation for total updates
-5. Enhanced mobile experience
-6. Additional cart summary features
-
-## Examples
-
-### Basic Implementation
-```tsx copy
-<CheckoutSummary cart={{
-  items: [],
-  total: 0,
-  subtotal: 0,
-  discount_total: 0,
-  shipping_total: 0
-}} />
-```
-
-### With Items and Discount
-```tsx copy
-<CheckoutSummary cart={{
-  items: [
-    {
-      id: "item_1",
-      title: "Product 1",
-      quantity: 2,
-      unit_price: 1000
-    }
-  ],
-  total: 2000,
-  subtotal: 2000,
-  discount_total: 200,
-  shipping_total: 500
-}} />
-```
+- `ProductPreview`: Displays individual product cards
+- `Pagination`: Handles page navigation
+- This component is typically used within store templates

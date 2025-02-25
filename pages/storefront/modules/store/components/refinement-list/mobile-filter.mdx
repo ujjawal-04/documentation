@@ -1,0 +1,321 @@
+# Mobile Filter
+
+A React client component that provides a mobile-friendly interface for accessing product filter options through a sliding drawer.
+
+## Syntax
+
+```jsx copy
+<MobileFilter />
+```
+
+## Description
+
+The `MobileFilter` component creates a responsive filter interface optimized for mobile devices. It displays a compact filter button that, when clicked, opens a full-screen drawer containing filter options. The component is designed to be hidden on larger screens and visible only on mobile and tablet devices, providing a better user experience for smaller screen sizes.
+
+### Features:
+- Mobile-optimized filter interface with drawer pattern
+- Clean filter button with icon
+- Full-screen drawer with header, body, and footer
+- Proper z-index management for overlay positioning
+- Integration with FilterProducts component
+- Apply button for confirming filter selections
+- Responsive design with desktop visibility control
+- Accessible drawer interface
+
+## Technical Details
+
+### Dependencies
+
+```javascript copy
+// @ts-nocheck
+"use client"
+import { useState } from "react"
+import { Filter } from "lucide-react"
+import { Drawer } from "@medusajs/ui"
+import FilterProducts from "../../filter-options"
+```
+
+### Component Structure
+
+```javascript copy
+// @ts-nocheck
+"use client"
+
+import { useState } from "react"
+import { Filter } from "lucide-react"
+import { Drawer } from "@medusajs/ui"
+import FilterProducts from "../../filter-options"
+
+const MobileFilter = () => {
+  const [isOpen, setIsOpen] = useState(false)
+  
+  return (
+    <div className="lg:hidden relative"> {/* Added relative positioning */}
+      {/* Filter Button */}
+      <button
+        onClick={() => setIsOpen(true)}
+        className="flex items-center gap-2 px-4 py-2 border rounded-md text-sm bg-white"
+      >
+        <Filter className="w-5 h-5" />
+        Filters
+      </button>
+      
+      {/* Drawer Component */}
+      <Drawer 
+        open={isOpen}
+        onOpenChange={setIsOpen}
+        className="z-40" // Higher than navbar's z-30
+      >
+        <Drawer.Trigger className="hidden" /> {/* Removed unnecessary z-index */}
+        <Drawer.Content className="z-40"> {/* Higher than navbar's z-30 */}
+          <Drawer.Header>
+            <Drawer.Title>Filters</Drawer.Title>
+          </Drawer.Header>
+          <Drawer.Body>
+            <FilterProducts />
+          </Drawer.Body>
+          <Drawer.Footer>
+            <button
+              onClick={() => setIsOpen(false)}
+              className="w-full py-2 bg-[#008080] text-white rounded-md"
+            >
+              Apply Filters
+            </button>
+          </Drawer.Footer>
+        </Drawer.Content>
+      </Drawer>
+    </div>
+  )
+}
+
+export default MobileFilter
+```
+
+## State Management
+
+The component uses React's useState hook to control the drawer's open state:
+
+```javascript copy
+const [isOpen, setIsOpen] = useState(false)
+```
+
+## UI Components
+
+### Filter Button
+```jsx copy
+<button
+  onClick={() => setIsOpen(true)}
+  className="flex items-center gap-2 px-4 py-2 border rounded-md text-sm bg-white"
+>
+  <Filter className="w-5 h-5" />
+  Filters
+</button>
+```
+
+### Drawer Component
+```jsx copy
+<Drawer 
+  open={isOpen}
+  onOpenChange={setIsOpen}
+  className="z-40"
+>
+  <Drawer.Trigger className="hidden" />
+  <Drawer.Content className="z-40">
+    <Drawer.Header>
+      <Drawer.Title>Filters</Drawer.Title>
+    </Drawer.Header>
+    <Drawer.Body>
+      <FilterProducts />
+    </Drawer.Body>
+    <Drawer.Footer>
+      <button
+        onClick={() => setIsOpen(false)}
+        className="w-full py-2 bg-[#008080] text-white rounded-md"
+      >
+        Apply Filters
+      </button>
+    </Drawer.Footer>
+  </Drawer.Content>
+</Drawer>
+```
+
+## Styling
+
+- **Container:** Uses `lg:hidden relative` to hide on large screens and provide positioning context
+- **Filter Button:**
+  - `flex items-center gap-2` for icon and text alignment
+  - `px-4 py-2 border rounded-md` for button shape and padding
+  - `text-sm bg-white` for text size and background
+- **Drawer:**
+  - `z-40` for proper layering (higher than navbar's z-30)
+  - Content structure with Header, Body, and Footer sections
+- **Apply Button:**
+  - `w-full py-2` for full-width button with vertical padding
+  - `bg-[#008080] text-white` for teal background and white text
+  - `rounded-md` for rounded corners
+
+## Component Behavior
+
+1. **Initial State:** Component displays only the filter button
+2. **Open Drawer:** When button is clicked, `setIsOpen(true)` is called, opening the drawer
+3. **View Filters:** The drawer shows the FilterProducts component in its body
+4. **Apply Filters:** Clicking the "Apply Filters" button calls `setIsOpen(false)`, closing the drawer
+5. **Automatic Closing:** The drawer can also be closed via the built-in drawer interactions (backdrop click, etc.)
+
+## Child Components
+
+### Required Components
+- `FilterProducts`: Component that displays the actual filter options
+- `Drawer` from @medusajs/ui: Provides the sliding drawer interface
+- `Filter` from lucide-react: Icon for the filter button
+
+## Examples
+
+### Basic Usage in a Product Listing Page
+
+```jsx copy
+import MobileFilter from "@modules/store/components/mobile-filter"
+import DesktopFilter from "@modules/store/components/desktop-filter"
+import ProductGrid from "@modules/store/components/product-grid"
+
+export default function ProductsPage() {
+  return (
+    <div className="container mx-auto px-4 py-8">
+      <div className="flex justify-between items-center mb-6">
+        <h1 className="text-2xl font-bold">All Products</h1>
+        <MobileFilter />
+      </div>
+      
+      <div className="flex flex-col lg:flex-row gap-6">
+        <aside className="hidden lg:block w-64">
+          <DesktopFilter />
+        </aside>
+        
+        <main className="flex-1">
+          <ProductGrid />
+        </main>
+      </div>
+    </div>
+  )
+}
+```
+
+### Integration with Sorting Options
+
+```jsx copy
+import MobileFilter from "@modules/store/components/mobile-filter"
+import SortDropdown from "@modules/store/components/sort-dropdown"
+import ProductGrid from "@modules/store/components/product-grid"
+
+export default function CategoryPage({ params }) {
+  const { category } = params
+  
+  return (
+    <div className="container mx-auto px-4 py-8">
+      <h1 className="text-2xl font-bold mb-6">{category}</h1>
+      
+      <div className="flex justify-between items-center mb-6">
+        <div className="flex gap-4 items-center">
+          <MobileFilter />
+          <span className="text-sm text-gray-500 hidden sm:inline">42 products</span>
+        </div>
+        
+        <SortDropdown />
+      </div>
+      
+      <ProductGrid category={category} />
+    </div>
+  )
+}
+```
+
+### Server Component Integration
+
+```jsx copy
+// app/products/[category]/page.tsx
+import MobileFilter from "@modules/store/components/mobile-filter"
+import DesktopFilter from "@modules/store/components/desktop-filter"
+import ProductGrid from "@modules/store/components/product-grid"
+
+async function getProducts(category) {
+  // Fetch products from API or database
+  // ...
+}
+
+export default async function CategoryPage({ params, searchParams }) {
+  const { category } = params
+  const sortBy = searchParams.sort || "created_at"
+  
+  const products = await getProducts(category)
+  
+  return (
+    <div className="container mx-auto px-4 py-8">
+      <h1 className="text-2xl font-bold mb-6">{category}</h1>
+      
+      <div className="flex items-center justify-between mb-6">
+        <MobileFilter />
+        <span className="text-sm text-gray-500">{products.length} products</span>
+      </div>
+      
+      <div className="flex flex-col lg:flex-row gap-6">
+        <aside className="hidden lg:block w-64">
+          <DesktopFilter />
+        </aside>
+        
+        <main className="flex-1">
+          <ProductGrid products={products} />
+        </main>
+      </div>
+    </div>
+  )
+}
+```
+
+## Z-Index Management
+
+The component manages z-index values to ensure proper stacking:
+
+```css
+/* Container */
+.lg:hidden.relative
+
+/* Drawer */
+.z-40 /* Higher than navbar's z-30 */
+
+/* Drawer Content */
+.z-40 /* Ensures content appears above other elements */
+```
+
+This ensures that:
+- The drawer appears above the navigation bar (assumed to be z-30)
+- Both the drawer backdrop and content have appropriate z-index values
+- The filter interface doesn't conflict with other UI elements
+
+## Responsive Design
+
+The component is specifically designed for mobile and tablet devices:
+
+```css
+.lg:hidden /* Hides the component on large screens (desktop) */
+```
+
+This approach complements a desktop filter component that would be shown only on larger screens:
+
+```css
+.hidden.lg:block /* A desktop filter would use this pattern */
+```
+
+## Browser Support
+
+The component relies on modern browser features:
+- CSS Flexbox for layout
+- React useState hook for state management
+- CSS media queries for responsive design
+- Modern CSS properties for styling
+
+## Related Components
+
+- `FilterProducts`: The component that provides the actual filter options
+- `DesktopFilter`: Typically a companion component for desktop layouts
+- `SortDropdown`: Often used alongside filters for product sorting
+- `ProductGrid`: The component that displays filtered products

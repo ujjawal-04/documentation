@@ -1,0 +1,337 @@
+# Sort Products
+
+A React client component that provides a dropdown menu for sorting products by different criteria, with responsive design for mobile and desktop views.
+
+## Syntax
+
+```jsx copy
+<SortProducts
+  sortBy="created_at"
+  setQueryParams={setQueryParams}
+  data-testid="product-sort"
+/>
+```
+
+## Description
+
+The `SortProducts` component renders a user interface for sorting products by different criteria such as price (ascending or descending) and creation date. It features a responsive design that adapts between mobile and desktop viewports, integrating with the MobileFilter component on smaller screens while displaying a traditional dropdown on all screen sizes.
+
+### Features:
+- Dropdown menu for selecting sort options
+- Predefined sort criteria (new arrivals, price low-high, price high-low)
+- Integration with URL query parameters
+- Responsive design with different layouts for mobile and desktop
+- Mobile filter integration for smaller screens
+- Customizable via data-testid for testing
+- Clean, consistent styling that matches the application's design system
+
+## Technical Details
+
+### Dependencies
+
+```javascript copy
+"use client"
+import { useState } from "react"
+import MobileFilter from "../mobile-filter"
+```
+
+### Types
+
+```typescript copy
+export type SortOptions = "price_asc" | "price_desc" | "created_at"
+
+type SortProductsProps = {
+  sortBy: SortOptions
+  setQueryParams: (name: string, value: SortOptions) => void
+  'data-testid'?: string
+}
+```
+
+### Sort Options Configuration
+
+```javascript copy
+const sortOptions = [
+  { value: "created_at", label: "New in" },
+  { value: "price_asc", label: "Price: Low-High" },
+  { value: "price_desc", label: "Price: High-Low" },
+]
+```
+
+### Component Structure
+
+```javascript copy
+"use client"
+
+import { useState } from "react"
+import MobileFilter from "../mobile-filter"
+
+export type SortOptions = "price_asc" | "price_desc" | "created_at"
+
+type SortProductsProps = {
+  sortBy: SortOptions
+  setQueryParams: (name: string, value: SortOptions) => void
+  'data-testid'?: string
+}
+
+const sortOptions = [
+  { value: "created_at", label: "New in" },
+  { value: "price_asc", label: "Price: Low-High" },
+  { value: "price_desc", label: "Price: High-Low" },
+]
+
+const SortProducts = ({ sortBy, setQueryParams, 'data-testid': dataTestId }: SortProductsProps) => {
+  const handleSort = (event: React.ChangeEvent<HTMLSelectElement>) => {
+    setQueryParams("sortBy", event.target.value as SortOptions)
+  }
+  
+  return (
+    <div className="flex items-center justify-between w-full bg-gray-50 p-4 rounded-md">
+      <span className="text-gray-500 text-sm hidden md:block">Sort By</span>
+      <span className="block md:hidden"><MobileFilter /></span>
+      <select
+        className="border border-gray-300 rounded-md px-3 py-2 text-sm bg-white"
+        value={sortBy}
+        onChange={handleSort}
+        data-testid={dataTestId}
+      >
+        <option value="default">Default: A-Z</option>
+        {sortOptions.map((option) => (
+          <option key={option.value} value={option.value}>
+            {option.label}
+          </option>
+        ))}
+      </select>
+    </div>
+  )
+}
+
+export default SortProducts
+```
+
+## Event Handlers
+
+### Sort Change Handler
+```javascript copy
+const handleSort = (event: React.ChangeEvent<HTMLSelectElement>) => {
+  setQueryParams("sortBy", event.target.value as SortOptions)
+}
+```
+
+## UI Components
+
+### Container
+```jsx copy
+<div className="flex items-center justify-between w-full bg-gray-50 p-4 rounded-md">
+  {/* Label and mobile filter */}
+  {/* Sort dropdown */}
+</div>
+```
+
+### Desktop Label & Mobile Filter
+```jsx copy
+<span className="text-gray-500 text-sm hidden md:block">Sort By</span>
+<span className="block md:hidden"><MobileFilter /></span>
+```
+
+### Sort Dropdown
+```jsx copy
+<select
+  className="border border-gray-300 rounded-md px-3 py-2 text-sm bg-white"
+  value={sortBy}
+  onChange={handleSort}
+  data-testid={dataTestId}
+>
+  <option value="default">Default: A-Z</option>
+  {sortOptions.map((option) => (
+    <option key={option.value} value={option.value}>
+      {option.label}
+    </option>
+  ))}
+</select>
+```
+
+## Styling
+
+- **Container:** Uses `flex items-center justify-between w-full bg-gray-50 p-4 rounded-md` for a full-width, rounded container with spaced content
+- **Label:** Styled with `text-gray-500 text-sm hidden md:block` to show only on medium and larger screens
+- **Mobile Filter Container:** Uses `block md:hidden` to show only on smaller screens
+- **Dropdown:** Styled with `border border-gray-300 rounded-md px-3 py-2 text-sm bg-white` for a clean, consistent form control
+
+## Props
+
+| Prop | Type | Required | Description |
+|------|------|----------|-------------|
+| `sortBy` | SortOptions | Yes | The current sort option for products |
+| `setQueryParams` | function | Yes | Function to update URL parameters with the new sort option |
+| `data-testid` | string | No | Optional test ID for automated testing |
+
+## Sort Options
+
+The component defines three sort options:
+
+| Value | Label | Description |
+|-------|-------|-------------|
+| `created_at` | New in | Sort by newest products first |
+| `price_asc` | Price: Low-High | Sort by price, from lowest to highest |
+| `price_desc` | Price: High-Low | Sort by price, from highest to lowest |
+
+## Examples
+
+### Basic Usage
+
+```jsx copy
+import { useCallback } from "react"
+import { useRouter, usePathname, useSearchParams } from "next/navigation"
+import SortProducts from "@modules/store/components/sort-products"
+
+export default function ProductListingPage() {
+  const router = useRouter()
+  const pathname = usePathname()
+  const searchParams = useSearchParams()
+  const sortBy = searchParams.get("sortBy") || "created_at"
+  
+  const setQueryParams = useCallback((name, value) => {
+    const params = new URLSearchParams(searchParams)
+    params.set(name, value)
+    router.push(`${pathname}?${params.toString()}`)
+  }, [searchParams, pathname, router])
+  
+  return (
+    <div className="container mx-auto p-4">
+      <div className="mb-6">
+        <SortProducts 
+          sortBy={sortBy} 
+          setQueryParams={setQueryParams}
+          data-testid="product-sort" 
+        />
+      </div>
+      
+      {/* Product grid */}
+    </div>
+  )
+}
+```
+
+### With RefinementList Component
+
+```jsx copy
+import RefinementList from "@modules/store/components/refinement-list"
+
+export default function CategoryPage({ searchParams }) {
+  const sortBy = searchParams.sort || "created_at"
+  
+  return (
+    <div className="container mx-auto py-8">
+      <h1 className="text-2xl font-bold mb-6">Category Name</h1>
+      
+      <div className="flex flex-col lg:flex-row gap-6">
+        <aside className="w-full lg:w-64">
+          <RefinementList sortBy={sortBy} />
+        </aside>
+        
+        <main className="flex-1">
+          {/* Product grid */}
+        </main>
+      </div>
+    </div>
+  )
+}
+```
+
+### Server Component Integration
+
+```jsx copy
+// app/products/page.tsx
+import { SortOptions } from "@modules/store/components/sort-products"
+import ProductGrid from "@modules/products/components/product-grid"
+import SortProducts from "@modules/store/components/sort-products"
+
+async function getProducts(sortBy: SortOptions = "created_at") {
+  // Fetch products from API or database with sorting
+  // ...
+}
+
+export default async function ProductsPage({ searchParams }) {
+  const sortBy = searchParams.sortBy || "created_at"
+  const products = await getProducts(sortBy as SortOptions)
+  
+  // Create a client component wrapper to handle the setQueryParams function
+  return (
+    <div className="container mx-auto py-8">
+      <ClientSortWrapper sortBy={sortBy as SortOptions} />
+      
+      <div className="mt-6">
+        <ProductGrid products={products} />
+      </div>
+    </div>
+  )
+}
+
+// In a separate client component file:
+"use client"
+import { useCallback } from "react"
+import { useRouter, usePathname, useSearchParams } from "next/navigation"
+import SortProducts, { SortOptions } from "@modules/store/components/sort-products"
+
+export function ClientSortWrapper({ sortBy }: { sortBy: SortOptions }) {
+  const router = useRouter()
+  const pathname = usePathname()
+  const searchParams = useSearchParams()
+  
+  const setQueryParams = useCallback((name, value) => {
+    const params = new URLSearchParams(searchParams)
+    params.set(name, value)
+    router.push(`${pathname}?${params.toString()}`)
+  }, [searchParams, pathname, router])
+  
+  return (
+    <SortProducts 
+      sortBy={sortBy} 
+      setQueryParams={setQueryParams}
+      data-testid="product-sort" 
+    />
+  )
+}
+```
+
+## Responsive Design
+
+The component implements responsive design with different layouts:
+- Mobile: Shows MobileFilter component, hides "Sort By" label
+- Desktop: Hides MobileFilter component, shows "Sort By" label
+
+CSS classes that enable this:
+```css
+/* Mobile-only element */
+.block.md:hidden
+
+/* Desktop-only element */
+.hidden.md:block
+```
+
+## Integration with MobileFilter
+
+The component integrates with the MobileFilter component on smaller screens:
+
+```jsx copy
+<span className="block md:hidden"><MobileFilter /></span>
+```
+
+This approach:
+- Provides a consistent filtering interface on mobile
+- Maintains sort functionality on all screen sizes
+- Creates a cohesive user experience across devices
+
+## Browser Support
+
+The component relies on modern browser features:
+- CSS Flexbox for layout
+- React event handlers
+- CSS media queries for responsive design
+- Select dropdown with onChange events
+
+## Related Components
+
+- `MobileFilter`: Used for filter controls on mobile devices
+- `RefinementList`: Often a parent component that includes SortProducts
+- This component is typically used alongside product grid/listing components

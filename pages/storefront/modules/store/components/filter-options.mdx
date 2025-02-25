@@ -1,132 +1,536 @@
-# Address Select
+# FilterProducts
 
-The `Address Select` component creates a dropdown list for selecting shipping addresses. It uses the Headless UI Listbox component to create an accessible address selection interface with a custom design.
+A React client component that provides interactive filtering options for e-commerce products, including price range slider, product tags, and collection filtering.
 
-## Overview
+## Syntax
 
-The `Address Select` component allows users to select from a list of previously saved addresses. It displays address details in a dropdown format and supports keyboard navigation and screen readers.
+```jsx copy
+<FilterProducts />
+```
 
-## Props
+## Description
 
-The component accepts the following props:
+The `FilterProducts` component creates a sidebar filter interface for online stores. It allows users to filter products by price range using a dual-thumb slider, select product tags, and choose collections. The component dynamically fetches available tags and collections from a Medusa backend and updates the URL query parameters when filters are applied.
 
-### addresses
-- Type: `HttpTypes.StoreCustomerAddress[]`
-- Required: Yes
-- Description: An array of address objects containing customer address information.
+### Features:
+- Interactive price range slider with input fields
+- Collapsible tag selection with count indicators
+- Collapsible collection selection
+- URL query parameter integration for shareable filtered views
+- Responsive design for mobile and desktop layouts
+- Visual feedback for selected filters
+- Fetch data from Medusa backend API
 
-### addressInput
-- Type: `HttpTypes.StoreCartAddress | null`
-- Required: Yes
-- Description: The currently selected address in the cart, or null if no address is selected.
+## Technical Details
 
-### onSelect
-- Type: `(address: HttpTypes.StoreCartAddress | undefined, email?: string) => void`
-- Required: Yes
-- Description: Callback function that is called when a new address is selected.
+### Dependencies
 
-## Address Object Structure
+```javascript copy
+"use client"
+import { usePathname, useRouter, useSearchParams } from "next/navigation"
+import { useCallback, useState, useEffect } from "react"
+import { Range } from "react-range"
+import { ChevronDown } from "lucide-react"
+```
 
-Each address object in the `addresses` array should contain the following properties:
+### Constants
 
-```typescript copy
-{
-  id: string
-  first_name: string
-  last_name: string
-  company?: string
-  address_1: string
-  address_2?: string
-  city: string
-  postal_code: string
-  province?: string
-  country_code: string
+```javascript copy
+const MIN_PRICE = 0
+const MAX_PRICE = 200
+```
+
+### Component Structure
+
+```javascript copy
+"use client"
+
+import { usePathname, useRouter, useSearchParams } from "next/navigation"
+import { useCallback, useState, useEffect } from "react"
+import { Range } from "react-range"
+import { ChevronDown } from "lucide-react"
+
+const MIN_PRICE = 0
+const MAX_PRICE = 200
+
+const FilterProducts = () => {
+  const router = useRouter()
+  const pathname = usePathname()
+  const searchParams = useSearchParams()
+
+  const BackendUrl = process.env.MEDUSA_BACKEND_URL
+  const publishableApiKey = process.env.NEXT_PUBLIC_MEDUSA_PUBLISHABLE_KEY
+
+  const [priceRange, setPriceRange] = useState<[number, number]>([0, 200])
+  const [selectedTags, setSelectedTags] = useState<string[]>([])
+  const [isTagsOpen, setIsTagsOpen] = useState(true)
+  const [availableTags, setAvailableTags] = useState<Array<{ name: string; count: number }>>([
+    { name: "Best Seller", count: 9 },
+    { name: "New Arrival", count: 15 },
+  ])
+  const [availableCollections, setAvailableCollections] = useState<Array<{ id: string; title: string }>>([])
+  const [isCollectionsOpen, setIsCollectionsOpen] = useState(true)
+  const [selectedCollection, setSelectedCollection] = useState<string | null>(null)
+
+  // API fetch effects and handlers...
+
+  return (
+    <div className="p-4 sm:p-6 bg-gray-50 ml-0 sm:ml-4 rounded-md w-full sm:w-auto">
+      {/* Filter UI components */}
+    </div>
+  )
+}
+
+export default FilterProducts
+```
+
+## State Management
+
+The component uses React state hooks to manage:
+
+```javascript copy
+// Price range state
+const [priceRange, setPriceRange] = useState<[number, number]>([0, 200])
+
+// Tags state
+const [selectedTags, setSelectedTags] = useState<string[]>([])
+const [isTagsOpen, setIsTagsOpen] = useState(true)
+const [availableTags, setAvailableTags] = useState<Array<{ name: string; count: number }>>([
+  { name: "Best Seller", count: 9 },
+  { name: "New Arrival", count: 15 },
+])
+
+// Collections state
+const [availableCollections, setAvailableCollections] = useState<Array<{ id: string; title: string }>>([])
+const [isCollectionsOpen, setIsCollectionsOpen] = useState(true)
+const [selectedCollection, setSelectedCollection] = useState<string | null>(null)
+```
+
+## API Data Fetching
+
+The component fetches product tags and collections from the Medusa backend:
+
+```javascript copy
+useEffect(() => {
+  console.log("Inside use Effect", BackendUrl, publishableApiKey)
+  fetch(`https://basic-medusa-production.up.railway.app/store/product-tags`, {
+    method: 'GET',
+    headers: {
+      'Content-Type': 'application/json',
+      'x-publishable-api-key': `${publishableApiKey}`
+    }
+  })
+  .then(response => response.json())
+  .then(data => {
+    if (data?.product_tags) {
+      const tags = data.product_tags.map(tag => ({
+        name: tag.value, 
+        count: tag.products.length
+      }));
+      setAvailableTags(tags);
+    }
+  })
+  .catch(error => console.error('Error:', error));
+
+  fetch(`https://basic-medusa-production.up.railway.app/store/collections`, {
+    method: 'GET',
+    headers: {
+      'Content-Type': 'application/json',
+      'x-publishable-api-key': `${publishableApiKey}`
+    }
+  })
+  .then(response => response.json())
+  .then(data => {
+    {
+      if (data?.collections) {
+        const collections = data.collections.map(collection => ({
+          id: collection.id,
+          title: collection.title
+        }));
+        setAvailableCollections(collections);
+      }
+    }
+  })
+  .catch(error => console.error('Error:', error));
+}, [])
+```
+
+## URL Parameter Management
+
+The component updates the URL search parameters when filters change:
+
+```javascript copy
+const createQueryString = useCallback(
+  (name: string, value: string) => {
+    const params = new URLSearchParams(searchParams)
+    params.set(name, value)
+    return params.toString()
+  },
+  [searchParams],
+)
+
+const updateQueryParams = (name: string, value: string) => {
+  const query = createQueryString(name, value)
+  router.push(`${pathname}?${query}`)
 }
 ```
 
-## Examples
+## Event Handlers
 
-### Basic Usage
+### Price Range Handler
+```javascript copy
+const handlePriceChange = (values: [number, number]) => {
+  setPriceRange(values)
+  updateQueryParams("priceRange", `${values[0]}-${values[1]}`)
+}
+```
 
-```jsx copy
-import AddressSelect from "@modules/common/components/address-select"
+### Collection Selection Handler
+```javascript copy
+const handleCollectionChange = (collectionId: string) => {
+  let updatedCollection = selectedCollection === collectionId ? null : collectionId;
+  setSelectedCollection(updatedCollection);
 
-function ShippingForm() {
-  const addresses = [
-    {
-      id: "addr_1",
-      first_name: "John",
-      last_name: "Doe",
-      address_1: "123 Main St",
-      city: "Boston",
-      postal_code: "02101",
-      country_code: "US"
-    }
-  ]
+  if (updatedCollection) {
+    updateQueryParams("collections_id", updatedCollection);
+  } else {
+    // Remove the collection_id query parameter when deselected
+    const params = new URLSearchParams(searchParams);
+    params.delete("collections_id");
+    router.push(`${pathname}?${params.toString()}`);
+  }
+};
+```
 
-  const handleAddressSelect = (address) => {
-    // Handle address selection
-    console.log("Selected address:", address)
+### Tag Selection Handler
+```javascript copy
+const handleTagChange = (tag: string) => {
+  let updatedTags = [...selectedTags]
+  if (updatedTags.includes(tag)) {
+    updatedTags = updatedTags.filter((t) => t !== tag)
+  } else {
+    updatedTags.push(tag)
   }
 
+  setSelectedTags(updatedTags)
+  updateQueryParams("tags", updatedTags.join(","))
+}
+```
+
+## UI Components
+
+### Filter Container
+```jsx copy
+<div className="p-4 sm:p-6 bg-gray-50 ml-0 sm:ml-4 rounded-md w-full sm:w-auto">
+  <h3 className="text-lg sm:text-xl font-semibold mb-1 sm:mb-3">Filter By</h3>
+  <hr className="mb-4 sm:mb-2"/>
+  {/* Filter components */}
+</div>
+```
+
+### Price Range Filter
+```jsx copy
+<div className="mb-4 sm:mb-2">
+  <label className="block text-base sm:text-lg mb-2 sm:mb-2 text-gray-600">Price Range</label>
+  <div className="flex flex-col sm:flex-row items-start sm:items-center gap-2 sm:gap-2 mb-2">
+    <div className="bg-gray-100 rounded-lg px-3 sm:px-4 py-1 flex gap-2 w-full sm:w-auto">
+      <span className="text-gray-400">€</span>
+      <input
+        type="number"
+        value={priceRange[0]}
+        min={MIN_PRICE}
+        max={MAX_PRICE}
+        onChange={(e) => handlePriceChange([Number(e.target.value), priceRange[1]])}
+        className="w-full sm:w-20 bg-transparent outline-none"
+      />
+    </div>
+    <span className="text-gray-400 self-center">—</span>
+    <div className="bg-gray-100 rounded-lg px-3 sm:px-4 py-1 flex gap-2 w-full sm:w-auto">
+      <span className="text-gray-400">€</span>
+      <input
+        type="number"
+        value={priceRange[1]}
+        min={MIN_PRICE}
+        max={MAX_PRICE}
+        onChange={(e) => handlePriceChange([priceRange[0], Number(e.target.value)])}
+        className="w-full sm:w-20 bg-transparent outline-none"
+      />
+    </div>
+  </div>
+
+  {/* Range Slider */}
+  <Range
+    step={0.01}
+    min={MIN_PRICE}
+    max={MAX_PRICE}
+    values={priceRange}
+    onChange={(values) => handlePriceChange(values as [number, number])}
+    renderTrack={({ props, children }) => (
+      <div {...props} className="h-1 bg-gray-200 rounded-full">
+        <div
+          className="h-1 bg-blue-500 rounded-full absolute"
+          style={{
+            left: `${(priceRange[0] / MAX_PRICE) * 100}%`,
+            right: `${100 - (priceRange[1] / MAX_PRICE) * 100}%`,
+          }}
+        />
+        {children}
+      </div>
+    )}
+    renderThumb={({ props }) => (
+      <div
+        {...props}
+        className="w-4 sm:w-5 h-4 sm:h-5 bg-blue-500 rounded-full border-2 border-white shadow-md focus:outline-none"
+      />
+    )}
+  />
+</div>
+```
+
+### Tags Filter
+```jsx copy
+<div>
+  <button
+    onClick={() => setIsTagsOpen(!isTagsOpen)}
+    className="flex items-center justify-between w-full text-base sm:text-lg mb-1 sm:mb-2"
+  >
+    <span className="text-gray-600">Tags</span>
+    <ChevronDown className={`w-4 sm:w-5 h-4 sm:h-5 transition-transform ${isTagsOpen ? "transform rotate-180" : ""}`} />
+  </button>
+  {isTagsOpen && (
+    <div className="space-y-2 sm:space-y-3">
+      {availableTags.map(({ name, count }) => (
+        <label key={name} className="flex items-center gap-2 cursor-pointer">
+          <div className="relative flex items-center">
+            <input
+              type="checkbox"
+              checked={selectedTags.includes(name)}
+              onChange={() => handleTagChange(name)}
+              className="w-4 sm:w-5 h-4 sm:h-5 border-2 rounded-3xl text-blue-500 focus:ring-0 focus:ring-offset-0"
+            />
+          </div>
+          <span className="flex-1 text-sm sm:text-base">{name}</span>
+          <span className="text-gray-500 text-sm sm:text-base">({count})</span>
+        </label>
+      ))}
+    </div>
+  )}
+</div>
+```
+
+### Collections Filter
+```jsx copy
+<div className="my-4 sm:my-6">
+  <button
+    onClick={() => setIsCollectionsOpen(!isCollectionsOpen)}
+    className="flex items-center justify-between w-full text-base sm:text-lg sm:mb-1"
+  >
+    <span className="text-gray-600">Collections</span>
+    <ChevronDown className={`w-4 sm:w-5 h-4 sm:h-5 transition-transform ${isCollectionsOpen ? "transform rotate-180" : ""}`} />
+  </button>
+  {isCollectionsOpen && (
+    <div className="space-y-2 sm:space-y-3">
+      {availableCollections.map(({ id, title }) => (
+        <label key={id} className="flex items-center gap-2 cursor-pointer">
+          <input
+            type="checkbox"
+            checked={selectedCollection === id}
+            onChange={() => handleCollectionChange(id)}
+            className="w-4 sm:w-5 h-4 sm:h-5 border-2 rounded-3xl text-blue-500 focus:ring-0 focus:ring-offset-0"
+          />
+          <span className="flex-1 text-sm sm:text-base">{title}</span>
+        </label>
+      ))}
+    </div>
+  )}
+</div>
+```
+
+## Styling
+
+- **Container:** Uses `p-4 sm:p-6 bg-gray-50 ml-0 sm:ml-4 rounded-md w-full sm:w-auto` for responsive padding and width
+- **Section Headers:** Uses `text-lg sm:text-xl font-semibold` for responsive text sizing
+- **Price Inputs:** 
+  - Background styling with `bg-gray-100 rounded-lg px-3 sm:px-4 py-1`
+  - Responsive width with `w-full sm:w-20`
+- **Range Slider:**
+  - Track: `h-1 bg-gray-200 rounded-full`
+  - Selected range: `h-1 bg-blue-500 rounded-full absolute`
+  - Thumb: `w-4 sm:w-5 h-4 sm:h-5 bg-blue-500 rounded-full border-2 border-white shadow-md`
+- **Collapsible Sections:**
+  - Animated chevron with `transition-transform ${isOpen ? "transform rotate-180" : ""}`
+- **Checkboxes:** Styled with `w-4 sm:w-5 h-4 sm:h-5 border-2 rounded-3xl text-blue-500`
+
+## Examples
+
+### Basic Usage in a Product Listing Page
+
+```jsx copy
+// app/store/page.tsx
+import FilterProducts from "@modules/store/components/filter-products"
+import ProductGrid from "@modules/store/components/product-grid"
+
+export default function StorePage() {
   return (
-    <AddressSelect
-      addresses={addresses}
-      addressInput={null}
-      onSelect={handleAddressSelect}
-    />
+    <div className="container mx-auto px-4">
+      <h1 className="text-2xl font-bold mb-6">Shop Our Products</h1>
+      
+      <div className="flex flex-col sm:flex-row gap-6">
+        <aside className="w-full sm:w-64">
+          <FilterProducts />
+        </aside>
+        
+        <main className="flex-1">
+          <ProductGrid />
+        </main>
+      </div>
+    </div>
   )
 }
 ```
 
-## Features
+### Using with Server-Side Rendering
 
-- Accessible dropdown menu using Headless UI
-- Keyboard navigation support
-- Visual feedback for selected address
-- Optional company name display
-- Formatted address display including:
-  - Full name
-  - Street address (with optional second line)
-  - City and postal code
-  - Province (if provided)
-  - Country code
+```jsx copy
+// app/store/page.tsx
+import { Suspense } from "react"
+import FilterProducts from "@modules/store/components/filter-products"
+import ProductGrid from "@modules/store/components/product-grid"
+import Loading from "./loading"
 
-## Styling
+export default function StorePage({ searchParams }) {
+  const { priceRange, tags, collections_id } = searchParams
+  
+  return (
+    <div className="container mx-auto px-4">
+      <h1 className="text-2xl font-bold mb-6">Shop Our Products</h1>
+      
+      <div className="flex flex-col sm:flex-row gap-6">
+        <aside className="w-full sm:w-64">
+          <FilterProducts />
+        </aside>
+        
+        <main className="flex-1">
+          <Suspense fallback={<Loading />}>
+            <ProductGrid 
+              priceRange={priceRange}
+              tags={tags}
+              collectionId={collections_id}
+            />
+          </Suspense>
+        </main>
+      </div>
+    </div>
+  )
+}
+```
 
-The component uses Tailwind CSS classes for styling and includes:
+### Using the Filter State in Another Component
 
-- Hover states for address options
-- Focus states for keyboard navigation
-- Custom radio button indicators
-- Transition animations for dropdown
+```jsx copy
+// components/product-grid.tsx
+"use client"
 
-## Dependencies
+import { useSearchParams } from "next/navigation"
+import { useEffect, useState } from "react"
+import ProductCard from "./product-card"
 
-- @headlessui/react: For accessible dropdown functionality
-- @medusajs/icons: For chevron icons
-- @medusajs/ui: For utility functions
-- @medusajs/types: For TypeScript types
+export default function ProductGrid() {
+  const [products, setProducts] = useState([])
+  const searchParams = useSearchParams()
+  
+  const priceRange = searchParams.get('priceRange')
+  const tags = searchParams.get('tags')
+  const collectionId = searchParams.get('collections_id')
+  
+  useEffect(() => {
+    // Fetch products based on the filter parameters
+    const fetchProducts = async () => {
+      let url = '/api/products?'
+      
+      if (priceRange) {
+        url += `&priceRange=${priceRange}`
+      }
+      
+      if (tags) {
+        url += `&tags=${tags}`
+      }
+      
+      if (collectionId) {
+        url += `&collectionId=${collectionId}`
+      }
+      
+      const response = await fetch(url)
+      const data = await response.json()
+      setProducts(data.products)
+    }
+    
+    fetchProducts()
+  }, [priceRange, tags, collectionId])
+  
+  return (
+    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+      {products.map(product => (
+        <ProductCard key={product.id} product={product} />
+      ))}
+    </div>
+  )
+}
+```
 
-## Accessibility
+## Data Structure
 
-The component implements several accessibility features:
+### Product Tags Format
+The component expects product tags from the API in this format:
+```typescript copy
+type ProductTag = {
+  value: string;
+  products: any[]; // Array of products with this tag
+}
+```
 
-- ARIA attributes via Headless UI
-- Keyboard navigation support
-- Focus management
-- Screen reader announcements for selection changes
+### Collections Format
+The component expects collections from the API in this format:
+```typescript copy
+type Collection = {
+  id: string;
+  title: string;
+}
+```
+
+## URL Parameters
+
+The component manages the following URL search parameters:
+
+| Parameter | Format | Description |
+|-----------|--------|-------------|
+| `priceRange` | `${min}-${max}` | Price range values (e.g., "25-150") |
+| `tags` | Comma-separated | Selected product tags (e.g., "New Arrival,Best Seller") |
+| `collections_id` | String | Selected collection ID |
+
+## Responsive Design
+
+The component implements responsive design with different layouts:
+- Mobile: Full-width filter sections with stacked price inputs
+- Desktop: Fixed-width sidebar with side-by-side price inputs
+
+CSS breakpoints use the `sm:` prefix for small screens and larger:
+```
+flex-col sm:flex-row
+text-base sm:text-lg
+w-full sm:w-auto
+```
 
 ## Browser Support
 
-This component relies on modern JavaScript features and React. It should work in all modern browsers that support:
+The component works in modern browsers supporting:
+- CSS Flexbox layout
+- React hooks
+- Fetch API
+- URL search parameters API
+- CSS transitions for animations
 
-- CSS Grid
-- CSS Flexbox
-- CSS Transitions
-- Modern JavaScript (ES6+)
+## Related Components
 
-## See Also
-
-- [Headless UI Listbox Documentation](https://headlessui.dev/react/listbox)
-- [Medusa UI Documentation](https://docs.medusajs.com/ui)
+- `Range` from `react-range`: Provides the interactive price slider
+- `ChevronDown` from `lucide-react`: Icons for collapsible sections

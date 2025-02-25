@@ -1,270 +1,298 @@
-# Billing Address
+# Refinement List
 
-The `Billing Address` component is a React component that renders a form for collecting billing address information. It provides a comprehensive set of input fields for address details with proper validation and state management.
+A React client component that provides product refinement controls, currently focused on sorting functionality with URL parameter integration.
 
-## Overview
-
-```typescript copy
-import { HttpTypes } from "@medusajs/types"
-import Input from "@modules/common/components/input"
-import React, { useState } from "react"
-import CountrySelect from "../country-select"
-import Checkbox from "@modules/common/components/checkbox"
-
-const BillingAddress = ({ cart }: { cart: HttpTypes.StoreCart | null }) => {
-  // Component implementation
-}
-```
-
-## Props
-
-```typescript copy
-type BillingAddressProps = {
-  cart: HttpTypes.StoreCart | null
-}
-```
-
-### cart
-- Type: `HttpTypes.StoreCart | null`
-- Required: Yes
-- Description: The current cart object containing existing billing address information, if any.
-
-## State Management
-
-The component uses React's useState hook to manage form data:
-
-```typescript copy
-const [formData, setFormData] = useState<any>({
-  "billing_address.first_name": cart?.billing_address?.first_name || "",
-  "billing_address.last_name": cart?.billing_address?.last_name || "",
-  "billing_address.address_1": cart?.billing_address?.address_1 || "",
-  "billing_address.company": cart?.billing_address?.company || "",
-  "billing_address.postal_code": cart?.billing_address?.postal_code || "",
-  "billing_address.city": cart?.billing_address?.city || "",
-  "billing_address.country_code": cart?.billing_address?.country_code || "US",
-  "billing_address.province": cart?.billing_address?.province || "",
-  "billing_address.phone": cart?.billing_address?.phone || "",
-})
-```
-
-## Event Handlers
-
-```typescript copy
-const handleChange = (
-  e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
-) => {
-  setFormData({
-    ...formData,
-    [e.target.name]: e.target.value,
-  })
-}
-```
-
-## Form Structure
-
-The component renders a form with the following fields:
-
-### Country Selection
-```typescript copy
-<CountrySelect
-  aria-label="Country"
-  name="billing_address.country_code"
-  autoComplete="country"
-  region={cart?.region}
-  value={formData["billing_address.country_code"]}
-  onChange={handleChange}
-  required
-  data-testid="billing-country-select"
-/>
-```
-
-### Personal Information
-```typescript copy
-<div className="grid grid-cols-2 gap-4">
-  <div>
-    <Input
-      label="First name"
-      type="text"
-      name="billing_address.first_name"
-      value={formData["billing_address.first_name"]}
-      onChange={handleChange}
-      required
-      data-testid="billing-first-name-input"
-    />
-  </div>
-  <div>
-    <Input
-      label="Last name"
-      type="text"
-      name="billing_address.last_name"
-      value={formData["billing_address.last_name"]}
-      onChange={handleChange}
-      required
-      data-testid="billing-last-name-input"
-    />
-  </div>
-</div>
-```
-
-### Company Information
-```typescript copy
-<Input
-  label="Company"
-  type="text"
-  name="billing_address.company"
-  value={formData["billing_address.company"]}
-  onChange={handleChange}
-  data-testid="billing-company-input"
-/>
-```
-
-### Address Details
-```typescript copy
-<Input
-  label="Address"
-  type="text"
-  name="billing_address.address_1"
-  value={formData["billing_address.address_1"]}
-  onChange={handleChange}
-  required
-  data-testid="billing-address-input"
-/>
-
-<Input
-  label="Apartment, suite, etc."
-  type="text"
-  name="billing_address.address_2"
-  value={formData["billing_address.address_2"]}
-  onChange={handleChange}
-/>
-```
-
-### Location Information
-```typescript copy
-<div className="grid md:grid-cols-3 grid-cols-2 gap-4">
-  <div className="col-span-2 md:col-span-1">
-    <Input
-      label="City"
-      type="text"
-      name="billing_address.city"
-      value={formData["billing_address.city"]}
-      onChange={handleChange}
-      required
-      data-testid="billing-city-input"
-    />
-  </div>
-  <div>
-    <Input
-      label="State / Province"
-      type="text"
-      name="billing_address.province"
-      value={formData["billing_address.province"]}
-      onChange={handleChange}
-      required
-      data-testid="billing-province-input"
-    />
-  </div>
-  <div>
-    <Input
-      label="Postal Code"
-      type="text"
-      name="billing_address.postal_code"
-      value={formData["billing_address.postal_code"]}
-      onChange={handleChange}
-      required
-      data-testid="billing-postal-input"
-    />
-  </div>
-</div>
-```
-
-### Contact Information
-```typescript copy
-<Input
-  label="Phone"
-  type="tel"
-  name="billing_address.phone"
-  value={formData["billing_address.phone"]}
-  onChange={handleChange}
-  data-testid="billing-phone-input"
-/>
-```
-
-## Usage Example
+## Syntax
 
 ```jsx copy
-import BillingAddress from "@modules/checkout/components/billing-address"
+<RefinementList
+  sortBy="created_at"
+  search={true}
+  data-testid="product-refinement"
+/>
+```
 
-function CheckoutPage() {
-  const cart = {
-    billing_address: {
-      first_name: "John",
-      last_name: "Doe",
-      address_1: "123 Main St",
-      city: "Boston",
-      postal_code: "02101",
-      country_code: "US",
-      province: "MA",
-      phone: "+1234567890"
-    }
+## Description
+
+The `RefinementList` component serves as a container for product refinement controls, primarily for sorting functionality but designed to be extensible for additional filtering options. It manages URL query parameters to ensure that refinement selections persist across page navigation and can be shared via URLs.
+
+### Features:
+- Container for product refinement controls
+- Integrated sort functionality via SortProducts component
+- URL query parameter management
+- Responsive layout with different orientations for mobile and desktop
+- Proper spacing and alignment with product listings
+- Extensible design for additional refinement options
+
+## Technical Details
+
+### Dependencies
+
+```javascript copy
+"use client"
+import { usePathname, useRouter, useSearchParams } from "next/navigation"
+import { useCallback } from "react"
+
+import SortProducts, { SortOptions } from "./sort-products"
+```
+
+### Types
+
+```typescript copy
+type RefinementListProps = {
+  sortBy: SortOptions
+  search?: boolean
+  'data-testid'?: string
+}
+```
+
+### Component Structure
+
+```javascript copy
+"use client"
+
+import { usePathname, useRouter, useSearchParams } from "next/navigation"
+import { useCallback } from "react"
+
+import SortProducts, { SortOptions } from "./sort-products"
+
+type RefinementListProps = {
+  sortBy: SortOptions
+  search?: boolean
+  'data-testid'?: string
+}
+
+const RefinementList = ({ sortBy, 'data-testid': dataTestId }: RefinementListProps) => {
+  const router = useRouter()
+  const pathname = usePathname()
+  const searchParams = useSearchParams()
+  
+  const createQueryString = useCallback(
+    (name: string, value: string) => {
+      const params = new URLSearchParams(searchParams)
+      params.set(name, value)
+      
+      return params.toString()
+    },
+    [searchParams]
+  )
+  
+  const setQueryParams = (name: string, value: string) => {
+    const query = createQueryString(name, value)
+    router.push(`${pathname}?${query}`)
   }
-
+  
   return (
-    <BillingAddress cart={cart} />
+    <div className="flex small:flex-col gap-12 py-4 mb-8 small:px-0 small:min-w-[250px] small:ml-[1.675rem]">
+      <SortProducts sortBy={sortBy} setQueryParams={setQueryParams} data-testid={dataTestId} />
+    </div>
   )
 }
+
+export default RefinementList
+```
+
+## URL Parameter Management
+
+The component creates and manages URL query parameters:
+
+```javascript copy
+const createQueryString = useCallback(
+  (name: string, value: string) => {
+    const params = new URLSearchParams(searchParams)
+    params.set(name, value)
+    
+    return params.toString()
+  },
+  [searchParams]
+)
+
+const setQueryParams = (name: string, value: string) => {
+  const query = createQueryString(name, value)
+  router.push(`${pathname}?${query}`)
+}
+```
+
+This approach:
+- Preserves existing query parameters
+- Updates parameters when refinement options change
+- Creates bookmarkable and shareable URLs
+- Enables browser history navigation
+
+## Layout Structure
+
+```jsx copy
+<div className="flex small:flex-col gap-12 py-4 mb-8 small:px-0 small:min-w-[250px] small:ml-[1.675rem]">
+  <SortProducts sortBy={sortBy} setQueryParams={setQueryParams} data-testid={dataTestId} />
+</div>
 ```
 
 ## Styling
 
-The component uses Tailwind CSS for styling:
-- Layout: `max-w-[800px]`, `mx-auto`, `space-y-4`
-- Grid system: `grid`, `grid-cols-2`, `grid-cols-3`
-- Responsive design: `md:grid-cols-3`, `md:col-span-1`
-- Spacing: `gap-4`
+- **Container:** 
+  - Uses `flex small:flex-col` for responsive layout (horizontal on mobile, vertical on larger screens)
+  - Applies `gap-12` for spacing between refinement controls
+  - Sets `py-4 mb-8` for vertical spacing
+  - Uses `small:min-w-[250px]` to ensure minimum width on larger screens
+  - Applies `small:ml-[1.675rem]` for precise positioning on larger screens
 
-## Testing
+## Props
 
-The component includes data-testid attributes for testing:
-```typescript copy
-data-testid="billing-country-select"
-data-testid="billing-first-name-input"
-data-testid="billing-last-name-input"
-data-testid="billing-company-input"
-data-testid="billing-address-input"
-data-testid="billing-city-input"
-data-testid="billing-province-input"
-data-testid="billing-postal-input"
-data-testid="billing-phone-input"
+| Prop | Type | Required | Description |
+|------|------|----------|-------------|
+| `sortBy` | SortOptions | Yes | The current sort option for products |
+| `search` | boolean | No | Flag to indicate if this is being used in search context |
+| `data-testid` | string | No | Optional test ID for automated testing |
+
+## Child Components
+
+### SortProducts
+The component currently renders the SortProducts component, passing:
+- `sortBy`: The current sort option
+- `setQueryParams`: Function to update URL parameters
+- `data-testid`: Optional test ID for testing
+
+## Examples
+
+### Basic Usage
+
+```jsx copy
+import RefinementList from "@modules/store/components/refinement-list"
+
+export default function ProductsPage({ searchParams }) {
+  const sortBy = searchParams.sort || "created_at"
+  
+  return (
+    <div className="flex flex-col small:flex-row gap-8">
+      <aside>
+        <RefinementList sortBy={sortBy} data-testid="product-refinement" />
+      </aside>
+      
+      <main className="flex-1">
+        {/* Products Grid */}
+      </main>
+    </div>
+  )
+}
 ```
 
-## Dependencies
+### With Search Context
 
-- @medusajs/types: TypeScript types for cart and address data
-- Input: Custom input component
-- CountrySelect: Custom country selection component
-- Checkbox: Custom checkbox component
-- React hooks (useState)
+```jsx copy
+import RefinementList from "@modules/store/components/refinement-list"
 
-## Accessibility
+export default function SearchResultsPage({ searchParams }) {
+  const sortBy = searchParams.sort || "relevance"
+  const query = searchParams.q || ""
+  
+  return (
+    <div className="container">
+      <h1>Search Results for: {query}</h1>
+      
+      <div className="flex flex-col small:flex-row gap-8">
+        <aside>
+          <RefinementList 
+            sortBy={sortBy} 
+            search={true}
+            data-testid="search-refinement" 
+          />
+        </aside>
+        
+        <main className="flex-1">
+          {/* Search Results */}
+        </main>
+      </div>
+    </div>
+  )
+}
+```
 
-- Required field indication
-- Proper input labels
-- ARIA labels for country select
-- Semantic HTML structure
-- Proper input types (text, tel)
-- Form autocomplete support
+### Server Component Integration
+
+```jsx copy
+// app/products/page.tsx
+import RefinementList from "@modules/store/components/refinement-list"
+import ProductGrid from "@modules/products/components/product-grid"
+
+export default async function ProductsPage({ searchParams }) {
+  const sortBy = searchParams.sort || "created_at"
+  const products = await getProducts(sortBy)
+  
+  return (
+    <div className="container mx-auto py-8">
+      <div className="flex flex-col small:flex-row gap-8">
+        <aside className="w-full small:w-64">
+          <RefinementList sortBy={sortBy} data-testid="product-refinement" />
+        </aside>
+        
+        <main className="flex-1">
+          <ProductGrid products={products} />
+        </main>
+      </div>
+    </div>
+  )
+}
+
+async function getProducts(sortBy) {
+  // Fetch products from API or database
+  // ...
+}
+```
+
+## Extensibility
+
+The component is designed to be extended with additional refinement controls:
+
+```jsx copy
+// Example of how the component could be extended with filters
+<div className="flex small:flex-col gap-12 py-4 mb-8 small:px-0 small:min-w-[250px] small:ml-[1.675rem]">
+  <SortProducts sortBy={sortBy} setQueryParams={setQueryParams} data-testid={dataTestId} />
+  
+  {/* Additional refinement controls can be added here */}
+  <PriceRangeFilter setQueryParams={setQueryParams} />
+  <CategoryFilter setQueryParams={setQueryParams} />
+  <AttributeFilter setQueryParams={setQueryParams} />
+</div>
+```
+
+## SortOptions Type
+
+The component imports the SortOptions type from the SortProducts component:
+
+```typescript copy
+// Imported from sort-products.tsx
+export type SortOptions = 
+  | "created_at" 
+  | "price_asc" 
+  | "price_desc" 
+  | "relevance"
+```
 
 ## Responsive Design
 
-The component implements responsive design through Tailwind CSS:
-- Default grid layout for mobile (2 columns)
-- Enhanced grid layout for medium screens and up (3 columns)
-- Flexible width constraints
-- Responsive spacing
+The component implements responsive design with different layouts:
+- Mobile: Horizontal layout with controls side-by-side
+- Desktop: Vertical layout with controls stacked
 
-## See Also
+CSS classes that enable this:
+```
+flex small:flex-col
+```
 
-- [Medusa Documentation](https://docs.medusajs.com)
-- [React Forms Documentation](https://react.dev/reference/react-dom/components/input)
-- [Tailwind CSS Grid](https://tailwindcss.com/docs/grid-template-columns)
+## Browser Support
+
+The component relies on modern browser features:
+- CSS Flexbox for responsive layout
+- URLSearchParams API for query parameter manipulation
+- React useCallback hook for memoization
+- Next.js router and navigation hooks
+
+## Related Components
+
+- `SortProducts`: Child component for product sorting functionality
+- This component is typically used alongside product grid/listing components
+- Can be extended with additional filtering components like:
+  - Price range filters
+  - Category filters
+  - Attribute filters
+  - Tag filters

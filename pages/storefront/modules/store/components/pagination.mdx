@@ -1,228 +1,475 @@
-# Addresses
+# Pagination
 
-The `Addresses` component is a client-side React component that handles shipping and billing address management in a checkout flow. It provides functionality for displaying, editing, and managing both shipping and billing addresses.
+A React client component that renders a user-friendly pagination interface with smart page number display and URL parameter integration.
 
-## Overview
-
-```typescript copy
-// @ts-nocheck
-"use client"
-
-import { setAddresses } from "@lib/data/cart"
-import compareAddresses from "@lib/util/compare-addresses"
-import { CheckCircleSolid } from "@medusajs/icons"
-import { HttpTypes } from "@medusajs/types"
-import { Heading, Text, useToggleState } from "@medusajs/ui"
-import Divider from "@modules/common/components/divider"
-import Spinner from "@modules/common/icons/spinner"
-import { usePathname, useRouter, useSearchParams } from "next/navigation"
-import { useActionState } from "react"
-import BillingAddress from "../billing_address"
-import ErrorMessage from "../error-message"
-import ShippingAddress from "../shipping-address"
-import { SubmitButton } from "../submit-button"
-```
-
-## Props
-
-The component accepts the following props:
-
-```typescript copy
-type AddressesProps = {
-  cart: HttpTypes.StoreCart | null
-  customer: HttpTypes.StoreCustomer | null
-}
-```
-
-### cart
-- Type: `HttpTypes.StoreCart | null`
-- Required: Yes
-- Description: The current cart object containing shipping and billing address information.
-
-### customer
-- Type: `HttpTypes.StoreCustomer | null`
-- Required: Yes
-- Description: The current customer object containing customer information.
-
-## Component Structure
-
-```typescript copy
-const Addresses = ({
-  cart,
-  customer,
-}: {
-  cart: HttpTypes.StoreCart | null
-  customer: HttpTypes.StoreCustomer | null
-}) => {
-  // Component implementation
-}
-```
-
-## State Management
-
-The component uses several state management hooks:
-
-```typescript copy
-const searchParams = useSearchParams()
-const router = useRouter()
-const pathname = usePathname()
-
-const isOpen = searchParams.get("step") === "address"
-
-const { state: sameAsBilling, toggle: toggleSameAsBilling } = useToggleState(
-  cart?.shipping_address && cart?.billing_address
-    ? compareAddresses(cart?.shipping_address, cart?.billing_address)
-    : true
-)
-
-const { state: termsCheck, toggle: toggleTermsCheck } = useToggleState(false)
-
-const [message, formAction] = useActionState(setAddresses, null)
-```
-
-## Features
-
-### Address Editing
-```typescript copy
-const handleEdit = () => {
-  router.push(pathname + "?step=address")
-}
-```
-
-### Form Structure
-```typescript copy
-<form action={formAction}>
-  <div className="pb-8">
-    <ShippingAddress
-      customer={customer}
-      checked={sameAsBilling}
-      terms={termsCheck}
-      toggleTerms={toggleTermsCheck}
-      onChange={toggleSameAsBilling}
-      cart={cart}
-    />
-    {/* Billing address section */}
-  </div>
-</form>
-```
-
-### Address Display
-When not in edit mode, addresses are displayed in a three-column layout:
-```typescript copy
-<div className="flex items-start gap-x-8">
-  <div className="flex items-start gap-x-1 w-full">
-    <div className="flex flex-col w-1/3" data-testid="shipping-address-summary">
-      {/* Shipping address display */}
-    </div>
-    <div className="flex flex-col w-1/3" data-testid="shipping-contact-summary">
-      {/* Contact information display */}
-    </div>
-    <div className="flex flex-col w-1/3" data-testid="billing-address-summary">
-      {/* Billing address display */}
-    </div>
-  </div>
-</div>
-```
-
-## Usage Example
+## Syntax
 
 ```jsx copy
-import Addresses from "@modules/checkout/components/addresses"
+<Pagination
+  page={currentPage}
+  totalPages={totalNumberOfPages}
+  data-testid="product-pagination"
+/>
+```
 
-function CheckoutPage() {
-  const cart = {
-    shipping_address: {
-      first_name: "John",
-      last_name: "Doe",
-      address_1: "123 Main St",
-      city: "Boston",
-      postal_code: "02101",
-      country_code: "US",
-      phone: "+1234567890"
-    },
-    billing_address: {/* ... */},
-    email: "john@example.com"
+## Description
+
+The `Pagination` component creates an accessible, intuitive pagination interface that adapts its display based on the current page and total number of pages. It intelligently shows or hides page numbers with ellipses to provide a clean, usable interface even with a large number of pages. The component updates URL search parameters when users navigate between pages.
+
+### Features:
+- Smart display of page numbers based on current position
+- Ellipses for large page ranges
+- Active page highlighting
+- URL search parameter integration
+- Responsive design
+- Accessible button controls
+- Customizable via data-testid for testing
+
+## Technical Details
+
+### Dependencies
+
+```javascript copy
+"use client"
+import { clx } from "@medusajs/ui"
+import { usePathname, useRouter, useSearchParams } from "next/navigation"
+```
+
+### Props
+
+```typescript copy
+type PaginationProps = {
+  page: number
+  totalPages: number
+  'data-testid'?: string
+}
+```
+
+### Component Structure
+
+```javascript copy
+"use client"
+
+import { clx } from "@medusajs/ui"
+import { usePathname, useRouter, useSearchParams } from "next/navigation"
+
+export function Pagination({
+  page,
+  totalPages,
+  'data-testid': dataTestid
+}: {
+  page: number
+  totalPages: number
+  'data-testid'?: string
+}) {
+  const router = useRouter()
+  const pathname = usePathname()
+  const searchParams = useSearchParams()
+  
+  // Helper function to generate an array of numbers within a range
+  const arrayRange = (start: number, stop: number) =>
+    Array.from({ length: stop - start + 1 }, (_, index) => start + index)
+  
+  // Function to handle page changes
+  const handlePageChange = (newPage: number) => {
+    const params = new URLSearchParams(searchParams)
+    params.set("page", newPage.toString())
+    router.push(`${pathname}?${params.toString()}`)
   }
-
-  const customer = {
-    // Customer details
+  
+  // Function to render a page button
+  const renderPageButton = (
+    p: number,
+    label: string | number,
+    isCurrent: boolean
+  ) => (
+    <button
+      key={p}
+      className={clx("txt-xlarge-plus text-ui-fg-muted", {
+        "text-ui-fg-base hover:text-ui-fg-subtle": isCurrent,
+      })}
+      disabled={isCurrent}
+      onClick={() => handlePageChange(p)}
+    >
+      {label}
+    </button>
+  )
+  
+  // Function to render ellipsis
+  const renderEllipsis = (key: string) => (
+    <span
+      key={key}
+      className="txt-xlarge-plus text-ui-fg-muted items-center cursor-default"
+    >
+      ...
+    </span>
+  )
+  
+  // Function to render page buttons based on the current page and total pages
+  const renderPageButtons = () => {
+    const buttons = []
+    
+    if (totalPages <= 7) {
+      // Show all pages
+      buttons.push(
+        ...arrayRange(1, totalPages).map((p) =>
+          renderPageButton(p, p, p === page)
+        )
+      )
+    } else {
+      // Handle different cases for displaying pages and ellipses
+      if (page <= 4) {
+        // Show 1, 2, 3, 4, 5, ..., lastpage
+        buttons.push(
+          ...arrayRange(1, 5).map((p) => renderPageButton(p, p, p === page))
+        )
+        buttons.push(renderEllipsis("ellipsis1"))
+        buttons.push(
+          renderPageButton(totalPages, totalPages, totalPages === page)
+        )
+      } else if (page >= totalPages - 3) {
+        // Show 1, ..., lastpage - 4, lastpage - 3, lastpage - 2, lastpage - 1, lastpage
+        buttons.push(renderPageButton(1, 1, 1 === page))
+        buttons.push(renderEllipsis("ellipsis2"))
+        buttons.push(
+          ...arrayRange(totalPages - 4, totalPages).map((p) =>
+            renderPageButton(p, p, p === page)
+          )
+        )
+      } else {
+        // Show 1, ..., page - 1, page, page + 1, ..., lastpage
+        buttons.push(renderPageButton(1, 1, 1 === page))
+        buttons.push(renderEllipsis("ellipsis3"))
+        buttons.push(
+          ...arrayRange(page - 1, page + 1).map((p) =>
+            renderPageButton(p, p, p === page)
+          )
+        )
+        buttons.push(renderEllipsis("ellipsis4"))
+        buttons.push(
+          renderPageButton(totalPages, totalPages, totalPages === page)
+        )
+      }
+    }
+    
+    return buttons
   }
-
+  
+  // Render the component
   return (
-    <Addresses 
-      cart={cart}
-      customer={customer}
-    />
+    <div className="flex justify-center w-full mt-12">
+      <div className="flex gap-3 items-end" data-testid={dataTestid}>{renderPageButtons()}</div>
+    </div>
   )
 }
 ```
 
+## Main Functions
+
+### Array Range Generator
+```javascript copy
+const arrayRange = (start: number, stop: number) =>
+  Array.from({ length: stop - start + 1 }, (_, index) => start + index)
+```
+
+### Page Change Handler
+```javascript copy
+const handlePageChange = (newPage: number) => {
+  const params = new URLSearchParams(searchParams)
+  params.set("page", newPage.toString())
+  router.push(`${pathname}?${params.toString()}`)
+}
+```
+
+### Page Button Renderer
+```javascript copy
+const renderPageButton = (
+  p: number,
+  label: string | number,
+  isCurrent: boolean
+) => (
+  <button
+    key={p}
+    className={clx("txt-xlarge-plus text-ui-fg-muted", {
+      "text-ui-fg-base hover:text-ui-fg-subtle": isCurrent,
+    })}
+    disabled={isCurrent}
+    onClick={() => handlePageChange(p)}
+  >
+    {label}
+  </button>
+)
+```
+
+### Ellipsis Renderer
+```javascript copy
+const renderEllipsis = (key: string) => (
+  <span
+    key={key}
+    className="txt-xlarge-plus text-ui-fg-muted items-center cursor-default"
+  >
+    ...
+  </span>
+)
+```
+
+## Page Layout Algorithms
+
+The component uses a smart algorithm to determine which page buttons to display:
+
+### Algorithm Logic
+```javascript copy
+const renderPageButtons = () => {
+  const buttons = []
+  
+  if (totalPages <= 7) {
+    // Show all pages when total is 7 or less
+    buttons.push(
+      ...arrayRange(1, totalPages).map((p) =>
+        renderPageButton(p, p, p === page)
+      )
+    )
+  } else {
+    // For pages > 7, use a smart display algorithm based on current page position
+    if (page <= 4) {
+      // When near the start: 1, 2, 3, 4, 5, ..., lastpage
+      buttons.push(
+        ...arrayRange(1, 5).map((p) => renderPageButton(p, p, p === page))
+      )
+      buttons.push(renderEllipsis("ellipsis1"))
+      buttons.push(
+        renderPageButton(totalPages, totalPages, totalPages === page)
+      )
+    } else if (page >= totalPages - 3) {
+      // When near the end: 1, ..., lastpage - 4, lastpage - 3, lastpage - 2, lastpage - 1, lastpage
+      buttons.push(renderPageButton(1, 1, 1 === page))
+      buttons.push(renderEllipsis("ellipsis2"))
+      buttons.push(
+        ...arrayRange(totalPages - 4, totalPages).map((p) =>
+          renderPageButton(p, p, p === page)
+        )
+      )
+    } else {
+      // When in the middle: 1, ..., page - 1, page, page + 1, ..., lastpage
+      buttons.push(renderPageButton(1, 1, 1 === page))
+      buttons.push(renderEllipsis("ellipsis3"))
+      buttons.push(
+        ...arrayRange(page - 1, page + 1).map((p) =>
+          renderPageButton(p, p, p === page)
+        )
+      )
+      buttons.push(renderEllipsis("ellipsis4"))
+      buttons.push(
+        renderPageButton(totalPages, totalPages, totalPages === page)
+      )
+    }
+  }
+  
+  return buttons
+}
+```
+
+## Display Patterns
+
+The component uses these patterns for page number display:
+
+### Few Pages (totalPages ≤ 7)
+Shows all page numbers:
+```
+1 2 3 4 5 6 7
+```
+
+### Near Start (page ≤ 4)
+Shows first 5 pages, ellipsis, and last page:
+```
+1 2 3 4 5 ... 20
+```
+
+### Near End (page ≥ totalPages - 3)
+Shows first page, ellipsis, and last 5 pages:
+```
+1 ... 16 17 18 19 20
+```
+
+### Middle Position
+Shows first page, ellipsis, current page and adjacent pages, ellipsis, last page:
+```
+1 ... 9 10 11 ... 20
+```
+
 ## Styling
 
-The component uses Tailwind CSS for styling with custom classes:
+- **Container:** Uses `flex justify-center w-full mt-12` for centered positioning with top margin
+- **Button Container:** Uses `flex gap-3 items-end` for horizontal button arrangement with spacing
+- **Page Buttons:** 
+  - Base: `txt-xlarge-plus text-ui-fg-muted` for consistent button styling
+  - Active: `text-ui-fg-base hover:text-ui-fg-subtle` for highlighting the current page
+- **Ellipsis:** Uses `txt-xlarge-plus text-ui-fg-muted items-center cursor-default` with non-interactive styling
 
-- Background: `bg-white`
-- Button colors: `bg-[#008080]`, `hover:bg-[#3c9696]`
-- Text styles: `text-3xl-regular`, `txt-medium`, `txt-medium-plus`
-- Layout: Flexbox and width utilities (`w-1/3`, `gap-x-8`, etc.)
+## URL Parameter Management
 
-## Testing
+The component updates the URL's `page` parameter when users navigate:
 
-The component includes several data-testid attributes for testing:
-
-```typescript copy
-data-testid="edit-address-button"
-data-testid="submit-address-button"
-data-testid="address-error-message"
-data-testid="shipping-address-summary"
-data-testid="shipping-contact-summary"
-data-testid="billing-address-summary"
+```javascript copy
+const handlePageChange = (newPage: number) => {
+  const params = new URLSearchParams(searchParams)
+  params.set("page", newPage.toString())
+  router.push(`${pathname}?${params.toString()}`)
+}
 ```
 
-## Dependencies
+This approach:
+- Preserves existing query parameters
+- Updates only the page parameter
+- Creates a bookmarkable URL for each page
+- Enables browser history navigation
 
-- @medusajs/ui: UI components and hooks
-- @medusajs/icons: Icon components
-- @medusajs/types: TypeScript types
-- next/navigation: Next.js routing utilities
-- React hooks and components
+## Examples
 
-## State and Navigation
+### Basic Usage
 
-The component manages several states:
-- Edit mode through URL parameters (`?step=address`)
-- Same billing/shipping address toggle
-- Terms acceptance
-- Form submission state
-- Error messages
+```jsx copy
+import { Pagination } from "@modules/common/components/pagination"
 
-## Accessibility
-
-- Semantic HTML structure
-- ARIA attributes through Medusa UI components
-- Clear error messaging
-- Proper heading hierarchy
-
-## Loading States
-
-The component shows a spinner when cart data is loading:
-```typescript copy
-{!cart && (
-  <div>
-    <Spinner />
-  </div>
-)}
+export default function ProductListingPage({ searchParams }) {
+  const page = searchParams.page ? parseInt(searchParams.page) : 1
+  const totalPages = 10 // Typically calculated based on total items and items per page
+  
+  return (
+    <div className="container mx-auto">
+      {/* Product listings */}
+      <div className="grid grid-cols-4 gap-4">
+        {/* Products */}
+      </div>
+      
+      <Pagination 
+        page={page} 
+        totalPages={totalPages} 
+        data-testid="product-pagination" 
+      />
+    </div>
+  )
+}
 ```
 
-## Error Handling
+### With Dynamic Total Pages
 
-Errors are displayed using the ErrorMessage component:
-```typescript copy
-<ErrorMessage error={message} data-testid="address-error-message" />
+```jsx copy
+"use client"
+
+import { useEffect, useState } from "react"
+import { Pagination } from "@modules/common/components/pagination"
+
+export default function ProductList() {
+  const [products, setProducts] = useState([])
+  const [totalItems, setTotalItems] = useState(0)
+  const [page, setPage] = useState(1)
+  const itemsPerPage = 12
+  
+  useEffect(() => {
+    // Fetch products and total count
+    const fetchProducts = async () => {
+      const response = await fetch(`/api/products?page=${page}&limit=${itemsPerPage}`)
+      const data = await response.json()
+      
+      setProducts(data.products)
+      setTotalItems(data.count)
+    }
+    
+    fetchProducts()
+  }, [page])
+  
+  const totalPages = Math.ceil(totalItems / itemsPerPage)
+  
+  return (
+    <div>
+      {/* Product grid */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        {products.map(product => (
+          <ProductCard key={product.id} product={product} />
+        ))}
+      </div>
+      
+      {totalPages > 1 && (
+        <Pagination 
+          page={page} 
+          totalPages={totalPages} 
+          data-testid="product-pagination" 
+        />
+      )}
+    </div>
+  )
+}
 ```
 
-## See Also
+### Server Component Integration
 
-- [Medusa Documentation](https://docs.medusajs.com)
-- [Next.js Navigation](https://nextjs.org/docs/app/api-reference/functions/use-router)
-- [Tailwind CSS](https://tailwindcss.com/docs)
+```jsx copy
+// app/products/page.tsx
+import { Pagination } from "@modules/common/components/pagination"
+import ProductGrid from "@modules/products/components/product-grid"
+
+async function getProducts(page = 1, limit = 12) {
+  // Fetch products from API or database
+  const response = await fetch(`${process.env.API_URL}/products?page=${page}&limit=${limit}`)
+  const data = await response.json()
+  return {
+    products: data.products,
+    count: data.count
+  }
+}
+
+export default async function ProductsPage({ searchParams }) {
+  const page = searchParams.page ? parseInt(searchParams.page) : 1
+  const limit = 12
+  
+  const { products, count } = await getProducts(page, limit)
+  const totalPages = Math.ceil(count / limit)
+  
+  return (
+    <div className="container mx-auto py-8">
+      <h1 className="text-2xl font-bold mb-6">Products</h1>
+      
+      <ProductGrid products={products} />
+      
+      {totalPages > 1 && (
+        <Pagination page={page} totalPages={totalPages} data-testid="products-pagination" />
+      )}
+    </div>
+  )
+}
+```
+
+## Accessibility Considerations
+
+- Uses semantic `<button>` elements for interactive page numbers
+- Disables the current page button to prevent unnecessary clicks
+- Uses appropriate text contrast for both active and inactive elements
+- Maintains consistent sizing and spacing for ease of use
+- Uses clear visual indicators for the current page
+
+## Props Reference
+
+| Prop | Type | Required | Description |
+|------|------|----------|-------------|
+| `page` | number | Yes | The current active page number (1-based) |
+| `totalPages` | number | Yes | Total number of pages available |
+| `data-testid` | string | No | Optional test ID for automated testing |
+
+## Browser Support
+
+The component relies on modern browser features:
+- CSS Flexbox for layout
+- Array.from and arrow functions for array manipulation
+- URLSearchParams API for query parameter management
+- React hooks for navigation
+- Conditional CSS class application
+
+## Related Components
+
+This component is typically used with:
+- Product listing components
+- Collection pages
+- Search result pages
+- Blog post listings
+- Any paginated content display
