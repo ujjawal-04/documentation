@@ -1,0 +1,321 @@
+# Util
+
+## Introduction
+
+Util functions form the backbone of any well-structured application. They provide reusable, single-purpose tools that handle common operations across an application's codebase. In e-commerce and React applications, utility functions help maintain consistency, reduce code duplication, and centralize complex logic.
+
+## Core Principles
+
+### 1. Single Responsibility
+
+Utility functions should follow the Single Responsibility Principle (SRP): each function should do one thing and do it well. This approach creates functions that are:
+
+- **Focused**: Solves a specific problem
+- **Testable**: Easier to write comprehensive tests
+- **Maintainable**: Simpler to understand and modify
+- **Reusable**: Can be employed in various contexts
+
+### 2. Pure Functions
+
+Whenever possible, utility functions should be pure functions, meaning:
+
+- For the same input, they always return the same output
+- They don't cause side effects (modifying external state, calling APIs, etc.)
+- They don't depend on external state that might change between calls
+
+Pure functions are predictable, testable, and can be confidently used throughout an application.
+
+### 3. Immutability
+
+Utility functions that work with objects or arrays should follow immutability principles:
+
+- Don't mutate input arguments
+- Return new objects/arrays instead of modifying existing ones
+- Use spreading (`...`) or methods like `map()`, `filter()` instead of modifying in place
+
+```javascript copy
+// GOOD: Returns a new array
+const addItem = (array, item) => [...array, item];
+
+// BAD: Mutates the original array
+const addItem = (array, item) => {
+  array.push(item);
+  return array;
+};
+```
+
+### 4. Type Safety
+
+In TypeScript applications, utility functions should:
+
+- Have proper type definitions
+- Use generics where appropriate for flexibility
+- Include JSDoc comments that explain parameters and return values
+- Consider edge cases in type handling
+
+## Categories of Utility Functions
+
+### Data Transformation Utilities
+
+Functions that convert data from one format to another:
+
+- **Formatting**: Convert raw data into display-friendly formats (currency, dates, etc.)
+- **Normalization**: Transform API responses into consistent structures
+- **Serialization**: Convert objects to URL parameters, query strings, etc.
+- **Parsing**: Extract structured data from strings or unstructured data
+
+### Validation Utilities
+
+Functions that verify data meets certain criteria:
+
+- **Form validation**: Email, phone, password strength, etc.
+- **Data integrity**: Checking required fields, type validation
+- **Business rules**: Validating against application-specific constraints
+
+### Error Handling Utilities
+
+Functions that provide consistent error management:
+
+- **Error formatting**: Convert various error types to consistent structures
+- **Error logging**: Centralized error logging with appropriate context
+- **Retry mechanisms**: Smart retrying of operations that may temporarily fail
+
+### Object/Array Manipulation Utilities
+
+Functions that provide common operations on data structures:
+
+- **Selection**: Picking or omitting properties from objects
+- **Transformation**: Mapping, filtering, reducing collections
+- **Grouping**: Organizing data into hierarchical structures
+- **Searching**: Finding items that match specific criteria
+
+### Route/URL Utilities
+
+Functions that handle URL-related operations:
+
+- **URL building**: Creating URLs with proper parameters and encoding
+- **Route matching**: Determining if a URL matches a specific pattern
+- **Query parameter handling**: Parsing and serializing query strings
+
+## Implementation Patterns
+
+### Modular Organization
+
+Organize utilities into logical modules:
+
+```
+/utils
+  /format
+    date.ts
+    currency.ts
+    number.ts
+  /validation
+    form.ts
+    business.ts
+  /object
+    transform.ts
+    select.ts
+  ...
+```
+
+This organization makes it easier to find related functions and keeps individual files manageable.
+
+### Barrel Exports
+
+Use barrel exports (index files) to simplify imports:
+
+```typescript copy
+// /utils/format/index.ts
+export * from './date';
+export * from './currency';
+export * from './number';
+
+// Usage
+import { formatDate, formatCurrency } from '@/utils/format';
+```
+
+This pattern provides a clean public API for each utility category.
+
+### Default Parameters
+
+Use default parameters to make functions more flexible:
+
+```typescript copy
+export const formatPrice = (
+  amount: number,
+  currency = 'USD',
+  locale = 'en-US'
+) => {
+  // Implementation
+};
+```
+
+### Function Composition
+
+Create complex operations by composing smaller utility functions:
+
+```typescript copy
+const validateForm = (formData) => {
+  return {
+    email: validateEmail(formData.email),
+    phone: validatePhone(formData.phone),
+    password: validatePassword(formData.password)
+  };
+};
+```
+
+## Common Anti-patterns
+
+### Overly Complex Utilities
+
+Avoid creating "kitchen sink" utilities that try to handle too many cases or have too many parameters. Break them into smaller, focused functions instead.
+
+### Side Effects in Utilities
+
+Avoid utilities that call APIs, modify global state, or have other side effects. These are harder to test and reason about.
+
+### Duplicating Native Functionality
+
+Don't recreate functionality that's already available in JavaScript/TypeScript or common libraries like Lodash:
+
+```javascript copy
+// AVOID: Reimplementing Array.map
+const map = (array, fn) => {
+  const result = [];
+  for (let i = 0; i < array.length; i++) {
+    result.push(fn(array[i], i));
+  }
+  return result;
+};
+
+// USE: Native Array.map
+array.map((item, index) => { /* ... */ });
+```
+
+### Inconsistent Naming
+
+Follow consistent naming conventions:
+
+- Use verb-noun format for action functions (`formatDate`, `validateEmail`)
+- Use is/has/should for boolean functions (`isValidEmail`, `hasPermission`)
+- Be consistent with parameter ordering (put required parameters first)
+
+## Performance Considerations
+
+### Memoization
+
+Consider memoizing expensive operations:
+
+```typescript copy
+import { memoize } from 'lodash';
+
+export const expensiveOperation = memoize((input) => {
+  // Complex calculation
+  return result;
+});
+```
+
+### Early Returns
+
+Use early returns to avoid unnecessary processing:
+
+```typescript copy
+export const validateForm = (data) => {
+  if (!data) return false;
+  if (!data.email) return false;
+  
+  // Continue with validation
+};
+```
+
+### Lazy Evaluation
+
+For operations that aren't always needed, consider lazy evaluation patterns:
+
+```typescript copy
+// Instead of always calculating
+const value = expensiveCalculation();
+
+// Calculate only when needed
+const getValue = () => expensiveCalculation();
+```
+
+## Testing Utilities
+
+Utility functions are ideal candidates for comprehensive unit testing:
+
+- Test with a variety of inputs, including edge cases
+- Test error handling and boundary conditions
+- Use parameterized tests for functions with many input variations
+- Aim for 100% code coverage in utility functions
+
+```typescript copy
+// Example Jest test
+describe('formatPrice', () => {
+  it('formats USD correctly', () => {
+    expect(formatPrice(1000, 'USD')).toBe('$10.00');
+  });
+  
+  it('handles zero values', () => {
+    expect(formatPrice(0, 'USD')).toBe('$0.00');
+  });
+  
+  it('handles different currencies', () => {
+    expect(formatPrice(1000, 'EUR')).toBe('€10.00');
+  });
+});
+```
+
+## Documentation Best Practices
+
+### JSDoc Comments
+
+Use JSDoc comments to document utility functions:
+
+```typescript copy
+/**
+ * Formats a price value according to currency and locale
+ *
+ * @param value - The price value in cents
+ * @param currency - The currency code (e.g., "USD")
+ * @param options - Additional formatting options
+ * @returns Formatted price string
+ *
+ * @example
+ * formatPrice(1995, "USD") // "$19.95"
+ */
+```
+
+### Usage Examples
+
+Include usage examples in documentation:
+
+```typescript copy
+/**
+ * @example
+ * // Basic usage
+ * formatDate("2023-05-15") // "May 15, 2023"
+ *
+ * @example
+ * // With options
+ * formatDate("2023-05-15", { format: "short" }) // "5/15/23"
+ */
+```
+
+### Type Documentation
+
+Document complex types and parameters:
+
+```typescript copy
+/**
+ * @param options - Formatting options
+ * @param options.locale - The locale string (e.g., "en-US")
+ * @param options.format - Format style: "short", "medium", etc.
+ */
+```
+
+## Conclusion
+
+Well-designed utility functions enhance code quality, maintainability, and developer productivity. By following these principles and patterns, you can create a robust utility layer that serves as a solid foundation for your application.
+
+When implemented correctly, utilities become a shared vocabulary that makes the codebase more consistent and easier to understand. They encapsulate common operations, reduce duplication, and provide a single source of truth for important functionality across your application.

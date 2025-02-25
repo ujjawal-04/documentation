@@ -1,183 +1,279 @@
----
-title: 'AccountInfo'
-description: 'A reusable account information component that handles edit states, success/error messages, and form submission.'
----
+# Product Preview
 
-# AccountInfo
+A React component that renders a product card preview with image, title, price, and add-to-cart functionality.
 
-The `AccountInfo` component is designed to display and edit account-related information. It provides a consistent interface for viewing current information, editing it, and handling success/error states.
+## Syntax
 
-## Features
+```jsx copy
+<ProductPreview 
+  product={product}
+  region={region}
+  isFeatured={false}
+  isNew={false}
+  isPopular={false}
+/>
+```
 
-- Toggle between view and edit modes
-- Built-in success and error state handling
-- Customizable form content
-- Loading state during form submission
-- Accessible disclosure panels
-- Responsive design
+## Description
 
-## Props
+The ProductPreview component creates a product card that:
+- Displays product thumbnail with hover zoom effect
+- Shows product title, collection, and price information
+- Includes an add-to-cart button
+- Supports "New" and "Popular" product tags
+- Links to the detailed product page
+- Features a consistent design with subtle animations
 
-| Prop | Type | Required | Description |
-|------|------|----------|-------------|
-| `label` | `string` | Yes | The label for the account information field |
-| `currentInfo` | `string \| React.ReactNode` | Yes | The current value to display |
-| `isSuccess` | `boolean` | No | Indicates if the update was successful |
-| `isError` | `boolean` | No | Indicates if an error occurred |
-| `errorMessage` | `string` | No | Custom error message (defaults to "An error occurred, please try again") |
-| `clearState` | `function` | Yes | Function to clear the current state |
-| `children` | `React.ReactNode` | No | Content to render in the edit form |
-| `data-testid` | `string` | No | Test ID for the component |
+## Technical Details
 
-## Usage
+### Dependencies
 
-```tsx copy
-import AccountInfo from '@/components/AccountInfo'
+```javascript copy
+// @ts-nocheck
+import { getProductPrice } from "@lib/util/get-product-price"
+import type { HttpTypes } from "@medusajs/types"
+import LocalizedClientLink from "@modules/common/components/localized-client-link"
+import PreviewPrice from "./price"
+import AddToCartButton from "./AddToCartButton"
+```
 
-export default function ProfilePage() {
-  const [isSuccess, setIsSuccess] = useState(false)
-  const [isError, setIsError] = useState(false)
+### Props
+
+```typescript copy
+type ProductPreviewProps = {
+  product: HttpTypes.StoreProduct
+  isFeatured?: boolean
+  region: HttpTypes.StoreRegion
+  isNew?: boolean
+  isPopular?: boolean
+}
+```
+
+| Prop | Type | Description | Required | Default |
+|------|------|-------------|----------|---------|
+| product | `HttpTypes.StoreProduct` | Product data object | Yes | - |
+| region | `HttpTypes.StoreRegion` | Regional store settings | Yes | - |
+| isFeatured | `boolean` | Whether the product is featured | No | `false` |
+| isNew | `boolean` | Whether to show the "New" tag | No | `false` |
+| isPopular | `boolean` | Whether to show the "Popular" tag | No | `false` |
+
+## Component Structure
+
+```javascript copy
+export default function ProductPreview({
+  product,
+  isFeatured,
+  region,
+  isNew = false,
+  isPopular = false,
+}: ProductPreviewProps) {
+  const { cheapestPrice } = getProductPrice({ product })
   
-  const clearState = () => {
-    setIsSuccess(false)
-    setIsError(false)
-  }
-
+  const defaultVariantId = product.variants?.[0]?.id || ""
+  const countryCode = region?.country_code || "dk"
+  const price = cheapestPrice?.amount || 0
+  
+  // Ensure that we pass isNew and isPopular as true if they are set on product tags
+  const productIsNew = product.tags?.some(tag => tag.value === "New") || isNew;
+  const productIsPopular = product.tags?.some(tag => tag.value === "Popular") || isPopular;
+  
   return (
-    <AccountInfo
-      label="Email"
-      currentInfo="user@example.com"
-      isSuccess={isSuccess}
-      isError={isError}
-      clearState={clearState}
-    >
-      <form>
-        <input
-          type="email"
-          name="email"
-          placeholder="Enter new email"
-          className="w-full p-2 border rounded"
-        />
-      </form>
-    </AccountInfo>
+    // Component implementation
   )
 }
 ```
 
+## Layout Structure
+
+### Container
+```jsx copy
+<div className="flex flex-col bg-white border border-gray-200 transition-shadow relative h-[394px] overflow-hidden rounded-large shadow-xl">
+  {/* Content */}
+</div>
+```
+
+### Product Link and Image
+```jsx copy
+<LocalizedClientLink href={`/products/${product.handle}`} className="group flex h-full flex-col">
+  <div
+    className="rounded-t-xl relative h-[208px]"
+    style={{
+      backgroundImage: `radial-gradient(45.54% 52.4% at 50% 61.9%,
+         rgb(255, 255, 255) 0%,
+         rgb(246, 249, 255) 25%,
+         rgb(239, 244, 255) 100%),
+         linear-gradient(360deg,
+         rgba(255, 255, 255, 0.376) -0.12%,
+         rgba(255, 255, 255, 0.75) 99.88%)`
+    }}
+  >
+    <img
+      src={product.thumbnail}
+      alt={product.title}
+      className="bg-transparent h-full w-full object-contain p-4 transition-transform duration-300 ease-in-out group-hover:scale-110"
+    />
+    
+    {/* Product Tags */}
+  </div>
+</LocalizedClientLink>
+```
+
+### Product Tags
+```jsx copy
+{/* Popular Tag */}
+{productIsPopular && (
+  <span
+    className="absolute right-0 top-4 flex items-center gap-1 rounded-l-[4px] bg-white p-1 px-2 text-xs"
+    style={{ boxShadow: "0px 2px 30px 0px rgba(0, 0, 0, 0.08)" }}
+  >
+    <img src="/star.png" alt="img" height={12} width={12} /> Popular
+  </span>
+)}
+
+{/* New Tag */}
+<div className="absolute -bottom-[12px] left-0 drop-shadow-lg">
+  {productIsNew && (
+    <span
+      className="bg-white p-1 pr-4 text-xs font-bold uppercase tracking-wider text-[#008080] shadow"
+      style={{ clipPath: "polygon(100% 0, 0 0, 0 100%, 100% 100%, 90% 50%)" }}
+    >
+      NEW
+    </span>
+  )}
+</div>
+```
+
+### Product Info
+```jsx copy
+<div className="pt-4 pl-4 pr-4 flex flex-col text-center w-full flex-grow">
+  <div className="h-[30px]">
+    <h3 className="line-clamp-2 text-base font-medium text-black-0">{product.title}</h3>
+    <p className="text-center text-xs text-gray-600">{product.collection?.title || "Category"}</p>
+  </div>
+  <div className="mt-auto text-center text-lg font-medium text-gray-700">
+    {cheapestPrice && <PreviewPrice price={cheapestPrice} />}
+  </div>
+</div>
+```
+
+### Add to Cart Button
+```jsx copy
+<div className="w-full p-4 flex flex-col text-center">
+  <AddToCartButton variantId={defaultVariantId} countryCode={countryCode} />
+</div>
+```
+
 ## Styling
 
-The component uses Tailwind CSS for styling and includes:
+The component uses Tailwind CSS with the following styling features:
 
-- Custom teal-colored buttons (`bg-[#008080]`)
-- Hover states for buttons
-- Smooth transitions for disclosure panels
-- Responsive width adjustments
-- Consistent text styles and spacing
+### Card Container
+- Fixed height (`h-[394px]`)
+- White background with subtle border (`bg-white border border-gray-200`)
+- Rounded corners (`rounded-large`)
+- Elevated appearance with shadow (`shadow-xl`)
+- Overflow control for content (`overflow-hidden`)
+- Flex column layout (`flex flex-col`)
 
-## States
+### Product Image
+- Fixed height image container (`h-[208px]`)
+- Custom gradient background
+- Rounded top corners (`rounded-t-xl`)
+- Image centered and contained (`object-contain`)
+- Hover zoom effect (`group-hover:scale-110`) with smooth animation (`transition-transform duration-300 ease-in-out`)
 
-### View Mode
-- Displays the current information
-- Shows an "Edit" button
-- No form fields visible
+### Product Tags
+- "New" tag: Custom polygon shape with teal text on white background
+- "Popular" tag: White tag with star icon and subtle shadow
+- Positioned absolutely within the card
 
-### Edit Mode
-- Displays the form fields (provided as children)
-- Shows "Cancel" and "Save changes" buttons
-- Cancel returns to view mode
-- Save triggers form submission
-
-### Success State
-- Shows a green badge with success message
-- Automatically closes edit mode
-- Success message fades out
-
-### Error State
-- Shows a red badge with error message
-- Keeps edit mode open
-- Allows retry
-
-### Loading State
-- Shows loading indicator on save button
-- Prevents multiple submissions
-
-## Accessibility
-
-The component uses the Headless UI Disclosure component for accessible expanding/collapsing sections and includes:
-
-- Proper ARIA attributes
-- Keyboard navigation support
-- Clear visual states
-- Test IDs for testing
+### Product Info
+- Centered text layout (`text-center`)
+- Title truncation for consistent height (`line-clamp-2`)
+- Size differentiation between title and collection text
+- Fixed height containers for consistent layout
 
 ## Examples
 
 ### Basic Usage
+```jsx copy
+import ProductPreview from "@modules/products/components/product-preview"
 
-```tsx copy
-<AccountInfo
-  label="Username"
-  currentInfo="johndoe"
-  clearState={() => {}}
->
-  <input
-    type="text"
-    placeholder="Enter new username"
-    className="w-full p-2 border rounded"
-  />
-</AccountInfo>
+export default function ProductGrid({ products, region }) {
+  return (
+    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+      {products.map((product) => (
+        <ProductPreview 
+          key={product.id} 
+          product={product} 
+          region={region} 
+        />
+      ))}
+    </div>
+  )
+}
 ```
 
-### With Custom Error Message
-
-```tsx copy
-<AccountInfo
-  label="Password"
-  currentInfo="********"
-  errorMessage="Password must be at least 8 characters"
-  clearState={() => {}}
->
-  <input
-    type="password"
-    placeholder="Enter new password"
-    className="w-full p-2 border rounded"
-  />
-</AccountInfo>
+### With Featured and Tagged Products
+```jsx copy
+<div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+  {products.map((product) => (
+    <ProductPreview 
+      key={product.id} 
+      product={product} 
+      region={region}
+      isFeatured={product.is_featured}
+      isNew={product.created_at > oneMonthAgo}
+      isPopular={product.sales_count > 100}
+    />
+  ))}
+</div>
 ```
 
-### With React Node as Current Info
-
-```tsx copy
-<AccountInfo
-  label="Status"
-  currentInfo={<Badge color="green">Active</Badge>}
-  clearState={() => {}}
->
-  <select className="w-full p-2 border rounded">
-    <option value="active">Active</option>
-    <option value="inactive">Inactive</option>
-  </select>
-</AccountInfo>
+### In a Featured Products Section
+```jsx copy
+<section className="py-12">
+  <h2 className="text-2xl font-bold mb-6">Featured Products</h2>
+  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+    {featuredProducts.map((product) => (
+      <ProductPreview 
+        key={product.id} 
+        product={product} 
+        region={region} 
+        isFeatured={true}
+      />
+    ))}
+  </div>
+</section>
 ```
 
-## Dependencies
+## Technical Considerations
 
-- @headlessui/react
-- @medusajs/ui
-- react
-- react-dom
+- Uses the first product variant as the default for add-to-cart functionality
+- Sets fallback country code to "dk" if region data is unavailable
+- Combines prop-based and tag-based approaches for "New" and "Popular" indicators
+- Uses optional chaining for safe property access
+- Provides fallbacks for missing data (collection title, price)
+- Uses line-clamp to ensure consistent card heights despite varying title lengths
+- Implements image zoom effect with CSS transforms
+- Applies custom clipping path for the "NEW" tag shape
 
-## Technical Details
+## Accessibility
 
-The component uses several React hooks:
+- Provides alt text for product images
+- Uses semantic HTML with appropriate heading levels
+- Links to detailed product pages for additional information
+- Maintains text contrast for readability
+- Preserves appropriate spacing between interactive elements
+- Groups related content logically
+- Uses clear visual indicators for tags
 
-- `useToggleState` - Custom hook for managing edit state
-- `useFormStatus` - React hook for form submission state
-- `useEffect` - For handling success state changes
+## Browser Support
 
-The component also implements:
-
-- Debounced state clearing (100ms timeout)
-- Automatic closure on successful update
-- Dynamic height transitions
-- Consistent spacing and alignment
+Requires browsers with support for:
+- Modern JavaScript (ES6+)
+- CSS Grid and Flexbox
+- CSS clip-path (for the NEW tag shape)
+- CSS transforms and transitions (for hover effects)
+- Object-fit property (for image containment)
+- line-clamp CSS property (or its polyfill)

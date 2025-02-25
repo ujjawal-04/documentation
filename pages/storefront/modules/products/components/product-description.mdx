@@ -1,206 +1,224 @@
----
-title: 'Address Book'
-description: 'A component for managing user addresses, including display, addition, and modification functionality.'
----
+# Product Description
 
-# Address Book
+A React component that renders product description content from rich text metadata.
 
-The `AddressBook` component manages the display and modification of a user's saved addresses. It allows users to add new addresses and edit existing ones.
+## Syntax
 
-## Installation
-
-Ensure you have the component in your project:
-
-```tsx copy
-import AddressBook from "@components/AddressBook"
+```jsx copy
+<ProductDescription product={product} />
 ```
 
-## Props
+## Description
 
-| Prop Name | Type | Required | Description |
-|-----------|------|----------|-------------|
-| `customer` | `HttpTypes.StoreCustomer` | Yes | The logged-in customer data, including addresses |
-| `region` | `HttpTypes.StoreRegion` | Yes | The region context for address management |
+The ProductDescription component displays rich text product descriptions that:
+- Renders HTML content from a product's metadata
+- Handles JSON parsing for string-formatted rich descriptions
+- Provides error handling for malformed description data
+- Shows a warning message when no description is available
+- Uses consistent styling for description content
+- Applies special styling to lists and other rich text elements
 
-## Usage
+## Technical Details
 
-Here's a basic example of how to use the `AddressBook` component:
+### Dependencies
 
-```tsx copy
-<AddressBook customer={customerData} region={regionData} />
+```javascript copy
+import React from "react"
 ```
 
-## Features
+### Props
 
-### Address Management
-- **Displays Saved Addresses**: Lists all addresses stored in the customer's account
-- **Add New Address**: Integrates the `AddAddress` component to allow users to add a new address
-- **Edit Existing Addresses**: Uses `EditAddress` to provide an editing interface for each address
+```typescript copy
+type ProductDescriptionProps = {
+  product: any
+}
+```
 
-### Responsive Design
-- **Desktop View**: Grid layout for optimal display
-- **Mobile View**: Adjusts layout for smaller screens
-- **Automatic Adaptation**: Ensures usability across devices
+| Prop | Type | Description | Required |
+|------|------|-------------|----------|
+| product | `any` | Product data object containing metadata | Yes |
 
-## Implementation Example
+### Component Structure
 
-```tsx copy
-import { AddressBook } from "@components/AddressBook"
-import { useCustomer } from "@lib/hooks/use-customer"
-import { useRegion } from "@lib/hooks/use-region"
-
-export default function AccountAddresses() {
-  const { customer } = useCustomer()
-  const { region } = useRegion()
-
+```javascript copy
+const ProductDescription: React.FC<ProductDescriptionProps> = ({ product }) => {
+  // Parse richDescription if it's a string
+  let richDescription = product.metadata?.richDescription;
+  try {
+    if (typeof richDescription === "string") {
+      richDescription = JSON.parse(richDescription);
+    }
+  } catch (error) {
+    console.error("Error parsing richDescription:", error);
+  }
+  
+  if (!richDescription?.content) {
+    return <p className="text-red-500">⚠ No product description available.</p>;
+  }
+  
   return (
-    <div className="w-full">
-      <div className="mb-8 flex flex-col gap-y-4">
-        <h1 className="text-2xl-semi">Shipping Addresses</h1>
-        <p className="text-base-regular">
-          View and update your shipping addresses, you can add as many as you like.
-        </p>
+    // Component implementation
+  );
+};
+```
+
+## Layout Structure
+
+### No Description Warning
+```jsx copy
+if (!richDescription?.content) {
+  return <p className="text-red-500">⚠ No product description available.</p>;
+}
+```
+
+### Description Container
+```jsx copy
+<div className="rounded-lg bg-[#F5F6F8] p-2 lg:p-4">
+  <div className="text-[#52525B] text-sm space-y-2 [&>ul]:list-disc [&>ul]:pl-5 [&>ul]:m-0 [&>li]:leading-6 lg:text-base"
+    dangerouslySetInnerHTML={{ __html: richDescription.content }}
+  />
+</div>
+```
+
+## Styling
+
+The component uses Tailwind CSS with the following styling features:
+
+### Container
+- Light gray background (`bg-[#F5F6F8]`)
+- Rounded corners (`rounded-lg`)
+- Responsive padding (`p-2 lg:p-4`)
+
+### Description Content
+- Dark gray text color (`text-[#52525B]`)
+- Responsive text size (`text-sm lg:text-base`)
+- Vertical spacing between paragraphs (`space-y-2`)
+- Special styling for lists:
+  - Disc-style bullets for unordered lists (`[&>ul]:list-disc`)
+  - Left padding for lists (`[&>ul]:pl-5`)
+  - No margin for lists (`[&>ul]:m-0`)
+  - Consistent line height for list items (`[&>li]:leading-6`)
+
+### Error State
+- Red text color for warning message (`text-red-500`)
+- Warning symbol prefix (`⚠`)
+
+## Examples
+
+### Basic Usage
+```jsx copy
+import ProductDescription from "@modules/products/components/product-description"
+
+export default function ProductDetail({ product }) {
+  return (
+    <div className="space-y-8">
+      <h1 className="text-2xl font-bold">{product.title}</h1>
+      
+      <ProductDescription product={product} />
+      
+      <div className="mt-6">
+        {/* Other product details */}
       </div>
-      {customer && region ? (
-        <AddressBook customer={customer} region={region} />
-      ) : null}
     </div>
   )
 }
 ```
 
-## Behavior
+### In a Tabbed Interface
+```jsx copy
+import { useState } from "react"
+import ProductDescription from "@modules/products/components/product-description"
 
-The component implements the following behavior:
-
-### Address Display
-```tsx copy
-// Example of address mapping implementation
-{customer.addresses.map((address) => (
-  <EditAddress
-    key={address.id}
-    address={address}
-    region={region}
-    customer={customer}
-  />
-))}
-```
-
-### New Address Addition
-```tsx copy
-<AddAddress
-  region={region}
-  customer={customer}
-  className="bg-white p-4 rounded-lg"
-/>
-```
-
-## Styling
-
-The component uses Tailwind CSS for styling:
-
-```tsx copy
-// Example styling structure
-<div className="grid grid-cols-1 md:grid-cols-2 gap-4 p-4">
-  {/* Address components */}
-  <div className="bg-white rounded-lg shadow p-4">
-    {/* Individual address content */}
-  </div>
-</div>
-```
-
-### Style Features
-- Consistent spacing and padding
-- Hover and active states
-- Responsive layout adjustments
-- Clear visual hierarchy
-
-## Form Handling
-
-The component handles address forms with proper validation:
-
-```tsx copy
-// Example form implementation
-<form onSubmit={handleSubmit}>
-  <div className="grid grid-cols-1 gap-y-2">
-    <Input
-      label="Address"
-      name="address_1"
-      required
-      autoComplete="street-address"
-    />
-    <div className="grid grid-cols-2 gap-x-2">
-      <Input
-        label="Postal Code"
-        name="postal_code"
-        required
-        autoComplete="postal-code"
-      />
-      <Input
-        label="City"
-        name="city"
-        required
-        autoComplete="address-level2"
-      />
+export default function ProductTabs({ product }) {
+  const [activeTab, setActiveTab] = useState("description")
+  
+  return (
+    <div>
+      <div className="border-b border-gray-200">
+        <button
+          className={`py-2 px-4 ${activeTab === "description" ? "border-b-2 border-blue-500" : ""}`}
+          onClick={() => setActiveTab("description")}
+        >
+          Description
+        </button>
+        <button
+          className={`py-2 px-4 ${activeTab === "specs" ? "border-b-2 border-blue-500" : ""}`}
+          onClick={() => setActiveTab("specs")}
+        >
+          Specifications
+        </button>
+        <button
+          className={`py-2 px-4 ${activeTab === "reviews" ? "border-b-2 border-blue-500" : ""}`}
+          onClick={() => setActiveTab("reviews")}
+        >
+          Reviews
+        </button>
+      </div>
+      
+      <div className="py-4">
+        {activeTab === "description" && <ProductDescription product={product} />}
+        {activeTab === "specs" && (
+          <div>{/* Product specifications */}</div>
+        )}
+        {activeTab === "reviews" && (
+          <div>{/* Product reviews */}</div>
+        )}
+      </div>
     </div>
-  </div>
-</form>
-```
-
-## Best Practices
-
-1. Always provide the `customer` prop
-2. Use within authenticated routes
-3. Maintain a consistent address management structure
-4. Handle loading and error states appropriately
-5. Validate address data before submission
-6. Provide clear feedback for user actions
-7. Implement proper error handling
-
-## Accessibility
-
-The component follows accessibility best practices:
-
-- Semantic HTML structure
-- Keyboard navigation support
-- ARIA labels where appropriate
-- High contrast active states for visibility
-- Focus management for form elements
-- Clear error messaging
-- Screen reader friendly content structure
-
-## Error Handling
-
-```tsx copy
-const handleAddressSubmit = async (data) => {
-  try {
-    await updateAddress(data)
-    showNotification("Address updated successfully")
-  } catch (error) {
-    showNotification("Error updating address", "error")
-  }
+  )
 }
 ```
 
-## Dependencies
+### With Custom Styling
+```jsx copy
+import ProductDescription from "@modules/products/components/product-description"
 
-- React
-- Tailwind CSS for styling
-- Custom hooks for customer and region management
-- Form handling utilities
-- UI components (Input, Button, etc.)
-
-## Testing
-
-The component includes comprehensive test coverage:
-
-```tsx copy
-describe('AddressBook', () => {
-  it('renders existing addresses', () => {
-    render(<AddressBook customer={mockCustomer} region={mockRegion} />)
-    expect(screen.getAllByTestId('address-card')).toHaveLength(
-      mockCustomer.addresses.length
-    )
-  })
-})
+export default function EnhancedProductPage({ product }) {
+  return (
+    <div className="max-w-4xl mx-auto">
+      <h1 className="text-3xl font-bold mb-6">{product.title}</h1>
+      
+      <div className="bg-white shadow-md rounded-xl overflow-hidden">
+        <div className="p-6">
+          <h2 className="text-xl font-semibold mb-4">About This Product</h2>
+          <div className="mb-6">
+            <ProductDescription product={product} />
+          </div>
+        </div>
+      </div>
+    </div>
+  )
+}
 ```
+
+## Technical Considerations
+
+- Uses `dangerouslySetInnerHTML` to render rich HTML content
+- Implements JSON parsing for string-formatted description data
+- Provides error handling with try/catch for parsing errors
+- Uses optional chaining for safe property access
+- Checks for existence of content before rendering
+- Shows a clear warning message when description content is missing
+- Uses advanced Tailwind selectors (`[&>ul]`) to style nested HTML content
+
+## Accessibility
+
+- Uses semantic paragraph elements for text content
+- Provides visual indication when description is missing
+- Maintains adequate color contrast for text readability
+- Preserves list semantics in HTML content
+- Applies consistent line height for readability
+
+## Security Considerations
+
+- Uses `dangerouslySetInnerHTML` which requires careful content validation
+- Implements error handling to prevent crashes from malformed data
+- Should only be used with trusted content sources, as it doesn't sanitize HTML
+
+## Browser Support
+
+Requires browsers with support for:
+- Modern JavaScript (ES6+)
+- Optional chaining
+- Advanced CSS selectors
+- JSON parsing

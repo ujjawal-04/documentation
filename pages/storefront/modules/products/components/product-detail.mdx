@@ -1,273 +1,380 @@
----
-Address Card 
----
+# Product Details
 
-# Address Components
+A client-side React component that renders a comprehensive product information page with multiple sections and interactive navigation.
 
-## Add Address Component
+## Syntax
 
-The `AddAddress` component allows users to input and save a new address within their account.
+```jsx copy
+<ProductDetails product={product} />
+```
 
-### Installation
+## Description
 
-```tsx copy
-import AddAddress from "@components/AddAddress"
+The ProductDetails component creates a structured layout for displaying detailed product information that:
+- Parses and organizes data from product metadata
+- Creates a table of contents with smooth scrolling navigation
+- Displays various product information sections including characteristics, working mechanism, benefits, side effects, etc.
+- Provides different layouts for mobile and desktop viewports
+- Shows certificates with modal image previews
+- Includes reference links to external sources
+- Dynamically shows or hides sections based on available content
+
+## Technical Details
+
+### Dependencies
+
+```javascript copy
+"use client"
+import React from 'react';
+import { Check } from 'lucide-react';
+import { Dialog, DialogContent, DialogTrigger } from '../../../components/ui/dialog';
 ```
 
 ### Props
 
-| Prop Name | Type | Description |
-|-----------|------|-------------|
-| `region` | `HttpTypes.StoreRegion` | The region context for address management |
-| `addresses` | `HttpTypes.StoreCustomerAddress[]` | List of existing customer addresses |
-
-### Features
-
-- **Modal Interface**: Opens a modal for adding a new address
-- **Form Inputs**: Includes fields for first name, last name, company, address, postal code, city, state, country, and phone
-- **Validation**: Ensures required fields are filled before submission
-- **Success & Error Handling**: Displays success and error messages based on API responses
-
-### Usage Example
-
-```tsx copy
-<AddAddress 
-  region={regionData} 
-  addresses={customerData.addresses} 
-/>
-```
-
-### Implementation Example
-
-```tsx copy
-import { AddAddress } from "@components/AddAddress"
-import { useRegion } from "@lib/hooks/use-region"
-
-export default function NewAddressSection() {
-  const { region } = useRegion()
-  
-  return (
-    <div className="mt-4">
-      <h2 className="text-xl font-bold mb-4">Add New Address</h2>
-      <AddAddress
-        region={region}
-        addresses={customer.addresses}
-        onSuccess={() => {
-          // Handle success
-          toast.success("Address added successfully")
-        }}
-      />
-    </div>
-  )
+```typescript copy
+type ProductDetailsProps = {
+  product: any; // Product object with metadata
 }
 ```
 
-## Edit Address Component
+| Prop | Type | Description | Required |
+|------|------|-------------|----------|
+| product | `any` | Product object containing metadata with table information | Yes |
 
-The `EditAddress` component allows users to modify their existing saved addresses.
+## Component Structure
 
-### Installation
+```javascript copy
+const ProductDetails = ({ product }) => {
+  // Parse metadata
+  const data = product?.metadata?.table ? 
+    (typeof product.metadata.table === 'string' ? 
+      JSON.parse(product.metadata.table) : 
+      product.metadata.table
+    ) : {};
 
-```tsx copy
-import EditAddress from "@components/EditAddress"
-```
+  // Determine which sections have content
+  const hasContent = {
+    characteristics: data?.characteristics?.length > 0,
+    workingMechanism: !!data?.workingMechanism,
+    benefits: data?.benefits?.length > 0,
+    sideEffects: data?.sideEffects?.length > 0,
+    summary: !!data?.summary,
+    certificates: data?.certificates?.length > 0,
+    references: data?.references?.length > 0
+  };
 
-### Props
+  // Scroll handling function
+  const scrollToSection = (id) => {
+    // Implementation
+  };
 
-| Prop Name | Type | Description |
-|-----------|------|-------------|
-| `region` | `HttpTypes.StoreRegion` | The region context for address management |
-| `address` | `HttpTypes.StoreCustomerAddress` | The address object to be edited |
-| `isActive` | `boolean` | Indicates if the address is the default one |
+  // Define sections array
+  const sections = [
+    // Section definitions
+  ].filter(section => section.visible);
 
-### Features
-
-- **Modal Interface**: Opens a modal for editing the selected address
-- **Form Inputs**: Provides fields for first name, last name, company, address, postal code, city, state, country, and phone
-- **Validation**: Ensures required fields are completed before submission
-- **Success & Error Handling**: Displays appropriate messages based on API responses
-- **Delete Functionality**: Allows users to remove an existing address
-
-### Usage Example
-
-```tsx copy
-<EditAddress 
-  region={regionData} 
-  address={addressData} 
-  isActive={true} 
-/>
-```
-
-### Form Implementation
-
-```tsx copy
-// Example of form structure within EditAddress
-<form onSubmit={handleSubmit}>
-  <div className="grid grid-cols-2 gap-4">
-    <Input
-      label="First Name"
-      name="first_name"
-      defaultValue={address.first_name}
-      required
-    />
-    <Input
-      label="Last Name"
-      name="last_name"
-      defaultValue={address.last_name}
-      required
-    />
-  </div>
-  <Input
-    label="Company"
-    name="company"
-    defaultValue={address.company}
-  />
-  <Input
-    label="Address"
-    name="address_1"
-    defaultValue={address.address_1}
-    required
-  />
-  <div className="grid grid-cols-2 gap-4">
-    <Input
-      label="Postal Code"
-      name="postal_code"
-      defaultValue={address.postal_code}
-      required
-    />
-    <Input
-      label="City"
-      name="city"
-      defaultValue={address.city}
-      required
-    />
-  </div>
-  <CountrySelect
-    region={region}
-    defaultValue={address.country_code}
-  />
-  <Input
-    label="Phone"
-    name="phone"
-    defaultValue={address.phone}
-  />
-  <div className="flex justify-end gap-4 mt-6">
-    <Button
-      type="button"
-      variant="secondary"
-      onClick={handleDelete}
-    >
-      Delete
-    </Button>
-    <Button
-      type="submit"
-      isLoading={isSubmitting}
-    >
-      Save Changes
-    </Button>
-  </div>
-</form>
-```
-
-## Component Integration
-
-Here's how these components work together in the AddressBook context:
-
-```tsx copy
-import { AddressBook, AddAddress, EditAddress } from "@components/address"
-
-export default function AddressManagement() {
-  const { customer } = useCustomer()
-  const { region } = useRegion()
+  // Return null if no data
+  if (!data || Object.keys(data).length === 0) {
+    return null;
+  }
 
   return (
-    <div className="space-y-8">
-      <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-        {customer.addresses.map((address) => (
-          <EditAddress
-            key={address.id}
-            address={address}
-            region={region}
-            isActive={address.id === customer.default_address_id}
-          />
+    // Component implementation
+  );
+};
+```
+
+## Key Features
+
+### Smooth Scrolling Navigation
+
+```javascript copy
+const scrollToSection = (id) => {
+  const element = document.getElementById(id);
+  if (element) {
+    // Get the element's position relative to the viewport
+    const elementPosition = element.getBoundingClientRect().top;
+    // Get the current scroll position
+    const offsetPosition = elementPosition + window.pageYOffset;
+
+    // Add offset for both mobile and desktop, but with different values
+    const isDesktop = window.innerWidth >= 1024; // lg breakpoint
+    const offset = isDesktop ? -80 : -60; // -80px for desktop, -60px for mobile
+
+    window.scrollTo({
+      top: offsetPosition + offset,
+      behavior: 'smooth'
+    });
+  }
+};
+```
+
+### Dynamic Section Visibility
+
+```javascript copy
+const sections = [
+  { id: 'characteristics', label: 'Characteristics', visible: hasContent.characteristics },
+  { id: 'mechanism', label: `How does ${product.title} work?`, visible: hasContent.workingMechanism },
+  { id: 'benefits', label: 'Benefits', visible: hasContent.benefits },
+  { id: 'side-effects', label: 'Side Effects', visible: hasContent.sideEffects },
+  { id: 'summary', label: 'Summary', visible: hasContent.summary },
+  { id: 'coa', label: 'Certificate of Analysis (COA)', visible: hasContent.certificates },
+  { id: 'references', label: 'References', visible: hasContent.references }
+].filter(section => section.visible);
+```
+
+### Responsive Navigation
+
+```jsx copy
+{/* Mobile Menu */}
+<div className="lg:hidden mb-16">
+  <h1 className="text-3xl leading-[1.15] font-semibold mb-16">Table of Contents</h1>
+  <ol className="space-y-8 mb-24">
+    {sections.map(({ id, label }, index) => (
+      <li key={id} className="flex gap-2">
+        <span className="text-md leading-[1.0] text-gray-900">{index + 1}. </span>
+        <button
+          onClick={() => scrollToSection(id)}
+          className="text-md leading-[1.0] text-[#2F8B99] hover:text-[#236b76] text-left"
+        >
+          {label}
+        </button>
+      </li>
+    ))}
+  </ol>
+</div>
+
+{/* Desktop Navigation */}
+{sections.length > 0 && (
+  <nav className="hidden lg:block border-b mb-8">
+    <ul className="flex gap-16 text-md text-gray-900">
+      {sections.map(({ id, label }) => (
+        <li key={id}>
+          <button
+            onClick={() => scrollToSection(id)}
+            className="py-2 relative group"
+          >
+            <span className="text-gray-900 group-hover:text-gray-900 transition-colors">
+              {label}
+            </span>
+            <span className="absolute bottom-0 left-0 w-full h-0.5 bg-[#008080] transform scale-x-0 group-hover:scale-x-100 transition-transform origin-left"></span>
+          </button>
+        </li>
+      ))}
+    </ul>
+  </nav>
+)}
+```
+
+### Certificate Modal View
+
+```jsx copy
+<Dialog key={index}>
+  <DialogTrigger>
+    <div className="cursor-pointer hover:opacity-90 transition-colors flex justify-start">
+      <img
+        src={cert.url}
+        alt={cert.title}
+        className="w-full h-64 object-contain rounded-lg object-left"
+      />
+    </div>
+  </DialogTrigger>
+  <DialogContent className="max-w-2xl w-full p-6">
+    <div className="w-full bg-white flex items-center justify-center">
+      <img
+        src={cert.url}
+        alt={cert.title}
+        className="w-full object-contain"
+      />
+    </div>
+  </DialogContent>
+</Dialog>
+```
+
+## Section Layouts
+
+### Characteristics Table
+
+```jsx copy
+<section id="characteristics" className="mb-16">
+  <div className="flex flex-col lg:flex-row lg:justify-between">
+    <div className="w-full lg:w-1/6 mb-6 lg:mb-0">
+      <h2 className="text-2xl leading-[1.15] font-semibold">Characteristics</h2>
+    </div>
+    <div className="w-full lg:w-8/12">
+      <div className="overflow-hidden">
+        {data.characteristics.map((char, index) => (
+          <div key={index} className={`flex ${index % 2 === 1 ? 'bg-[#F4F4F5] rounded-lg' : 'bg-white'}`}>
+            <div className="w-1/3 py-3 px-4">
+              <div className="text-md leading-[1.2] text-gray-700">{char.label}</div>
+            </div>
+            <div className="w-2/3 py-3 px-4">
+              <div className="text-md leading-[1.2] text-gray-700">{char.value}</div>
+            </div>
+          </div>
         ))}
       </div>
+    </div>
+  </div>
+</section>
+```
+
+### List Sections (Benefits, Side Effects, References)
+
+```jsx copy
+<section id="benefits" className="mb-16">
+  <div className="flex flex-col lg:flex-row lg:justify-between">
+    <div className="w-full lg:w-1/6 mb-6 lg:mb-0">
+      <h2 className="text-2xl leading-[1.15] font-semibold">Benefits</h2>
+    </div>
+    <div className="w-full lg:w-8/12">
+      <ul className="space-y-6">
+        {data.benefits.map((benefit, index) => (
+          <li key={index} className="flex gap-3">
+            <Check className="w-4 h-4 text-[#008080] flex-shrink-0 mt-2" />
+            <span className="text-md leading-[1.2] text-gray-700">
+              {benefit.description}
+            </span>
+          </li>
+        ))}
+      </ul>
+    </div>
+  </div>
+</section>
+```
+
+### Text Sections (Working Mechanism, Summary)
+
+```jsx copy
+<section id="mechanism" className="mb-16">
+  <div className="flex flex-col lg:flex-row lg:justify-between">
+    <div className="w-full lg:w-1/6 mb-6 lg:mb-0">
+      <h2 className="text-2xl leading-[1.15] font-semibold">How does {product.title} work?</h2>
+    </div>
+    <div className="w-full lg:w-8/12">
+      <p className="text-md leading-[1.5] text-gray-600">
+        {data.workingMechanism}
+      </p>
+    </div>
+  </div>
+</section>
+```
+
+## Styling
+
+The component uses Tailwind CSS with the following styling features:
+
+### Layout Structure
+- Container with vertical spacing (`my-16`)
+- Two-column layout on desktop (`flex-col lg:flex-row`)
+- Consistent section spacing (`mb-16`)
+- Balanced proportions (1/6 for headings, 8/12 for content)
+- Responsive adjustments between mobile and desktop
+
+### Typography
+- Clear heading hierarchy (`text-3xl`, `text-2xl`)
+- Consistent text sizes (`text-md`)
+- Optimized line heights for readability (`leading-[1.15]`, `leading-[1.5]`)
+- Semantic color usage (gray shades for content, teal for interactive elements)
+
+### Interactive Elements
+- Smooth hover animations on desktop navigation
+- Teal underline indicator on hover
+- Color transitions for links and buttons
+- Custom scrolling behavior with offset adjustments
+
+### Visual Design
+- Alternating row colors in the characteristics table
+- Check icons for list items
+- Rounded corners for UI elements
+- Modal dialog for certificate previews
+- Consistent spacing between elements
+
+## Examples
+
+### Basic Usage
+```jsx copy
+import ProductDetails from "@modules/products/components/product-details"
+
+export default function ProductPage({ product }) {
+  return (
+    <div>
+      <div className="product-header mb-8">
+        <h1 className="text-3xl font-bold">{product.title}</h1>
+        <p className="text-gray-600">{product.subtitle}</p>
+      </div>
       
-      <AddAddress
-        region={region}
-        addresses={customer.addresses}
-      />
+      <ProductDetails product={product} />
     </div>
   )
 }
 ```
 
-## Error Handling
+### With Section Specific Tracking
+```jsx copy
+import ProductDetails from "@modules/products/components/product-details"
+import { useAnalytics } from "@lib/hooks/use-analytics"
 
-Both components implement comprehensive error handling:
-
-```tsx copy
-const handleAddressUpdate = async (data) => {
-  try {
-    await updateAddress({
-      ...data,
-      address_id: address.id
+export default function EnhancedProductPage({ product }) {
+  const { trackEvent } = useAnalytics()
+  
+  const handleSectionView = (sectionId) => {
+    trackEvent('product_section_view', {
+      product_id: product.id,
+      product_title: product.title,
+      section_id: sectionId
     })
-    onSuccess()
-  } catch (error) {
-    setError(error.message)
   }
+  
+  return (
+    <div className="container mx-auto py-8">
+      <h1 className="text-4xl font-bold mb-6">{product.title}</h1>
+      
+      <div className="mb-12">
+        {/* Product primary information */}
+      </div>
+      
+      <div id="product-details" onScroll={(e) => {
+        // Add intersection observer logic to track when sections come into view
+        // and call handleSectionView with the appropriate section ID
+      }}>
+        <ProductDetails product={product} />
+      </div>
+    </div>
+  )
 }
 ```
 
-## Best Practices
+## Technical Considerations
 
-1. Always validate form inputs before submission
-2. Provide clear feedback for user actions
-3. Handle loading states appropriately
-4. Implement proper error handling
-5. Use consistent styling across address forms
-6. Maintain accessibility standards
-7. Include proper form validation messages
+- Implements client-side rendering with 'use client' directive
+- Handles JSON parsing for string-formatted metadata
+- Provides fallbacks and guards against missing data
+- Uses dynamic section visibility based on content availability
+- Implements responsive layouts for both mobile and desktop
+- Uses window APIs for viewport detection and scrolling
+- Integrates with dialog component for certificate preview
+- Dynamically adjusts scroll offset based on viewport size
+- Uses optional chaining for safe property access
 
 ## Accessibility
 
-Both components follow accessibility best practices:
+- Uses semantic HTML structure with proper heading hierarchy
+- Provides keyboard-accessible navigation buttons
+- Maintains adequate color contrast for text readability
+- Uses appropriate button and anchor elements for interactive components
+- Implements focus indicators for interactive elements
+- Uses descriptive alt text for images
+- Opens external links in new tabs with appropriate attributes
 
-- Semantic HTML structure
-- Proper form labeling
-- Keyboard navigation support
-- ARIA attributes for modals
-- Error message announcements
-- Focus management
-- Screen reader friendly validation
+## Browser Support
 
-## Testing
-
-Example test cases for both components:
-
-```tsx copy
-describe('AddAddress', () => {
-  it('validates required fields', async () => {
-    render(<AddAddress region={mockRegion} addresses={[]} />)
-    
-    fireEvent.click(screen.getByText('Save'))
-    
-    expect(await screen.findByText('First name is required')).toBeInTheDocument()
-  })
-})
-
-describe('EditAddress', () => {
-  it('loads existing address data', () => {
-    render(
-      <EditAddress
-        region={mockRegion}
-        address={mockAddress}
-        isActive={false}
-      />
-    )
-    
-    expect(screen.getByDisplayValue(mockAddress.first_name)).toBeInTheDocument()
-  })
-})
-```
+Requires browsers with support for:
+- Modern JavaScript (ES6+)
+- CSS Flexbox and Grid
+- Smooth scrolling behavior
+- getBoundingClientRect API
+- window.innerWidth for viewport detection
+- CSS transforms and transitions
+- JSON parsing

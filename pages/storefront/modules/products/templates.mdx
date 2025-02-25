@@ -1,3 +1,380 @@
-# Products Templates
+# Product Template
 
-This is the index page for the Products Templates folder!
+A comprehensive product display page template that orchestrates multiple components to create a complete product viewing experience.
+
+## Syntax
+
+```jsx copy
+<ProductTemplate 
+  product={product}
+  region={region}
+  countryCode={countryCode}
+/>
+```
+
+## Description
+
+The ProductTemplate component serves as the main layout for product detail pages, bringing together various product-related components to create a cohesive shopping experience:
+- Displays breadcrumb navigation for site context
+- Presents product images in a gallery format
+- Shows product information, description, and purchase options
+- Highlights shipping information and third-party testing
+- Features promotional content for free gifts
+- Includes detailed product specifications
+- Recommends related products
+
+## Technical Details
+
+### Dependencies
+
+```javascript copy
+import type React from "react";
+import { Suspense } from "react";
+import type { HttpTypes } from "@medusajs/types";
+import ImageGallery from "@modules/products/components/image-gallery";
+import ProductActions from "@modules/products/components/product-actions";
+import ProductOnboardingCta from "@modules/products/components/product-onboarding-cta";
+import ProductTabs from "@modules/products/components/product-tabs";
+import RelatedProducts from "@modules/products/components/related-products";
+import ProductInfo from "@modules/products/templates/product-info";
+import { Verified, Zap } from "lucide-react";
+import SkeletonRelatedProducts from "@modules/skeletons/templates/skeleton-related-products";
+import { notFound } from "next/navigation";
+import ProductActionsWrapper from "./product-actions-wrapper";
+import LocalizedClientLink from "@modules/common/components/localized-client-link";
+import FeatureSection from "../templates/features";
+import { BeakerIcon, TruckIcon, ShieldCheckIcon } from "lucide-react";
+import ProductDetails from "@modules/products/components/product-detail";
+import Image from "next/image";
+import ProductDescription from "../components/product-description";
+import ShippingTimeDisplay from "./ShippingTimeDisplay";
+```
+
+### Props
+
+```typescript copy
+type ProductTemplateProps = {
+  product: HttpTypes.StoreProduct;
+  region: HttpTypes.StoreRegion;
+  countryCode: string;
+};
+```
+
+| Prop | Type | Description |
+|------|------|-------------|
+| `product` | `HttpTypes.StoreProduct` | The product object containing all details |
+| `region` | `HttpTypes.StoreRegion` | The region object for pricing and availability |
+| `countryCode` | `string` | Country code for localization and shipping options |
+
+### Component Structure
+
+The component is a functional component that creates the product page layout:
+
+```javascript copy
+const ProductTemplate: React.FC<ProductTemplateProps> = ({ 
+  product, 
+  region, 
+  countryCode 
+}) => {
+  if (!product || !product.id) {
+    return notFound();
+  }
+
+  return (
+    // Component content
+  );
+};
+
+export default ProductTemplate;
+```
+
+## Implementation Details
+
+### Error Handling
+```javascript copy
+if (!product || !product.id) {
+  return notFound();
+}
+```
+
+### Breadcrumb Navigation
+```jsx copy
+<div className="hidden md:block mt-4 ml-12">
+  <LocalizedClientLink
+    href="/"
+    className="text-gray-500 hover:text-gray-700"
+  >
+    Home
+  </LocalizedClientLink>
+  <span className="text-gray-500 mx-2">&gt;</span>
+  <LocalizedClientLink
+    href="/store"
+    className="text-gray-500 hover:text-gray-700"
+  >
+    Products
+  </LocalizedClientLink>
+  <span className="text-gray-500 mx-2">&gt;</span>
+  {product.title}
+</div>
+```
+
+### Product Content Layout
+```jsx copy
+<div className="content-container py-6 relative overflow-hidden">
+  <div className="grid grid-cols-1 md:grid-cols-2 gap-12">
+    {/* Left Column - Image and Badges */}
+    {/* Right Column - Product Info & Description */}
+  </div>
+</div>
+```
+
+### Product Image and Information
+```jsx copy
+{/* Left Column - Image and Badges */}
+<div className="relative">
+  <div className="relative bg-white rounded-lg">
+    <ImageGallery
+      images={product?.images?.length ? [product.images[0]] : []}
+      product={product}
+      className="w-full max-w-[900px] mx-auto object-contain"
+    />
+    
+    {/* Molecular Info */}
+    <div className="hidden md:flex my-6 flex-col rounded-3xl bg-[#0033660A] px-6 py-5">
+      {/* Content */}
+    </div>
+  </div>
+</div>
+
+{/* Right Column - Product Info & Description */}
+<div className="flex flex-col gap-4">
+  <ProductInfo product={product} />
+  <ProductDescription product={product} />
+  <div className="max-w-[450px] relative">
+    <ProductActionsWrapper id={product.id} region={region} />
+  </div>
+  
+  {/* Shipping Information */}
+  {/* Free Gift Promotion */}
+</div>
+```
+
+### Shipping and Promotions
+```jsx copy
+{/* Shipping Information */}
+<div className="flex flex-col gap-y-3 py-4 border-t">
+  <div className="flex items-center">
+    <Zap />
+    <ShippingTimeDisplay />
+  </div>
+  <div className="flex items-center">
+    <Image src="/delivery.png" alt="logo" height={8} width={25} />
+    <span className="text-ui-fg-base text-base ml-2">
+      Free FedEx next-day delivery within the US on orders over €200, with a tracking number provided.
+    </span>
+  </div>
+  <div className="flex text-[#008080] items-center">
+    <Verified />
+    <span className="text-base ml-2">Third Party Tested</span>
+  </div>
+</div>
+
+{/* Free Gift Promotion */}
+<div className="flex items-center rounded-lg bg-[#EFF6FF] p-6">
+  <div className="flex items-center gap-4">
+    <img
+      src="/image.png"
+      alt="Bacteriostatic Water"
+      className="object-contain h-[100px] min-w-[50px]"
+    />
+    <div>
+      <h4 className="font-bold">FREE Bacteriostatic Water</h4>
+      <p className="text-sm">
+        For every $400 you spend, get 1 FREE bottle of Bacteriostatic Water to reconstitute your peptides.
+      </p>
+    </div>
+  </div>
+</div>
+```
+
+### Additional Product Sections
+```jsx copy
+{/* Additional Sections */}
+<ProductDetails product={product} />
+<FeatureSection product={product} />
+
+{/* Related Products */}
+<div className="content-container my-16 small:my-32" data-testid="related-products-container">
+  <Suspense fallback={<SkeletonRelatedProducts />}>
+    <RelatedProducts product={product} countryCode={countryCode} />
+  </Suspense>
+</div>
+```
+
+## Layout Structure
+
+### Overall Page Structure
+```jsx copy
+<>
+  {/* Breadcrumb / Collection Link */}
+  {/* Product Content */}
+  {/* Additional Sections */}
+  {/* Related Products */}
+</>
+```
+
+### Main Product Content
+```jsx copy
+<div className="content-container py-6 relative overflow-hidden">
+  <div className="grid grid-cols-1 md:grid-cols-2 gap-12">
+    {/* Left Column - Image and Badges */}
+    {/* Right Column - Product Info & Description */}
+  </div>
+</div>
+```
+
+## Styling
+
+The component uses Tailwind CSS for styling with the following key features:
+
+### Page Layout
+- Content container with vertical padding (`py-6`)
+- Single column on mobile, two columns on tablet and up (`grid-cols-1 md:grid-cols-2`)
+- Significant gap between columns for visual separation (`gap-12`)
+- Relative positioning for proper stacking context
+- Overflow handling to prevent layout issues
+
+### Breadcrumb Navigation
+- Hidden on mobile, visible on medium screens and up (`hidden md:block`)
+- Top and left margin for positioning (`mt-4 ml-12`)
+- Gray text with hover states for links
+- Simple angle bracket separators
+
+### Product Images
+- White background with rounded corners
+- Centered with maximum width constraint
+- Contain object-fit to show full product
+
+### Shipping Information
+- Flex layout with consistent vertical spacing (`gap-y-3`)
+- Top border for visual separation (`border-t`)
+- Vertical padding for spacing (`py-4`)
+- Icon and text alignment using flex
+- Teal color for verification badge
+
+### Promotional Content
+- Light blue background for visual distinction (`bg-[#EFF6FF]`)
+- Consistent padding (`p-6`)
+- Rounded corners (`rounded-lg`)
+- Flex layout for image and text alignment
+- Bold heading for emphasis
+
+### Related Products
+- Large vertical margins that increase on larger screens
+- Suspense fallback for better loading experience
+
+## Examples
+
+### Basic Implementation
+```jsx copy
+import ProductTemplate from "@modules/products/templates/product-template"
+
+export default async function ProductPage({ params }) {
+  const { id } = params
+  const product = await fetchProduct(id)
+  const region = await getRegion("us")
+  
+  return <ProductTemplate product={product} region={region} countryCode="us" />
+}
+```
+
+### With Analytics Tracking
+```jsx copy
+import ProductTemplate from "@modules/products/templates/product-template"
+import { trackPageView } from "@lib/analytics"
+
+export default async function ProductPage({ params }) {
+  const { id } = params
+  const product = await fetchProduct(id)
+  const region = await getRegion("us")
+  
+  // Track product view
+  trackPageView({
+    page_type: "product",
+    product_id: id,
+    product_name: product.title
+  })
+  
+  return <ProductTemplate product={product} region={region} countryCode="us" />
+}
+```
+
+### With Error Handling
+```jsx copy
+import ProductTemplate from "@modules/products/templates/product-template"
+import ErrorBoundary from "@modules/common/components/error-boundary"
+import ProductNotFound from "@modules/products/components/product-not-found"
+
+export default async function ProductPage({ params }) {
+  const { id } = params
+  
+  try {
+    const product = await fetchProduct(id)
+    const region = await getRegion("us")
+    
+    return (
+      <ErrorBoundary fallback={<ProductError />}>
+        <ProductTemplate product={product} region={region} countryCode="us" />
+      </ErrorBoundary>
+    )
+  } catch (error) {
+    return <ProductNotFound />
+  }
+}
+```
+
+## Technical Considerations
+
+- Server component that orchestrates multiple child components
+- Uses Next.js notFound() for proper 404 handling when product is missing
+- Suspense boundaries for asynchronous content loading
+- Conditional rendering based on product data availability
+- Uses localized links for better internationalization
+- Responsive design with different layouts for mobile and desktop
+- Domain-specific content for research peptides market
+- Includes compliance information for research chemicals
+- No client-side state management, focuses on presentation
+- Leverages Medusa commerce components for e-commerce functionality
+
+## Accessibility
+
+- Breadcrumb navigation provides site context
+- Images include alt text for screen readers
+- Semantic HTML structure for proper document outline
+- Uses appropriate ARIA attributes where needed
+- Decorative elements properly labeled with aria-hidden
+- Proper text contrast for readability
+- Clear visual hierarchy with consistent spacing
+- Interactive elements have hover states
+- Uses Next.js Image component for optimized loading
+
+## Browser Support
+
+- Requires browsers with support for:
+  - Modern JavaScript (ES6+)
+  - CSS Grid and Flexbox
+  - CSS custom properties
+  - Next.js framework features
+- Responsive design accommodates various screen sizes
+- Fallback skeleton components for asynchronous content
+
+## Related Components
+
+- **ImageGallery**: Displays product images
+- **ProductInfo**: Shows product title and basic information
+- **ProductDescription**: Renders the product description
+- **ProductActionsWrapper**: Handles add-to-cart functionality
+- **ShippingTimeDisplay**: Shows dynamic shipping estimates
+- **ProductDetails**: Displays detailed product specifications
+- **FeatureSection**: Highlights key product features
+- **RelatedProducts**: Shows products related to the current one

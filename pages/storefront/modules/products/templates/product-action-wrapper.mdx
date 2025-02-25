@@ -1,142 +1,179 @@
-# Login Template
+# Product Actions Wrapper
 
-The `LoginTemplate` is a client-side component that manages the display of either a login or registration form. It uses React's useState hook to toggle between these two views.
+A server component that fetches real-time product data and renders the ProductActions component with up-to-date pricing information.
 
-## Usage
+## Syntax
 
-```tsx copy
-import LoginTemplate from './LoginTemplate'
-
-const AccountPage = () => {
-  return <LoginTemplate />
-}
+```jsx copy
+<ProductActionsWrapper
+  id="prod_123abc"
+  region={region}
+/>
 ```
 
-## Component Architecture
+## Description
 
-### View States
+The ProductActionsWrapper component acts as a data-fetching wrapper that:
+- Fetches the latest product data with real-time pricing from the server
+- Ensures pricing and availability information is current
+- Renders the ProductActions component with the fetched data
+- Gracefully handles cases where products cannot be found
 
-The component uses an enum to define possible view states:
+## Technical Details
 
-```tsx copy
-export enum LOGIN_VIEW {
-  SIGN_IN = "sign-in",
-  REGISTER = "register",
-}
+### Dependencies
+
+```javascript copy
+import { listProducts } from "@lib/data/products"
+import { HttpTypes } from "@medusajs/types"
+import ProductActions from "@modules/products/components/product-actions"
 ```
 
-### State Management
+### Props
 
-- Uses the `useState` hook to track current view
-- Default view is "sign-in"
-- State is managed through `setCurrentView` function passed to child components
-
-### Conditional Rendering
-
-The component conditionally renders either:
-- `<Login />` component when currentView is "sign-in"
-- `<Register />` component when currentView is "register"
-
-## Implementation Details
-
-### Component Structure
-
-```tsx copy
-"use client"
-
-import { useState } from "react"
-import Register from "@modules/account/components/register"
-import Login from "@modules/account/components/login"
-
-const LoginTemplate = () => {
-  const [currentView, setCurrentView] = useState("sign-in")
-  
-  return (
-    <div className="w-full flex justify-start px-8 py-8">
-      {currentView === "sign-in" ? (
-        <Login setCurrentView={setCurrentView} />
-      ) : (
-        <Register setCurrentView={setCurrentView} />
-      )}
-    </div>
-  )
-}
-
-export default LoginTemplate
-```
-
-### Styling
-
-The component uses Tailwind CSS classes for layout:
-- `w-full`: Full width container
-- `flex`: Flex container
-- `justify-start`: Left alignment
-- `px-8`: Horizontal padding of 8 units
-- `py-8`: Vertical padding of 8 units
-
-### Child Components
-
-#### Login Component Example
-
-```tsx copy
-interface LoginProps {
-  setCurrentView: (view: "sign-in" | "register") => void
-}
-
-const Login = ({ setCurrentView }: LoginProps) => {
-  return (
-    <div>
-      <form>
-        {/* Login form fields */}
-      </form>
-      <button onClick={() => setCurrentView("register")}>
-        Create an account
-      </button>
-    </div>
-  )
+```typescript copy
+type ProductActionsWrapperProps = {
+  id: string
+  region: HttpTypes.StoreRegion
 }
 ```
-
-#### Register Component Example
-
-```tsx copy
-interface RegisterProps {
-  setCurrentView: (view: "sign-in" | "register") => void
-}
-
-const Register = ({ setCurrentView }: RegisterProps) => {
-  return (
-    <div>
-      <form>
-        {/* Registration form fields */}
-      </form>
-      <button onClick={() => setCurrentView("sign-in")}>
-        Already have an account? Sign in
-      </button>
-    </div>
-  )
-}
-```
-
-## Props
 
 | Prop | Type | Description |
 |------|------|-------------|
-| setCurrentView | `(view: "sign-in" \| "register") => void` | Function to update the current view state |
+| `id` | `string` | The unique identifier of the product |
+| `region` | `HttpTypes.StoreRegion` | The region object containing pricing information |
 
-## Key Features
+### Component Structure
 
-1. **Client Component**
-   - Marked with "use client" directive
-   - Handles client-side state
-   - Manages view transitions
+The component is an async server component that fetches data:
 
-2. **State Management**
-   - Uses React useState hook
-   - Toggles between login and register views
-   - Passes state setter to child components
+```javascript copy
+export default async function ProductActionsWrapper({
+  id,
+  region,
+}: {
+  id: string
+  region: HttpTypes.StoreRegion
+}) {
+  // Component implementation
+}
+```
 
-3. **Type Safety**
-   - TypeScript interfaces for props
-   - Enum for view states
-   - Strict type checking for state management
+## Implementation Details
+
+### Product Fetching Logic
+```jsx copy
+const product = await listProducts({
+  queryParams: { id: [id] },
+  regionId: region.id,
+}).then(({ response }) => response.products[0])
+```
+
+### Null Check and Rendering
+```jsx copy
+if (!product) {
+  return null
+}
+
+return <ProductActions product={product} region={region} />
+```
+
+## Technical Considerations
+
+- Server component that performs data fetching
+- Uses async/await for clean asynchronous operation
+- Fetches only the specific product by ID
+- Scopes the product query to the current region for accurate pricing
+- Early return pattern for handling missing products gracefully
+- Forwards the fetched product and region to ProductActions
+- No client-side data fetching or state management required
+- Ensures that pricing information is always current at render time
+- Simple, focused component with a single responsibility
+
+## Examples
+
+### Basic Usage
+```jsx copy
+import ProductActionsWrapper from "@modules/products/components/product-actions-wrapper"
+
+export default async function ProductPage({ params }) {
+  const { id } = params
+  const region = await getRegion("us") // Example region fetching
+
+  return (
+    <div className="product-page">
+      <div className="product-details">
+        {/* Product images, details, etc. */}
+      </div>
+      
+      <div className="product-purchase">
+        <ProductActionsWrapper id={id} region={region} />
+      </div>
+    </div>
+  )
+}
+```
+
+### With Layout Structure
+```jsx copy
+import ProductActionsWrapper from "@modules/products/components/product-actions-wrapper"
+
+export default async function ProductTemplate({ product, region }) {
+  return (
+    <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+      <div className="product-gallery">
+        {/* Product gallery component */}
+      </div>
+      
+      <div className="product-info flex flex-col gap-4">
+        <h1 className="text-3xl font-bold">{product.title}</h1>
+        <p className="text-gray-700">{product.description}</p>
+        
+        <div className="mt-auto">
+          <ProductActionsWrapper id={product.id} region={region} />
+        </div>
+      </div>
+    </div>
+  )
+}
+```
+
+### With Fallback Content
+```jsx copy
+import ProductActionsWrapper from "@modules/products/components/product-actions-wrapper"
+
+export default async function ProductSection({ productId, region }) {
+  return (
+    <div className="product-section p-4 border rounded">
+      <Suspense fallback={<div className="loading">Loading product actions...</div>}>
+        <ProductActionsWrapper id={productId} region={region} />
+      </Suspense>
+    </div>
+  )
+}
+```
+
+## Accessibility
+
+- Does not introduce any specific accessibility concerns
+- Delegates rendering to the ProductActions component
+- Helps ensure that users see the most current pricing information
+
+## Browser Support
+
+- Server component requires a compatible Next.js environment
+- No specific browser compatibility issues
+- Depends on the browser compatibility of the ProductActions component
+
+## Related Components
+
+- **ProductActions**: The UI component that renders the add-to-cart functionality, variant selection, and other interactive elements
+- **ProductPage**: A page component that might use ProductActionsWrapper
+- **ProductDetails**: A component that might be used alongside ProductActionsWrapper
+
+## Best Practices
+
+- Only use this component when you need the latest product data
+- Pass a valid region object to ensure correct pricing
+- Consider using Suspense boundaries for better loading states
+- Use this component in server components or async components

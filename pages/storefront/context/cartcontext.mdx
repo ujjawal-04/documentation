@@ -1,0 +1,115 @@
+#  Cart Context
+
+The Cart Context provides a simple way to manage the cart state in your React application, specifically controlling whether the cart is open or closed.
+
+## Installation
+
+No installation is required if you're working within the same project. Just import the components as needed.
+
+## Components
+
+### CartProvider
+
+A provider component that wraps your application and provides cart state management functionality.
+
+```tsx copy
+import { CartProvider } from '@/context/cart'
+
+function MyApp({ Component, pageProps }) {
+  return (
+    <CartProvider>
+      <Component {...pageProps} />
+    </CartProvider>
+  )
+}
+```
+
+### useCart Hook
+
+A custom hook that provides access to the cart state and functions.
+
+```tsx copy
+import { useCart } from '@/context/cart'
+
+function CartButton() {
+  const { isCartOpen, setIsCartOpen } = useCart()
+  
+  return (
+    <button onClick={() => setIsCartOpen(!isCartOpen)}>
+      {isCartOpen ? 'Close Cart' : 'Open Cart'}
+    </button>
+  )
+}
+```
+
+## API Reference
+
+### CartProvider Props
+
+| Prop | Type | Description |
+|------|------|-------------|
+| children | ReactNode | The child components to be wrapped by the provider |
+
+### useCart Return Values
+
+| Value | Type | Description |
+|-------|------|-------------|
+| isCartOpen | boolean | Current state of the cart (open or closed) |
+| setIsCartOpen | Function | State setter function to update the cart open state |
+
+## Example Usage
+
+Here's a complete example showing how to use the Cart Context in your application:
+
+```tsx copy
+import { useCart } from '@/context/cart'
+
+export function CartIcon() {
+  const { isCartOpen, setIsCartOpen } = useCart()
+  
+  return (
+    <>
+      {/* Cart toggle button */}
+      <button 
+        onClick={() => setIsCartOpen(!isCartOpen)}
+        className="relative p-2"
+      >
+        <svg 
+          xmlns="http://www.w3.org/2000/svg" 
+          width="24" 
+          height="24" 
+          viewBox="0 0 24 24" 
+          fill="none" 
+          stroke="currentColor" 
+          strokeWidth="2"
+        >
+          <path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"></path>
+          <line x1="3" y1="6" x2="21" y2="6"></line>
+          <path d="M16 10a4 4 0 0 1-8 0"></path>
+        </svg>
+        
+        {/* Cart item count badge would go here */}
+      </button>
+      
+      {/* Cart sidebar would be conditionally rendered here based on isCartOpen */}
+      {isCartOpen && (
+        <div className="fixed inset-y-0 right-0 w-80 bg-white shadow-lg p-4 z-50">
+          <button
+            onClick={() => setIsCartOpen(false)}
+            className="absolute top-4 right-4"
+          >
+            Close
+          </button>
+          <h2 className="text-xl font-bold mt-8">Your Cart</h2>
+          {/* Cart items would go here */}
+        </div>
+      )}
+    </>
+  )
+}
+```
+
+## Notes
+
+- The `useCart` hook must be used within a component that is wrapped by `CartProvider`.
+- If you need additional cart functionality, you can extend the context to include more state and functions.

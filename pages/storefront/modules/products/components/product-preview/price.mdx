@@ -1,0 +1,194 @@
+# PreviewPrice
+
+A server-side React component that displays product prices with special styling for sale prices.
+
+## Syntax
+
+```jsx copy
+<PreviewPrice price={productPrice} />
+```
+
+## Description
+
+The PreviewPrice component creates a formatted price display that:
+- Shows the calculated price for a product variant
+- Displays original price with strikethrough when the item is on sale
+- Highlights sale prices with red text
+- Gracefully handles missing price data
+- Uses consistent typography from the Medusa UI library
+
+## Technical Details
+
+### Dependencies
+
+```javascript copy
+import { Text, clx } from "@medusajs/ui"
+import { VariantPrice } from "types/global"
+```
+
+### Props
+
+```typescript copy
+type PreviewPriceProps = {
+  price: VariantPrice
+}
+```
+
+| Prop | Type | Description | Required |
+|------|------|-------------|----------|
+| price | `VariantPrice` | Price data for the product variant | Yes |
+
+### Component Structure
+
+```javascript copy
+export default async function PreviewPrice({ price }: { price: VariantPrice }) {
+  if (!price) {
+    return null
+  }
+  
+  return (
+    // Component implementation
+  )
+}
+```
+
+## Layout Structure
+
+### Container
+```jsx copy
+<div className="text-2xl font-bold text-gray-700">
+  {/* Price content */}
+</div>
+```
+
+### Original Price (on sale)
+```jsx copy
+{price.price_type === "sale" && (
+  <Text
+    className="line-through text-gray-500 text-base"
+    data-testid="original-price"
+  >
+    {price.original_price}
+  </Text>
+)}
+```
+
+### Calculated Price
+```jsx copy
+<Text
+  className={clx("text-gray-700 text-lg font-semibold", {
+    "text-red-600": price.price_type === "sale", // Highlight discount price
+  })}
+  data-testid="price"
+>
+  {price.calculated_price}
+</Text>
+```
+
+## Styling
+
+The component uses Tailwind CSS with the following styling features:
+
+### Container
+- Large text size (`text-2xl`)
+- Bold font weight (`font-bold`)
+- Dark gray text color (`text-gray-700`)
+
+### Original Price (when on sale)
+- Strikethrough text decoration (`line-through`)
+- Lighter gray color to de-emphasize (`text-gray-500`)
+- Smaller text size (`text-base`)
+
+### Calculated Price
+- Base styling with dark gray color (`text-gray-700`)
+- Medium-large text size (`text-lg`)
+- Semi-bold weight for emphasis (`font-semibold`)
+- Red highlight color for sale prices (`text-red-600`)
+- Uses conditional classes with Medusa UI's `clx` utility
+
+## Examples
+
+### Basic Usage
+```jsx copy
+import PreviewPrice from "@modules/products/components/price"
+
+export default function ProductCard({ product }) {
+  const price = getProductPrice({ product }).cheapestPrice
+  
+  return (
+    <div className="p-4 border rounded-lg">
+      <h3>{product.title}</h3>
+      <PreviewPrice price={price} />
+    </div>
+  )
+}
+```
+
+### In a Product Grid
+```jsx copy
+import PreviewPrice from "@modules/products/components/price"
+
+export default function ProductGrid({ products }) {
+  return (
+    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
+      {products.map(product => {
+        const price = getProductPrice({ product }).cheapestPrice
+        
+        return (
+          <div key={product.id} className="border rounded-lg p-4">
+            <img src={product.thumbnail} alt={product.title} className="w-full h-48 object-cover" />
+            <h3 className="mt-2 font-medium">{product.title}</h3>
+            <div className="mt-auto">
+              <PreviewPrice price={price} />
+            </div>
+          </div>
+        )
+      })}
+    </div>
+  )
+}
+```
+
+### With Custom Styling
+```jsx copy
+import PreviewPrice from "@modules/products/components/price"
+
+export default function FeaturedProduct({ product }) {
+  const price = getProductPrice({ product }).cheapestPrice
+  
+  return (
+    <div className="bg-gray-50 p-6 rounded-xl">
+      <h2 className="text-2xl font-bold mb-2">{product.title}</h2>
+      <p className="text-gray-600 mb-4">{product.description}</p>
+      
+      <div className="bg-white p-3 inline-block rounded-lg shadow-sm">
+        <PreviewPrice price={price} />
+      </div>
+    </div>
+  )
+}
+```
+
+## Technical Considerations
+
+- Designed as a server component with the `async` keyword
+- Handles missing price data by returning null
+- Uses Medusa UI's Text component for consistent typography
+- Uses conditional rendering for sale price display
+- Uses the `clx` utility for conditional class names
+- Includes data-testid attributes for automated testing
+- Maintains a consistent display structure regardless of price type
+
+## Accessibility
+
+- Uses semantic markup for text content
+- Maintains adequate color contrast for text readability
+- Uses visual cues (strikethrough) in addition to color for sale prices
+- Provides test IDs for component testing
+
+## Browser Support
+
+Requires browsers with support for:
+- Modern JavaScript (ES6+)
+- React server components
+- CSS text decoration

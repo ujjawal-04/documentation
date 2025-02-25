@@ -1,268 +1,185 @@
----
-title: "Request Reset Password"
-description: "A component for handling password reset requests in a Next.js storefront"
----
+# Product Onboarding Cta
 
-# Request Reset Password
+A server-side React component that displays a congratulatory message and admin setup link when a user completes the product creation step in the onboarding process.
 
-The `RequestResetPassword` component provides users with a form to request a password reset link via email.
+## Syntax
 
-## Installation
-
-```tsx copy
-import RequestResetPassword from "@components/RequestResetPassword"
+```jsx copy
+<ProductOnboardingCta />
 ```
 
-## Features
+## Description
 
-- **User Input for Email**: Accepts the user's email to send a reset link
-- **Validation**: Ensures the email field is not empty before submitting
-- **API Request Handling**: Sends a request to the Medusa backend to trigger a password reset email
-- **Loading State**: Displays a loading indicator while the request is being processed
-- **Success/Error Feedback**: Notifies users if the request was successful or if an error occurred
-- **Navigation Link**: Provides a link for users to log in if they remember their password
+The ProductOnboardingCta component creates an onboarding call-to-action that:
+- Checks for an onboarding cookie to determine if the user is in the onboarding flow
+- Shows a success message after product creation
+- Provides a link to continue setup in the admin panel
+- Renders nothing if the user is not in the onboarding process
+- Uses Medusa UI components for consistent styling
 
-## Usage
+## Technical Details
 
-Basic implementation of the component:
+### Dependencies
 
-```tsx copy
-<RequestResetPassword />
+```javascript copy
+import { Button, Container, Text } from "@medusajs/ui"
+import { cookies as nextCookies } from "next/headers"
 ```
 
-## Implementation Example
+### Props
 
-Here's a complete example of how to implement the component:
+This component doesn't accept any props as it relies on cookie data for its functionality.
 
-```tsx copy
-import { RequestResetPassword } from "@components/RequestResetPassword"
-import { Container } from "@components/ui"
+### Component Structure
 
-export default function ResetPasswordPage() {
+```javascript copy
+async function ProductOnboardingCta() {
+  const cookies = await nextCookies()
+  
+  const isOnboarding = cookies.get("_medusa_onboarding")?.value === "true"
+  
+  if (!isOnboarding) {
+    return null
+  }
+  
   return (
-    <Container className="py-8">
-      <div className="flex justify-center">
-        <div className="max-w-md w-full">
-          <h1 className="text-2xl font-bold mb-6">
-            Reset your password
-          </h1>
-          <RequestResetPassword />
-        </div>
-      </div>
-    </Container>
+    // Component implementation
   )
 }
 ```
 
-## Component Structure
+## Layout Structure
 
-### State Management
+### Container
+```jsx copy
+<Container className="max-w-4xl h-full bg-ui-bg-subtle w-full p-8">
+  <div className="flex flex-col gap-y-4 center">
+    {/* Content */}
+  </div>
+</Container>
+```
 
-```tsx copy
-const RequestResetPassword = () => {
-  const [loading, setLoading] = useState(false)
-  const [email, setEmail] = useState("")
-  const [message, setMessage] = useState("")
+### Content
+```jsx copy
+<Text className="text-ui-fg-base text-xl">
+  Your demo product was successfully created! 🎉
+</Text>
+<Text className="text-ui-fg-subtle text-small-regular">
+  You can now continue setting up your store in the admin.
+</Text>
+<a href="http://localhost:7001/a/orders?onboarding_step=create_order_nextjs">
+  <Button className="w-full">Continue setup in admin</Button>
+</a>
+```
 
-  // Component logic here
+## Styling
+
+The component uses Medusa UI components and Tailwind CSS with the following styling features:
+
+### Container
+- Maximum width constraint (`max-w-4xl`)
+- Full height (`h-full`)
+- Subtle background color (`bg-ui-bg-subtle`)
+- Full width with padding (`w-full p-8`)
+
+### Content Layout
+- Flex column layout (`flex flex-col`)
+- Vertical spacing between elements (`gap-y-4`)
+- Center alignment (`center`)
+
+### Typography
+- Base foreground color for main text (`text-ui-fg-base`)
+- Extra large text size for the success message (`text-xl`)
+- Subtle foreground color for secondary text (`text-ui-fg-subtle`)
+- Small regular text for the instruction (`text-small-regular`)
+
+### Button
+- Full width button (`w-full`)
+- Default Medusa UI button styling
+
+## Examples
+
+### Basic Usage
+```jsx copy
+import ProductOnboardingCta from "@modules/onboarding/components/product-onboarding-cta"
+
+export default function ProductPage() {
+  return (
+    <div className="container mx-auto py-8">
+      <ProductOnboardingCta />
+      
+      {/* Rest of product page content */}
+    </div>
+  )
 }
 ```
 
-### Form Handler
+### With Layout Integration
+```jsx copy
+import ProductOnboardingCta from "@modules/onboarding/components/product-onboarding-cta"
 
-```tsx copy
-const handleSubmit = async (e: React.FormEvent) => {
-  e.preventDefault()
-  setLoading(true)
-  setMessage("")
-
-  try {
-    const response = await fetch(
-      `${BACKEND_URL}/auth/customer/emailpass/reset-password`,
-      {
-        credentials: "include",
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ identifier: email }),
-      }
-    )
-
-    if (response.ok) {
-      setMessage("Reset link sent to your email")
-      setEmail("")
-    } else {
-      setMessage("Error sending reset link")
-    }
-  } catch (error) {
-    setMessage("An error occurred")
-  } finally {
-    setLoading(false)
-  }
-}
-```
-
-### UI Implementation
-
-```tsx copy
-return (
-  <div className="w-full">
-    <form onSubmit={handleSubmit} className="space-y-4">
-      <div>
-        <label 
-          htmlFor="email" 
-          className="block text-sm font-medium text-gray-700"
-        >
-          Email
-        </label>
-        <input
-          id="email"
-          type="email"
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
-          required
-          className="mt-1 block w-full rounded-md border-gray-300 shadow-sm"
-          placeholder="Enter your email"
-        />
+export default function ProductLayout({ children }) {
+  return (
+    <div className="flex flex-col gap-y-8">
+      <ProductOnboardingCta />
+      
+      <div className="bg-white rounded-lg shadow p-6">
+        {children}
       </div>
+    </div>
+  )
+}
+```
 
-      <button
-        type="submit"
-        disabled={loading}
-        className="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
-      >
-        {loading ? "Sending..." : "Reset Password"}
-      </button>
+### In a Conditional Flow
+```jsx copy
+import ProductOnboardingCta from "@modules/onboarding/components/product-onboarding-cta"
 
-      {message && (
-        <div className="mt-4 text-sm text-center">
-          {message}
+export default function OnboardingFlow({ step }) {
+  return (
+    <div className="container mx-auto py-8">
+      {step === "create_product" && <ProductOnboardingCta />}
+      
+      {step === "create_product" ? (
+        <div className="mt-8">
+          {/* Product creation form */}
+        </div>
+      ) : step === "create_order" ? (
+        <div>
+          {/* Order creation form */}
+        </div>
+      ) : (
+        <div>
+          {/* Other onboarding steps */}
         </div>
       )}
-
-      <div className="mt-4 text-sm text-center">
-        <a
-          href="/login"
-          className="text-blue-600 hover:text-blue-500"
-        >
-          Remember your password? Log in
-        </a>
-      </div>
-    </form>
-  </div>
-)
-```
-
-## API Integration
-
-The component interacts with the Medusa backend:
-
-```tsx copy
-const BACKEND_URL = process.env.NEXT_PUBLIC_MEDUSA_BACKEND_URL
-
-// API request configuration
-const requestConfig = {
-  credentials: "include",
-  method: "POST",
-  headers: {
-    "Content-Type": "application/json"
-  },
-  body: JSON.stringify({ 
-    identifier: email 
-  })
-}
-
-// API call
-const response = await fetch(
-  `${BACKEND_URL}/auth/customer/emailpass/reset-password`,
-  requestConfig
-)
-```
-
-## Error Handling
-
-The component implements comprehensive error handling:
-
-```tsx copy
-const handleError = (error: unknown) => {
-  if (error instanceof Error) {
-    setMessage(error.message)
-  } else {
-    setMessage("An unexpected error occurred")
-  }
-  setLoading(false)
+    </div>
+  )
 }
 ```
 
-## Best Practices
+## Technical Considerations
 
-1. Always validate email format before submission
-2. Provide clear feedback for all user actions
-3. Implement proper loading states
-4. Handle all potential error cases
-5. Follow security best practices for password reset
-6. Use appropriate form validation
-7. Maintain consistent error messaging
+- Implemented as a server component with the `async` keyword
+- Uses Next.js server-side cookies API (`next/headers`)
+- Conditionally renders based on the presence of an onboarding cookie
+- Returns `null` when not in onboarding flow, rendering nothing
+- Uses a hardcoded URL for the admin panel link
+- Relies on Medusa UI components for consistent styling
+- Uses emoji in the success message for visual appeal
 
 ## Accessibility
 
-The component follows accessibility best practices:
+- Uses semantic text elements for content
+- Provides clear success messaging
+- Links to the next step in the process
+- Uses adequate color contrast for text readability
+- Full-width button provides a large touch target
 
-- Semantic HTML structure
-- Proper form labeling
-- ARIA attributes
-- Keyboard navigation support
-- Clear error messages
-- Loading state indicators
-- Focus management
+## Browser Support
 
-## Testing
-
-Example test cases for the component:
-
-```tsx copy
-describe('RequestResetPassword', () => {
-  it('validates email input', () => {
-    render(<RequestResetPassword />)
-    
-    const submitButton = screen.getByRole('button', {
-      name: /reset password/i
-    })
-    
-    fireEvent.click(submitButton)
-    
-    expect(screen.getByText('Email is required')).toBeInTheDocument()
-  })
-
-  it('handles successful submission', async () => {
-    render(<RequestResetPassword />)
-    
-    const emailInput = screen.getByLabelText(/email/i)
-    fireEvent.change(emailInput, {
-      target: { value: 'test@example.com' }
-    })
-    
-    const submitButton = screen.getByRole('button')
-    fireEvent.click(submitButton)
-    
-    expect(await screen.findByText('Reset link sent to your email'))
-      .toBeInTheDocument()
-  })
-})
-```
-
-## Dependencies
-
-- React
-- Next.js
-- Tailwind CSS for styling
-- Medusa backend integration
-
-## Security Considerations
-
-- Rate limiting for reset requests
-- Secure token generation and validation
-- Proper error handling without information leakage
-- Secure communication with backend
-- Token expiration handling
+Requires browsers with support for:
+- Modern JavaScript (ES6+)
+- React server components
+- CSS Flexbox
+- Cookies API

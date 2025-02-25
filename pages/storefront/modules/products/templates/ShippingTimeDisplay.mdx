@@ -1,138 +1,270 @@
----
-title: 'Account Layout'
-description: 'A layout component for account-related pages that provides a consistent structure with navigation and content areas'
----
+# Shipping Time Display
 
-# Account Layout
+A dynamic component that displays estimated shipping times based on randomly selected delivery options.
 
-The `AccountLayout` component serves as a wrapper for account-related pages, providing a consistent layout structure with navigation and content areas. It's designed to be responsive and works with the Medusa e-commerce framework.
+## Syntax
 
-## Component Overview
+```jsx copy
+<ShippingTimeDisplay />
+```
 
-The AccountLayout component creates a full-width container with a two-column layout on larger screens, featuring:
-- A navigation sidebar (only shown when a customer is logged in)
-- A main content area for child components
-- Responsive design that switches to a single column on mobile devices
+## Description
 
-## Props
+The ShippingTimeDisplay component creates a user-friendly shipping estimate that:
+- Randomly selects from a set of predefined shipping timeframes
+- Displays when an order will ship if placed within a certain timeframe
+- Uses visual emphasis on key information through font weight variation
+- Provides a consistent, informative message about shipping expectations
 
-| Prop | Type | Required | Description |
-|------|------|----------|-------------|
-| customer | `HttpTypes.StoreCustomer \| null` | Yes | The customer object from Medusa's store API. Used to display account navigation |
-| children | `React.ReactNode` | Yes | The content to be rendered in the main area of the layout |
+## Technical Details
 
-## Usage
+### Dependencies
 
-```tsx copy
-import AccountLayout from './AccountLayout'
-import { StoreCustomer } from '@medusajs/types'
+No external dependencies are required for this component.
 
-const AccountPage = ({ customer }: { customer: StoreCustomer }) => {
-  return (
-    <AccountLayout customer={customer}>
-      <div>Account content goes here</div>
-    </AccountLayout>
-  )
-}
+### Props
+
+This component doesn't accept any props as it generates its data internally.
+
+### Component Structure
+
+The component consists of two parts:
+1. A utility function that provides shipping data
+2. The functional component that renders the shipping information
+
+```javascript copy
+const getShippingInfo = () => {
+  // Data generation logic
+};
+
+const ShippingTimeDisplay = () => {
+  // Component implementation
+};
+
+export default ShippingTimeDisplay;
 ```
 
 ## Implementation Details
 
-### Layout Structure
+### Shipping Data Generation
+```javascript copy
+const getShippingInfo = () => {
+  const shippingOptions = [
+    { day: "today", hours: 4, minutes: 35 },
+    { day: "today", hours: 4, minutes: 15 },
+    { day: "tomorrow", hours: 5, minutes: 20 },
+    { day: "tomorrow", hours: 4, minutes: 45 },
+    { day: "Monday", hours: 4, minutes: 30 },
+    { day: "Monday", hours: 5, minutes: 0 },
+  ];
+  
+  return shippingOptions[Math.floor(Math.random() * shippingOptions.length)];
+};
+```
 
-The component uses a nested structure of flex and grid containers:
+### Conditional Time Display
+```jsx copy
+<span className="font-semibold">
+  {shippingInfo.hours} hrs {shippingInfo.minutes > 0 ? `${shippingInfo.minutes} min` : ""}
+</span>
+```
 
-1. Outer container:
-   - Uses `flex-1` for flexible sizing
-   - Applies padding on larger screens with `small:py-12`
+## Rendered Output Structure
 
-2. Inner container:
-   - Maximum width of `max-w-5xl`
-   - Centered with `mx-auto`
-   - White background
-   - Flex column layout
+```jsx copy
+<span className="text-ui-fg-base text-base ml-2">
+  <span className="font-normal">Ships </span>
+  <span className="font-semibold">{shippingInfo.day}</span>
+  <span className="font-normal"> if ordered within </span>
+  <span className="font-semibold">
+    {shippingInfo.hours} hrs {shippingInfo.minutes > 0 ? `${shippingInfo.minutes} min` : ""}
+  </span>
+</span>
+```
 
-3. Grid layout:
-   - Single column by default
-   - Two columns on larger screens using `small:grid-cols-[240px_1fr]`
-   - Fixed 240px sidebar width
-   - Flexible content area width
+## Styling
 
-### Responsive Design
+The component uses Tailwind CSS for styling with the following key features:
 
-The layout adapts to different screen sizes:
+### Container
+- Base text color via utility class (`text-ui-fg-base`)
+- Base text size (`text-base`)
+- Left margin for spacing when used alongside other elements (`ml-2`)
 
-- **Mobile** (< small breakpoint):
-  - Single column layout
-  - No top/bottom padding
-  - Full width content
-
-- **Desktop** (≥ small breakpoint):
-  - Two column layout
-  - 12 units of padding top/bottom
-  - Fixed width sidebar
-
-### Navigation
-
-The `AccountNav` component is conditionally rendered based on the presence of a customer:
-- Only shown when `customer` prop is not null
-- Receives the customer object as a prop
-- Contained within the left column of the grid
-
-## Dependencies
-
-- React
-- UnderlineLink component from common modules
-- AccountNav component
-- Medusa types for customer data
-- Tailwind CSS for styling
-
-## Testing
-
-The component includes a data-testid attribute (`account-page`) for easy targeting in tests.
+### Text Emphasis
+- Regular font weight for contextual text (`font-normal`)
+- Semibold font weight for important information (`font-semibold`)
+- Consistent inline spacing through text node structure
 
 ## Examples
 
-### With Customer
+### Basic Usage
+```jsx copy
+import ShippingTimeDisplay from "@modules/shipping/components/shipping-time-display"
 
-```tsx copy
-const LoggedInExample = () => {
-  const customer = {
-    id: "cust_123",
-    email: "user@example.com",
-    // ... other customer properties
+export default function ProductDetailSection() {
+  return (
+    <div className="product-shipping-info flex items-center mt-4">
+      <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 8h14M5 8a2 2 0 110-4h14a2 2 0 110 4M5 8v10a2 2 0 002 2h10a2 2 0 002-2V8m-9 4h4" />
+      </svg>
+      <ShippingTimeDisplay />
+    </div>
+  )
+}
+```
+
+### With Shipping Policy Link
+```jsx copy
+import ShippingTimeDisplay from "@modules/shipping/components/shipping-time-display"
+import Link from "next/link"
+
+export default function CheckoutSummary() {
+  return (
+    <div className="checkout-shipping-section p-4 border rounded mt-6">
+      <h3 className="text-lg font-medium mb-2">Shipping Information</h3>
+      <div className="flex items-center">
+        <svg className="w-5 h-5 text-green-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 8h14M5 8a2 2 0 110-4h14a2 2 0 110 4M5 8v10a2 2 0 002 2h10a2 2 0 002-2V8m-9 4h4" />
+        </svg>
+        <ShippingTimeDisplay />
+      </div>
+      <div className="mt-2 text-sm">
+        <Link href="/shipping-policy" className="text-blue-600 hover:underline">
+          View our shipping policy
+        </Link>
+      </div>
+    </div>
+  )
+}
+```
+
+### In Cart Drawer
+```jsx copy
+import ShippingTimeDisplay from "@modules/shipping/components/shipping-time-display"
+
+export default function CartFooter() {
+  return (
+    <div className="cart-footer p-4 border-t">
+      <div className="shipping-estimate bg-gray-50 p-3 rounded mb-4">
+        <div className="flex items-center">
+          <svg className="w-4 h-4 text-gray-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+          </svg>
+          <span className="text-sm text-gray-600 ml-1">Estimated delivery:</span>
+        </div>
+        <div className="flex items-center mt-1">
+          <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 8h14M5 8a2 2 0 110-4h14a2 2 0 110 4M5 8v10a2 2 0 002 2h10a2 2 0 002-2V8m-9 4h4" />
+          </svg>
+          <ShippingTimeDisplay />
+        </div>
+      </div>
+      <button className="w-full bg-black text-white py-2 rounded">Proceed to Checkout</button>
+    </div>
+  )
+}
+```
+
+## Technical Considerations
+
+- Generates random shipping estimates on each render
+- Will show different shipping options on page refresh
+- Uses inline conditional rendering for minutes display
+- No state management or external data dependencies
+- Simple component with focused purpose
+- Shipping data is hardcoded within the component
+- Does not account for weekends or holidays in the shipping estimates
+- Days are represented as strings ("today", "tomorrow", "Monday")
+- Time values are represented as integers (hours, minutes)
+
+## Accessibility
+
+- Uses semantic HTML structure
+- Maintains proper text contrast for readability
+- Employs font weight variations for visual hierarchy
+- Keeps related content together for screen readers
+- No interactive elements to require additional accessibility concerns
+
+## Browser Support
+
+- No specific browser compatibility issues
+- Uses standard JavaScript and JSX features
+- No advanced browser features required
+- Simple text-based component with broad compatibility
+
+## Alternative Implementations
+
+### With Real-Time Data
+```jsx copy
+const ShippingTimeDisplayRealTime = () => {
+  // Get current date and time
+  const now = new Date();
+  const currentHour = now.getHours();
+  
+  // Calculate shipping cutoff time
+  let cutoffHour = 16; // 4 PM cutoff
+  let shipsToday = currentHour < cutoffHour;
+  
+  // Calculate shipping day
+  let shippingDay;
+  if (shipsToday) {
+    shippingDay = "today";
+  } else {
+    const tomorrow = new Date(now);
+    tomorrow.setDate(tomorrow.getDate() + 1);
+    const days = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
+    
+    // If tomorrow is weekend, show next Monday
+    if (tomorrow.getDay() === 0 || tomorrow.getDay() === 6) {
+      shippingDay = "Monday";
+    } else {
+      shippingDay = "tomorrow";
+    }
+  }
+  
+  // Calculate remaining time
+  let remainingHours = cutoffHour - currentHour - 1;
+  let remainingMinutes = 60 - now.getMinutes();
+  
+  if (remainingMinutes === 60) {
+    remainingHours += 1;
+    remainingMinutes = 0;
   }
   
   return (
-    <AccountLayout customer={customer}>
-      <h1>Welcome back!</h1>
-      <p>Your account details...</p>
-    </AccountLayout>
-  )
-}
+    <span className="text-ui-fg-base text-base ml-2">
+      <span className="font-normal">Ships </span>
+      <span className="font-semibold">{shippingDay}</span>
+      <span className="font-normal"> if ordered within </span>
+      <span className="font-semibold">
+        {remainingHours} hrs {remainingMinutes > 0 ? `${remainingMinutes} min` : ""}
+      </span>
+    </span>
+  );
+};
 ```
 
-### Without Customer
-
-```tsx copy
-const LoggedOutExample = () => {
+### With Props for Configuration
+```jsx copy
+const ShippingTimeDisplayConfigurable = ({
+  options = [
+    { day: "today", hours: 4, minutes: 35 },
+    { day: "tomorrow", hours: 5, minutes: 20 },
+  ],
+  className = "text-ui-fg-base text-base ml-2",
+}) => {
+  const shippingInfo = options[Math.floor(Math.random() * options.length)];
+  
   return (
-    <AccountLayout customer={null}>
-      <h1>Please log in</h1>
-      <p>Login form goes here...</p>
-    </AccountLayout>
-  )
-}
+    <span className={className}>
+      <span className="font-normal">Ships </span>
+      <span className="font-semibold">{shippingInfo.day}</span>
+      <span className="font-normal"> if ordered within </span>
+      <span className="font-semibold">
+        {shippingInfo.hours} hrs {shippingInfo.minutes > 0 ? `${shippingInfo.minutes} min` : ""}
+      </span>
+    </span>
+  );
+};
 ```
-
-## Best Practices
-
-1. Always provide a customer prop, even if null, to ensure proper rendering
-2. Use semantic HTML within the content area
-3. Ensure child components respect the layout's padding and width constraints
-4. Consider the responsive nature of the layout when designing child components
-
-## Related Components
-
-- AccountNav: Provides the navigation sidebar
-- UnderlineLink: Used within the navigation for interactive elements

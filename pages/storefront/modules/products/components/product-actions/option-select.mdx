@@ -1,0 +1,230 @@
+# Option Select
+
+A React component that renders a group of option buttons for product variant selection, such as size, color, or material choices.
+
+## Syntax
+
+```jsx copy
+<OptionSelect 
+  option={productOption}
+  current={selectedValue}
+  updateOption={handleOptionChange}
+  title="Size"
+  disabled={false}
+  data-testid="size-options"
+/>
+```
+
+## Description
+
+The OptionSelect component creates a user interface for selecting product options that:
+- Displays a title for the option group (e.g., "Size:", "Color:")
+- Renders a set of clickable option buttons in a flex layout
+- Highlights the currently selected option with a border
+- Supports disabled state for all options
+- Provides test IDs for automated testing
+
+## Technical Details
+
+### Dependencies
+
+```javascript copy
+import { HttpTypes } from "@medusajs/types"
+import { clx } from "@medusajs/ui"
+import React from "react"
+```
+
+### Props
+
+```typescript copy
+type OptionSelectProps = {
+  option: HttpTypes.StoreProductOption
+  current: string | undefined
+  updateOption: (title: string, value: string) => void
+  title: string
+  disabled: boolean
+  "data-testid"?: string
+}
+```
+
+| Prop | Type | Description | Required |
+|------|------|-------------|----------|
+| option | `HttpTypes.StoreProductOption` | Product option data containing values | Yes |
+| current | `string \| undefined` | Currently selected option value | Yes |
+| updateOption | `(title: string, value: string) => void` | Function to handle option selection | Yes |
+| title | `string` | Display title for the option group | Yes |
+| disabled | `boolean` | Whether all options are disabled | Yes |
+| data-testid | `string` | Test ID for testing | No |
+
+## Component Structure
+
+```javascript copy
+const OptionSelect: React.FC<OptionSelectProps> = ({
+  option,
+  current,
+  updateOption,
+  title,
+  "data-testid": dataTestId,
+  disabled,
+}) => {
+  const filteredOptions = (option.values ?? []).map((v) => v.value)
+  
+  return (
+    // Component implementation
+  )
+}
+```
+
+## Layout Structure
+
+### Container
+```jsx copy
+<div className="flex flex-col gap-y-1">
+  <span className="text-sm font-bold">{title}:</span>
+  <div
+    className="flex flex-wrap gap-2"
+    data-testid={dataTestId}
+  >
+    {/* Option buttons */}
+  </div>
+</div>
+```
+
+### Option Buttons
+```jsx copy
+{filteredOptions.map((v) => {
+  return (
+    <button
+      onClick={() => updateOption(option.id, v)}
+      key={v}
+      className={clx(
+        "rounded-lg bg-[#F4F4F5] py-2 text-sm px-4",
+        {
+          "border border-[#008080]": v === current,
+          "hover:shadow-elevation-card-rest transition-shadow ease-in-out duration-150":
+            v !== current,
+        }
+      )}
+      disabled={disabled}
+      data-testid="option-button"
+    >
+      {v}
+    </button>
+  )
+})}
+```
+
+## Styling
+
+The component uses Tailwind CSS with the following styling features:
+
+### Container
+- Flex column layout (`flex flex-col`)
+- Small vertical gap between title and options (`gap-y-1`)
+- Flex wrap layout for option buttons (`flex flex-wrap`)
+- Small gap between option buttons (`gap-2`)
+
+### Title
+- Small text size (`text-sm`)
+- Bold font weight (`font-bold`)
+- Colon suffix for visual clarity
+
+### Option Buttons
+- Light gray background (`bg-[#F4F4F5]`)
+- Rounded corners (`rounded-lg`)
+- Consistent padding (`py-2 px-4`)
+- Small text size (`text-sm`)
+- Teal border for selected state (`border-[#008080]`)
+- Hover shadow effect for unselected options (`hover:shadow-elevation-card-rest`)
+- Smooth transition for hover effects (`transition-shadow ease-in-out duration-150`)
+
+## Examples
+
+### Basic Usage
+```jsx copy
+import OptionSelect from "@modules/products/components/option-select"
+
+export default function ProductVariantSelector({ product, selectedOptions, updateOption }) {
+  return (
+    <div className="space-y-4">
+      {product.options.map((option) => (
+        <OptionSelect
+          key={option.id}
+          option={option}
+          current={selectedOptions[option.id]}
+          updateOption={updateOption}
+          title={option.title}
+          disabled={false}
+        />
+      ))}
+    </div>
+  )
+}
+```
+
+### With Disabled State
+```jsx copy
+<OptionSelect
+  option={colorOption}
+  current={selectedOptions.color}
+  updateOption={updateOption}
+  title="Color"
+  disabled={isOutOfStock}
+  data-testid="color-options"
+/>
+```
+
+### With Multiple Option Groups
+```jsx copy
+<div className="space-y-6">
+  <OptionSelect
+    option={sizeOption}
+    current={selectedOptions.size}
+    updateOption={updateOption}
+    title="Size"
+    disabled={isLoading}
+  />
+  
+  <OptionSelect
+    option={colorOption}
+    current={selectedOptions.color}
+    updateOption={updateOption}
+    title="Color"
+    disabled={isLoading}
+  />
+  
+  <OptionSelect
+    option={materialOption}
+    current={selectedOptions.material}
+    updateOption={updateOption}
+    title="Material"
+    disabled={isLoading}
+  />
+</div>
+```
+
+## Technical Considerations
+
+- Extracts option values using optional chaining and fallback to empty array (`option.values ?? []`)
+- Uses Medusa UI's `clx` utility for conditional class names
+- Passes option.id rather than the title to the updateOption function
+- Handles undefined current value gracefully
+- Provides data-testid attributes for components and buttons
+- Option values are displayed exactly as provided, with no transformation or formatting
+
+## Accessibility
+
+- Uses semantic button elements for interactive options
+- Maintains adequate spacing between clickable elements
+- Provides clear visual indication of selected state
+- Supports disabled state for all options
+- Uses adequate color contrast for text readability
+- Maintains consistent focus indication
+
+## Browser Support
+
+Requires browsers with support for:
+- Modern JavaScript (ES6+)
+- React functional components
+- CSS Flexbox
+- CSS transitions

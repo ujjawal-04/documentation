@@ -1,0 +1,40 @@
+# global
+
+## Import Statements
+```typescript copy
+import { ProductVariant, Region } from "@medusajs/medusa"
+import { StorePrice } from "@medusajs/types"
+```
+
+## FeaturedProduct
+Represents a simplified product object used for featuring products in UI components like carousels or featured sections.
+
+```typescript copy
+export type FeaturedProduct = {
+  id: string
+  title: string
+  handle: string
+  thumbnail?: string
+}
+```
+
+| Property  | Type   | Description                                     |
+|-----------|--------|-------------------------------------------------|
+| id        | string | Unique identifier for the product               |
+| title     | string | Display name of the product                     |
+| handle    | string | URL-friendly identifier for the product         |
+| thumbnail | string | Optional URL to the product thumbnail image     |
+
+## ProductVariantInfo
+A subset of the `ProductVariant` type from Medusa, containing only the prices information.
+
+```typescript copy
+export type ProductVariantInfo = Pick<ProductVariant, "prices">
+```
+
+## RegionInfo
+A subset of the `Region` type from Medusa, containing only currency and tax information.
+
+```typescript copy
+export type RegionInfo = Pick<Region, "currency_code" | "tax_code" | "tax_rate">
+```

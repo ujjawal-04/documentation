@@ -1,0 +1,324 @@
+# Context
+
+A client-side React context provider and hook for managing modal state and providing close functionality to modal components.
+
+## Syntax
+
+```jsx copy
+// Provider usage
+<ModalProvider close={() => setIsOpen(false)}>
+  <ModalContent />
+</ModalProvider>
+
+// Hook usage
+const { close } = useModal()
+```
+
+## Description
+
+The Modal Context system provides a simple way to:
+- Create a context boundary for modal components
+- Pass a close function from parent components to any level of nested children
+- Access modal functionality through a clean hook API
+- Enforce proper context usage with helpful error messages
+
+## Technical Details
+
+### Dependencies
+
+```javascript copy
+"use client"
+import React, { createContext, useContext } from "react"
+```
+
+### Types
+
+```typescript copy
+interface ModalContext {
+  close: () => void
+}
+
+interface ModalProviderProps {
+  children?: React.ReactNode
+  close: () => void
+}
+```
+
+### Context Definition
+
+```javascript copy
+const ModalContext = createContext<ModalContext | null>(null)
+```
+
+### Component Structure
+
+The module exports two primary items:
+1. `ModalProvider` - A context provider component
+2. `useModal` - A hook to access the modal context
+
+```javascript copy
+export const ModalProvider = ({ children, close }: ModalProviderProps) => {
+  return (
+    <ModalContext.Provider
+      value={{
+        close,
+      }}
+    >
+      {children}
+    </ModalContext.Provider>
+  )
+}
+
+export const useModal = () => {
+  const context = useContext(ModalContext)
+  if (context === null) {
+    throw new Error("useModal must be used within a ModalProvider")
+  }
+  return context
+}
+```
+
+## Implementation Details
+
+### Provider Implementation
+```jsx copy
+export const ModalProvider = ({ children, close }: ModalProviderProps) => {
+  return (
+    <ModalContext.Provider
+      value={{
+        close,
+      }}
+    >
+      {children}
+    </ModalContext.Provider>
+  )
+}
+```
+
+### Hook Implementation with Error Handling
+```javascript copy
+export const useModal = () => {
+  const context = useContext(ModalContext)
+  if (context === null) {
+    throw new Error("useModal must be used within a ModalProvider")
+  }
+  return context
+}
+```
+
+## Examples
+
+### Basic Modal Implementation
+```jsx copy
+"use client"
+import { useState } from "react"
+import { ModalProvider } from "@modules/common/context/modal-context"
+import ModalContent from "@modules/common/components/modal-content"
+
+export default function ModalExample() {
+  const [isOpen, setIsOpen] = useState(false)
+  
+  const openModal = () => setIsOpen(true)
+  const closeModal = () => setIsOpen(false)
+  
+  return (
+    <div>
+      <button onClick={openModal}>Open Modal</button>
+      
+      {isOpen && (
+        <div className="modal-overlay">
+          <ModalProvider close={closeModal}>
+            <ModalContent title="Example Modal">
+              <p>This is modal content that can access the close function.</p>
+            </ModalContent>
+          </ModalProvider>
+        </div>
+      )}
+    </div>
+  )
+}
+```
+
+### Using the Hook in Nested Components
+```jsx copy
+"use client"
+import { useModal } from "@modules/common/context/modal-context"
+
+// This component can be deeply nested within the modal
+export default function ModalActions() {
+  const { close } = useModal()
+  
+  return (
+    <div className="modal-actions">
+      <button onClick={close} className="btn-secondary">
+        Cancel
+      </button>
+      <button 
+        onClick={() => {
+          // Do something then close
+          handleSubmit()
+          close()
+        }} 
+        className="btn-primary"
+      >
+        Confirm
+      </button>
+    </div>
+  )
+}
+```
+
+### Multiple Modals with Independent Context
+```jsx copy
+"use client"
+import { useState } from "react"
+import { ModalProvider } from "@modules/common/context/modal-context"
+
+export default function MultiModalExample() {
+  const [isFirstModalOpen, setIsFirstModalOpen] = useState(false)
+  const [isSecondModalOpen, setIsSecondModalOpen] = useState(false)
+  
+  return (
+    <div>
+      <button onClick={() => setIsFirstModalOpen(true)}>Open First Modal</button>
+      <button onClick={() => setIsSecondModalOpen(true)}>Open Second Modal</button>
+      
+      {isFirstModalOpen && (
+        <ModalProvider close={() => setIsFirstModalOpen(false)}>
+          <FirstModalContent />
+        </ModalProvider>
+      )}
+      
+      {isSecondModalOpen && (
+        <ModalProvider close={() => setIsSecondModalOpen(false)}>
+          <SecondModalContent />
+        </ModalProvider>
+      )}
+    </div>
+  )
+}
+```
+
+## Technical Considerations
+
+- Client-side only component, marked with "use client" directive
+- Uses React Context API for state propagation
+- TypeScript interfaces ensure proper typing of context and props
+- Null check in the hook prevents usage outside of provider
+- Error message guides developers to proper usage
+- Provides separation of concerns between modal state and content
+- Lightweight implementation with minimal dependencies
+- No built-in state management; relies on parent component for open/close state
+- Only provides close functionality; other modal features should be implemented separately
+- Context is specifically designed for modal dialogs, not general purpose
+- Each modal needs its own provider instance
+
+## Accessibility
+
+- Helps implement accessible modal patterns by making close functionality available
+- Doesn't directly handle focus management, which should be implemented in modal components
+- Enables proper keyboard navigation by making close function available to key handlers
+- Allows for centralized ESC key handling through the close function
+- Supports separation of concerns for better accessible implementation
+
+## Browser Support
+
+- Requires browsers with support for:
+  - Modern React (16.8+)
+  - React Context API
+  - ES6 features
+- No specific browser compatibility issues
+- Compatible with all modern browsers supporting React
+
+## Related Components
+
+- **Modal**: A component that would use ModalProvider internally
+- **ModalContent**: Child component that would use the useModal hook
+- **ModalFooter**: Action buttons component that would use the useModal hook
+- **ModalHeader**: Header component that might include a close button using useModal
+
+## Best Practices
+
+### Do:
+- Use the provider at the root of your modal component
+- Access close functionality via the useModal hook
+- Create a new ModalProvider instance for each modal
+- Handle the open/closed state in a parent component
+
+### Don't:
+- Use the hook outside of a ModalProvider
+- Create multiple providers for a single modal
+- Store additional modal state in this context (use a separate context if needed)
+- Use this context for non-modal UI components
+
+## Alternative Implementations
+
+### With Additional Modal Features
+```typescript copy
+interface EnhancedModalContext {
+  close: () => void
+  title: string
+  isFullscreen: boolean
+  toggleFullscreen: () => void
+}
+
+interface EnhancedModalProviderProps {
+  children?: React.ReactNode
+  close: () => void
+  title: string
+  initialFullscreen?: boolean
+}
+
+export const EnhancedModalProvider = ({ 
+  children,
+  close,
+  title,
+  initialFullscreen = false
+}: EnhancedModalProviderProps) => {
+  const [isFullscreen, setIsFullscreen] = useState(initialFullscreen)
+  
+  const toggleFullscreen = () => setIsFullscreen(!isFullscreen)
+  
+  return (
+    <ModalContext.Provider
+      value={{
+        close,
+        title,
+        isFullscreen,
+        toggleFullscreen
+      }}
+    >
+      {children}
+    </ModalContext.Provider>
+  )
+}
+```
+
+### With State Management Built-in
+```typescript copy
+interface ModalManagerProps {
+  children: (isOpen: boolean, openModal: () => void, closeModal: () => void) => React.ReactNode
+  initialOpen?: boolean
+}
+
+export const ModalManager = ({ 
+  children,
+  initialOpen = false
+}: ModalManagerProps) => {
+  const [isOpen, setIsOpen] = useState(initialOpen)
+  
+  const openModal = () => setIsOpen(true)
+  const closeModal = () => setIsOpen(false)
+  
+  return (
+    <>
+      {children(isOpen, openModal, closeModal)}
+      {isOpen && (
+        <ModalProvider close={closeModal}>
+          {/* Modal content */}
+        </ModalProvider>
+      )}
+    </>
+  )
+}
+```

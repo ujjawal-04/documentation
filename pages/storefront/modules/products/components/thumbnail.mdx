@@ -1,274 +1,295 @@
----
-title: "Reset Password"
-description: "Documentation for the Reset Password component, which allows users to reset their password using an email token"
----
+# Thumbnail
 
-# Reset Password
+A flexible image component that displays product thumbnails with consistent styling, supporting various sizes and placeholder fallbacks.
 
-The `ResetPassword` component implements the password reset flow, enabling users to securely change their password using a token received via email.
+## Syntax
 
-## Installation
-
-```tsx copy
-import ResetPassword from "../path-to-component"
+```jsx copy
+<Thumbnail
+  thumbnail={thumbnail}
+  images={images}
+  size="medium"
+  isFeatured={false}
+  className="custom-class"
+  data-testid="product-thumbnail"
+/>
 ```
 
-## Props
+## Description
 
-This component is self-contained and does not accept any props. It retrieves necessary data from URL query parameters.
+The Thumbnail component creates a consistent container for product images that:
+- Displays the first available image from props or falls back to a placeholder
+- Maintains consistent aspect ratios based on context (featured or standard)
+- Supports multiple size presets for different UI contexts
+- Provides visual feedback with subtle hover effects
+- Ensures consistent styling with shadow and background
 
-## Usage
+## Technical Details
 
-Basic implementation of the component:
+### Dependencies
 
-```tsx copy
-import ResetPassword from "../path-to-component"
+```javascript copy
+import { Container, clx } from "@medusajs/ui"
+import Image from "next/image"
+import React from "react"
+import PlaceholderImage from "@modules/common/icons/placeholder-image"
+```
 
-export default function PasswordResetPage() {
-  return <ResetPassword />
+### Props
+
+```typescript copy
+type ThumbnailProps = {
+  thumbnail?: string | null
+  images?: any[] | null
+  size?: "small" | "medium" | "large" | "full" | "square"
+  isFeatured?: boolean
+  className?: string
+  "data-testid"?: string
 }
 ```
 
-## Component Implementation
+| Prop | Type | Default | Description |
+|------|------|---------|-------------|
+| `thumbnail` | `string \| null` | `undefined` | Primary image URL to display |
+| `images` | `any[] \| null` | `undefined` | Array of image objects with URL property |
+| `size` | `"small" \| "medium" \| "large" \| "full" \| "square"` | `"small"` | Preset size of the thumbnail |
+| `isFeatured` | `boolean` | `undefined` | Whether the thumbnail is for a featured product |
+| `className` | `string` | `undefined` | Additional CSS classes |
+| `data-testid` | `string` | `undefined` | Test ID for testing frameworks |
 
-Here's the complete implementation of the Reset Password component:
+### Component Structure
 
-```tsx copy
-"use client"
+The component is divided into two parts:
+1. Main `Thumbnail` component that handles prop logic and styling
+2. Helper `ImageOrPlaceholder` component that renders either the image or placeholder
 
-import { useState } from "react"
-import { useSearchParams, useRouter } from "next/navigation"
-import LocalizedClientLink from "@modules/common/components/localized-client-link"
+```javascript copy
+const Thumbnail: React.FC<ThumbnailProps> = ({
+  thumbnail,
+  images,
+  size = "small",
+  isFeatured,
+  className,
+  "data-testid": dataTestid,
+}) => {
+  // Component implementation
+}
 
-export default function ResetPassword() {
-  const [loading, setLoading] = useState(false)
-  const [password, setPassword] = useState("")
-  const [confirmPassword, setConfirmPassword] = useState("")
-  const searchParams = useSearchParams()
-  const router = useRouter()
+const ImageOrPlaceholder = ({
+  image,
+  size,
+}: Pick<ThumbnailProps, "size"> & { image?: string }) => {
+  // Helper component implementation
+}
+```
 
-  const BACKEND_URL = process.env.MEDUSA_BACKEND_URL || "http://localhost:9000"
-  const token = searchParams.get("token")
-  const email = searchParams.get("email")
+## Implementation Details
 
-  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault()
+### Image Selection Logic
+```jsx copy
+const initialImage = thumbnail || images?.[0]?.url
+```
 
-    if (!password || !confirmPassword) {
-      alert("Both password fields are required")
-      return
+### Size and Aspect Ratio Handling
+```jsx copy
+<Container
+  className={clx(
+    "relative w-full overflow-hidden p-4 bg-ui-bg-subtle shadow-elevation-card-rest group-hover:shadow-elevation-card-hover transition-shadow ease-in-out duration-150 border-none outline-none",
+    className,
+    {
+      "aspect-[11/14]": isFeatured,
+      "aspect-[9/16]": !isFeatured && size !== "square",
+      "aspect-[1/1]": size === "square",
+      "w-[180px]": size === "small",
+      "w-[290px]": size === "medium",
+      "w-[440px]": size === "large",
+      "w-full": size === "full",
     }
+  )}
+  data-testid={dataTestid}
+  style={{
+    border: 'none',  // Inline border reset
+    outline: 'none', // Inline outline reset
+  }}
+>
+  <ImageOrPlaceholder image={initialImage} size={size} />
+</Container>
+```
 
-    if (password !== confirmPassword) {
-      alert("Passwords do not match")
-      return
-    }
+## Placeholder Handling
 
-    setLoading(true)
-
-    try {
-      const response = await fetch(
-        `${BACKEND_URL}/auth/customer/emailpass/update?token=${token}`,
-        {
-          credentials: "include",
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({ email, password }),
-        }
-      )
-
-      const data = await response.json()
-
-      if (data.success) {
-        alert("Password reset successfully!")
-        router.push("/account")
-      } else {
-        alert("Couldn't reset password. Try again.")
-      }
-    } catch (error) {
-      alert("An error occurred. Please try again.")
-    } finally {
-      setLoading(false)
-    }
-  }
-
-  return (
-    <div className="flex justify-center items-center min-h-screen bg-gray-100">
-      <form onSubmit={handleSubmit} className="bg-white p-6 rounded-lg shadow-md w-96">
-        <h2 className="text-xl font-semibold text-center mb-4">
-          Forgot Password?
-        </h2>
-        <label className="block text-sm font-medium text-gray-700">
-          New Password
-        </label>
-        <input
-          type="password"
-          placeholder="Enter new password"
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
-          className="w-full mt-1 p-2 border rounded-md focus:ring focus:ring-blue-300"
-          required
-        />
-        <label className="block text-sm font-medium text-gray-700 mt-3">
-          Confirm Password
-        </label>
-        <input
-          type="password"
-          placeholder="Confirm new password"
-          value={confirmPassword}
-          onChange={(e) => setConfirmPassword(e.target.value)}
-          className="w-full mt-1 p-2 border rounded-md focus:ring focus:ring-blue-300"
-          required
-        />
-        <button
-          type="submit"
-          disabled={loading}
-          className="w-full mt-4 bg-blue-600 text-white py-2 rounded-md hover:bg-blue-700 disabled:bg-gray-400"
-        >
-          {loading ? "Resetting..." : "Reset Password"}
-        </button>
-        <p className="mt-4 text-center text-sm">
-          <LocalizedClientLink 
-            href="/account" 
-            className="text-blue-600 hover:underline"
-          >
-            Back to Account
-          </LocalizedClientLink>
-        </p>
-      </form>
+```jsx copy
+const ImageOrPlaceholder = ({
+  image,
+  size,
+}: Pick<ThumbnailProps, "size"> & { image?: string }) => {
+  return image ? (
+    <Image
+      src={image}
+      alt="Thumbnail"
+      className="absolute inset-0 object-fill object-center"
+      draggable={false}
+      quality={50}
+      sizes="(max-width: 576px) 280px, (max-width: 768px) 360px, (max-width: 992px) 480px, 800px"
+      fill
+    />
+  ) : (
+    <div className="w-full h-full absolute inset-0 flex items-center justify-center">
+      <PlaceholderImage size={size === "small" ? 16 : 24} />
     </div>
   )
 }
 ```
 
-## Features
+## Styling
 
-### Password Reset Flow
-- Token-based password reset
-- Password confirmation
-- Form validation
-- Loading state management
-- Success/error handling
+The component uses Tailwind CSS through the Medusa UI's `clx` utility for conditional class application:
 
-### Form Validation
-- Required field checking
-- Password matching validation
-- Empty field validation
-- Token verification
+### Container
+- Relative positioning for child elements
+- Subtle background color (`bg-ui-bg-subtle`)
+- Card-like elevation shadows with hover state transitions
+- Border and outline resets for consistent styling
+- Padding applied consistently across all sizes (`p-4`)
+- Overflow hidden to contain images properly
 
-### User Experience
-- Loading indicators
-- Error messages
-- Success feedback
-- Navigation options
-- Clean interface
+### Sizing
+- Small: 180px width
+- Medium: 290px width
+- Large: 440px width
+- Full: 100% of container width
+- Square: 1:1 aspect ratio
 
-## Query Parameters
+### Aspect Ratios
+- Featured products: 11:14 ratio
+- Standard products: 9:16 ratio (unless square)
+- Square option: 1:1 ratio
 
-The component expects two URL parameters:
+### Image Handling
+- Next.js Image component with fill mode
+- Quality set to 50 for performance
+- Responsive sizing based on viewport width
+- Object-fill and center positioning
+- Disables dragging for better UX
 
-1. `token`: The password reset token
-2. `email`: The user's email address
+### Placeholder
+- Centered within container
+- Size adapts based on thumbnail size
+- Full width and height with absolute positioning
 
-Example URL:
-```
-/reset-password?token=abc123&email=user@example.com
-```
+## Examples
 
-## API Integration
+### Basic Usage
+```jsx copy
+import Thumbnail from "@modules/products/components/thumbnail"
 
-The component integrates with the Medusa.js backend:
-
-- Endpoint: `/auth/customer/emailpass/update`
-- Method: POST
-- Headers: Content-Type: application/json
-- Body: `{ email: string, password: string }`
-- Credentials: include
-
-## Error Handling
-
-The component handles several error scenarios:
-
-1. Missing password fields
-2. Password mismatch
-3. Failed API requests
-4. Invalid tokens
-5. Network errors
-
-## Best Practices
-
-1. Secure token handling
-2. Password validation
-3. Clear error messaging
-4. Loading state feedback
-5. User navigation
-6. Form accessibility
-7. Responsive design
-
-## Dependencies
-
-- React (useState)
-- Next.js Navigation
-- LocalizedClientLink
-- Environment variables
-
-## Testing
-
-Example test cases:
-
-```tsx copy
-describe('ResetPassword', () => {
-  it('validates password fields', async () => {
-    render(<ResetPassword />)
-    
-    const submitButton = screen.getByRole('button', { name: /reset password/i })
-    await userEvent.click(submitButton)
-    
-    expect(screen.getByText('Both password fields are required')).toBeInTheDocument()
-  })
-
-  it('handles successful password reset', async () => {
-    const mockRouter = { push: jest.fn() }
-    render(<ResetPassword />, { router: mockRouter })
-    
-    await userEvent.type(screen.getByPlaceholderText(/enter new password/i), 'newpass123')
-    await userEvent.type(screen.getByPlaceholderText(/confirm new password/i), 'newpass123')
-    await userEvent.click(screen.getByRole('button', { name: /reset password/i }))
-    
-    expect(mockRouter.push).toHaveBeenCalledWith('/account')
-  })
-})
+export default function ProductCard({ product }) {
+  return (
+    <div className="product-card group">
+      <Thumbnail 
+        thumbnail={product.thumbnail} 
+        size="medium" 
+      />
+      <h3>{product.title}</h3>
+      <p>${product.price}</p>
+    </div>
+  )
+}
 ```
 
-## Future Enhancements
+### Featured Product
+```jsx copy
+import Thumbnail from "@modules/products/components/thumbnail"
 
-1. Password strength requirements
-2. Better error messages
-3. Password requirements display
-4. Token expiration handling
-5. Progressive form validation
-6. Improved loading states
-7. Password history check
+export default function FeaturedProduct({ product }) {
+  return (
+    <div className="featured-product flex">
+      <div className="featured-image">
+        <Thumbnail 
+          thumbnail={product.thumbnail}
+          images={product.images}
+          size="large"
+          isFeatured={true}
+          className="rounded-lg"
+        />
+      </div>
+      <div className="product-details ml-6">
+        <h2 className="text-2xl font-bold">{product.title}</h2>
+        <p className="text-xl">${product.price}</p>
+        <button className="btn-primary mt-4">Add to Cart</button>
+      </div>
+    </div>
+  )
+}
+```
 
-## Security Considerations
+### Gallery Item
+```jsx copy
+import Thumbnail from "@modules/products/components/thumbnail"
 
-1. Token validation
-2. Secure communication
-3. Password encryption
-4. CSRF protection
-5. Rate limiting
-6. Input sanitization
-7. Error obfuscation
+export default function ProductGallery({ images }) {
+  return (
+    <div className="product-gallery grid grid-cols-2 gap-2">
+      {images.map((image, index) => (
+        <Thumbnail 
+          key={index}
+          thumbnail={image.url}
+          size="medium"
+          className="rounded cursor-pointer"
+          data-testid={`gallery-image-${index}`}
+        />
+      ))}
+    </div>
+  )
+}
+```
 
-## Related Components
+### With Fallback
+```jsx copy
+import Thumbnail from "@modules/products/components/thumbnail"
 
-- LoginForm
-- ForgotPassword
-- AccountSettings
-- PasswordInput
+export default function ProductPreview({ product }) {
+  // Product might not have images yet
+  return (
+    <div className="product-preview">
+      <Thumbnail 
+        thumbnail={product.thumbnail}
+        size="small"
+        className="mb-2"
+      />
+      <p className="text-sm">{product.title}</p>
+    </div>
+  )
+}
+```
 
----
+## Technical Considerations
 
-This component provides a secure and user-friendly way for customers to reset their passwords within a Medusa.js-powered store.
+- Uses Next.js Image component for optimized image loading
+- Falls back to a placeholder icon when no image is available
+- Size prop controls both width and placeholder icon size
+- Different aspect ratios for featured vs. standard items
+- Group hover effect requires parent element to have `group` class
+- Uses Medusa UI's Container component and clx utility
+- Explicitly resets border and outline via inline styles
+- Responsive image sizes based on viewport breakpoints
+- Quality set to 50 to balance performance and appearance
+
+## Accessibility
+
+- Includes alt text for images
+- Consistent container styling for predictable visual hierarchy
+- Disables image dragging to prevent accidental interactions
+- Data-testid support for testing frameworks
+- Maintains consistent dimensions based on context
+- Clear visual feedback with hover states (when in a group)
+
+## Browser Support
+
+Requires browsers with support for:
+- Modern JavaScript (ES6+)
+- Next.js Image component
+- CSS Flexbox
+- CSS aspect-ratio property
+- CSS object-fit property
+- Depends on Medusa UI's Container component browser compatibility

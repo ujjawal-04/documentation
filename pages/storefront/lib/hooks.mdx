@@ -1,0 +1,239 @@
+# Custom Hooks
+
+This document provides documentation for custom React hooks used in the application.
+
+## Table of Contents
+
+1. [useIntersection](#useintersection)
+2. [useToggleState](#usetogglestate)
+
+## useIntersection
+
+A custom hook that uses the Intersection Observer API to detect when an element becomes visible in the viewport.
+
+```typescript copy
+import { RefObject, useEffect, useState } from "react"
+
+export const useIntersection = (
+  element: RefObject<HTMLDivElement | null>,
+  rootMargin: string
+) => {
+  const [isVisible, setState] = useState(false)
+
+  useEffect(() => {
+    if (!element.current) {
+      return
+    }
+
+    const el = element.current
+
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        setState(entry.isIntersecting)
+      },
+      { rootMargin }
+    )
+
+    observer.observe(el)
+
+    return () => observer.unobserve(el)
+  }, [element, rootMargin])
+
+  return isVisible
+}
+```
+
+### Parameters
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `element` | `RefObject<HTMLDivElement \| null>` | A React ref object pointing to the DOM element to observe |
+| `rootMargin` | `string` | Margin around the root element, specified in CSS-like syntax (e.g., "10px 20px 30px 40px") |
+
+### Return Value
+
+| Type | Description |
+|------|-------------|
+| `boolean` | `true` when the element is visible in the viewport, `false` otherwise |
+
+### Example Usage
+
+```jsx copy
+import { useRef } from "react"
+import { useIntersection } from "@lib/hooks/use-intersection"
+
+const Component = () => {
+  const ref = useRef(null)
+  const isVisible = useIntersection(ref, "0px")
+
+  return (
+    <div>
+      <div>Above content</div>
+      <div 
+        ref={ref} 
+        style={{ 
+          opacity: isVisible ? 1 : 0,
+          transition: "opacity 0.3s ease-in-out" 
+        }}
+      >
+        I will fade in when visible in the viewport
+      </div>
+    </div>
+  )
+}
+```
+
+### Technical Considerations
+
+- Uses the browser's IntersectionObserver API
+- Automatically cleans up the observer when the component unmounts
+- Returns a simple boolean value for easy conditional rendering
+- Only re-creates the observer when the element or rootMargin changes
+- Handles null refs gracefully
+
+### Use Cases
+
+- Implementing lazy loading of images or components
+- Creating infinite scrolling lists
+- Tracking visibility of elements for analytics
+- Triggering animations when elements come into view
+- Implementing scroll-based features
+
+## useToggleState
+
+A versatile custom hook that provides state toggling functionality with multiple ways to access and manipulate the state.
+
+```typescript copy
+import { useState } from "react"
+
+export type StateType = [boolean, () => void, () => void, () => void] & {
+  state: boolean
+  open: () => void
+  close: () => void
+  toggle: () => void
+}
+
+/**
+ *
+ * @param initialState - boolean
+ * @returns An array like object with `state`, `open`, `close`, and `toggle` properties
+ *  to allow both object and array destructuring
+ *
+ * ```
+ *  const [showModal, openModal, closeModal, toggleModal] = useToggleState()
+ *  // or
+ *  const { state, open, close, toggle } = useToggleState()
+ * ```
+ */
+const useToggleState = (initialState = false) => {
+  const [state, setState] = useState<boolean>(initialState)
+
+  const close = () => {
+    setState(false)
+  }
+
+  const open = () => {
+    setState(true)
+  }
+
+  const toggle = () => {
+    setState((state) => !state)
+  }
+
+  const hookData = [state, open, close, toggle] as StateType
+  hookData.state = state
+  hookData.open = open
+  hookData.close = close
+  hookData.toggle = toggle
+  return hookData
+}
+
+export default useToggleState
+```
+
+### Parameters
+
+| Parameter | Type | Default | Description |
+|-----------|------|---------|-------------|
+| `initialState` | `boolean` | `false` | Initial state value |
+
+### Return Value
+
+A hybrid array/object with the following properties:
+
+| Index/Property | Type | Description |
+|----------------|------|-------------|
+| `[0]` or `state` | `boolean` | Current state value |
+| `[1]` or `open` | `() => void` | Function to set state to `true` |
+| `[2]` or `close` | `() => void` | Function to set state to `false` |
+| `[3]` or `toggle` | `() => void` | Function to toggle the state |
+
+### Example Usage
+
+#### Array Destructuring
+
+```jsx copy
+import useToggleState from "@lib/hooks/use-toggle-state"
+
+const Modal = () => {
+  const [isOpen, openModal, closeModal, toggleModal] = useToggleState()
+
+  return (
+    <>
+      <button onClick={openModal}>Open Modal</button>
+      
+      {isOpen && (
+        <div className="modal">
+          <div className="modal-content">
+            <h2>Modal Title</h2>
+            <p>Modal content goes here...</p>
+            <button onClick={closeModal}>Close</button>
+          </div>
+        </div>
+      )}
+    </>
+  )
+}
+```
+
+#### Object Destructuring
+
+```jsx copy
+import useToggleState from "@lib/hooks/use-toggle-state"
+
+const Accordion = ({ title, children }) => {
+  const { state: isExpanded, toggle: toggleExpanded } = useToggleState()
+
+  return (
+    <div className="accordion">
+      <div className="accordion-header" onClick={toggleExpanded}>
+        <h3>{title}</h3>
+        <span>{isExpanded ? '▲' : '▼'}</span>
+      </div>
+      
+      {isExpanded && (
+        <div className="accordion-content">
+          {children}
+        </div>
+      )}
+    </div>
+  )
+}
+```
+
+### Technical Considerations
+
+- Supports both array and object destructuring patterns
+- Provides named functions for clear intent (`open`, `close`, `toggle`)
+- Uses a functional update with `setState((state) => !state)` to ensure accurate toggling
+- Has a default initial state of `false`
+- Implemented using TypeScript with a custom type that extends array
+
+### Use Cases
+
+- Managing modal or dialog visibility
+- Implementing accordions or collapsible sections
+- Handling dropdown menus
+- Managing form field visibility based on user selections
+- Toggling between different UI states
+- Implementing toggleable features like dark/light mode

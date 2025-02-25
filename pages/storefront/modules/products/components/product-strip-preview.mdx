@@ -1,262 +1,257 @@
----
-title: "Order Card"
-description: "A component for displaying order information in a card format"
----
+# Product Strip Preview
 
-# Order Card
+A client-side React component that renders a compact horizontal product card with thumbnail, basic information, price, and an add-to-cart button.
 
-The `OrderCard` component displays an overview of a customer's order, including order details, purchased items, and a link to view more details.
+## Syntax
 
-## Installation
-
-```tsx copy
-import OrderCard from "@components/OrderCard"
+```jsx copy
+<ProductStripPreview 
+  product={product}
+  region={region}
+/>
 ```
 
-## Props
+## Description
 
-| Prop Name | Type | Description |
-|-----------|------|-------------|
-| `order` | `HttpTypes.StoreOrder` | The order object containing details and items |
+The ProductStripPreview component creates a space-efficient horizontal product card that:
+- Displays a product thumbnail image
+- Shows the product title and variant information
+- Presents the product price
+- Includes an add-to-cart button with loading state
+- Uses a consistent design with shadow and border
+- Fits well in compact spaces like sidebars or recommendation strips
 
-## Usage
+## Technical Details
 
-Basic implementation of the component:
+### Dependencies
 
-```tsx copy
-<OrderCard order={orderData} />
+```javascript copy
+'use client'
+import { HttpTypes } from "@medusajs/types"
+import { getProductPrice } from "@lib/util/get-product-price"
+import Thumbnail from "../thumbnail"
+import { useState } from "react"
+import { AddToCartButton } from "./AddToCartButton" // Import the reusable button
 ```
 
-## Implementation Example
+### Props
 
-Here's a complete example showing how to use the OrderCard component:
+```typescript copy
+type ProductPreviewProps = {
+  product: HttpTypes.StoreProduct
+  region: HttpTypes.StoreRegion
+}
+```
 
-```tsx copy
-import { OrderCard } from "@components/OrderCard"
-import { useOrders } from "@lib/hooks/use-orders"
+| Prop | Type | Description | Required |
+|------|------|-------------|----------|
+| product | `HttpTypes.StoreProduct` | Product data object | Yes |
+| region | `HttpTypes.StoreRegion` | Regional store settings | Yes |
 
-export default function OrderHistory() {
-  const { orders } = useOrders()
+### Component Structure
+
+```javascript copy
+export default function ProductStripPreview({ product, region }: ProductPreviewProps) {
+  const [isAdding, setIsAdding] = useState(false)
+  const { cheapestPrice } = getProductPrice({ product })
+  const defaultVariantId = product.variants?.[0]?.id || ""
   
+  const handleAddToCart = async () => {
+    // Add to cart implementation
+  }
+  
+  return (
+    // Component implementation
+  )
+}
+```
+
+## Layout Structure
+
+### Container
+```jsx copy
+<div className="w-[260px] h-[110px] bg-white rounded-lg border border-gray-200 shadow-md p-3 flex justify-between items-center">
+  {/* Content */}
+</div>
+```
+
+### Image Section
+```jsx copy
+<div className="w-16 h-16 flex items-center">
+  <Thumbnail
+    thumbnail={product.thumbnail}
+    images={product.images}
+    size="full"
+    className="w-full h-full object-contain"
+  />
+</div>
+```
+
+### Product Details
+```jsx copy
+<div className="flex flex-col flex-1 px-2">
+  <h3 className="text-sm font-semibold text-gray-900 truncate">{product.title}</h3>
+  <p className="text-xs text-gray-500">{product.variants?.[0]?.title || ''}</p>
+  
+  {/* Price & Add Button in Same Line */}
+  <div className="flex justify-between items-center">
+    <span className="text-md font-semibold">{cheapestPrice?.calculated_price}</span>
+    <AddToCartButton onClick={handleAddToCart} isAdding={isAdding} />
+  </div>
+</div>
+```
+
+## Key Features
+
+### Add to Cart Functionality
+
+```javascript copy
+const handleAddToCart = async () => {
+  if (!defaultVariantId || !region.country_code) return
+  setIsAdding(true)
+  try {
+    await addToCart({
+      variantId: defaultVariantId,
+      quantity: 1,
+      countryCode: region.country_code,
+    })
+  } catch (error) {
+    console.error("Error adding to cart:", error)
+  } finally {
+    setIsAdding(false)
+  }
+}
+```
+
+## Styling
+
+The component uses Tailwind CSS with the following styling features:
+
+### Card Container
+- Fixed dimensions (`w-[260px] h-[110px]`)
+- White background (`bg-white`)
+- Rounded corners (`rounded-lg`)
+- Subtle border (`border border-gray-200`)
+- Drop shadow for elevation (`shadow-md`)
+- Consistent padding (`p-3`)
+- Flex layout with space between (`flex justify-between items-center`)
+
+### Thumbnail
+- Fixed square dimensions (`w-16 h-16`)
+- Centered content (`flex items-center`)
+- Contained image scaling (`object-contain`)
+
+### Product Information
+- Flexible column layout (`flex flex-col`)
+- Takes available space (`flex-1`)
+- Horizontal padding (`px-2`)
+- Truncated title for overflow (`truncate`)
+- Semantic text hierarchy (semibold for title, lighter for variant)
+- Size differentiation (smaller for variant text)
+- Row layout for price and button (`flex justify-between items-center`)
+
+## Examples
+
+### Basic Usage
+```jsx copy
+import ProductStripPreview from "@modules/products/components/product-strip-preview"
+
+export default function RecommendedProducts({ products, region }) {
   return (
     <div className="space-y-4">
-      {orders.map((order) => (
-        <OrderCard key={order.id} order={order} />
-      ))}
-    </div>
-  )
-}
-```
-
-## Features
-
-### Order Overview Display
-- Order number
-- Creation date
-- Total amount
-- Item count
-
-### Item Preview
-- Thumbnail images
-- Product titles
-- Quantities
-- Support for multiple items
-
-### Navigation
-- Link to detailed order view
-- Localized routing support
-
-## Component Structure
-
-### Main Card Layout
-
-```tsx copy
-const OrderCard = ({ order }) => {
-  const { formatAmount } = useFormatPrice()
-  
-  return (
-    <div className="bg-white rounded-lg shadow p-6">
-      <div className="flex justify-between items-start">
-        <div>
-          <h3 className="text-lg font-medium">
-            Order #{order.display_id}
-          </h3>
-          <p className="text-gray-500">
-            {new Date(order.created_at).toLocaleDateString()}
-          </p>
-        </div>
-        <div className="text-right">
-          <p className="font-medium">
-            {formatAmount({
-              amount: order.total,
-              currency: order.currency_code
-            })}
-          </p>
-          <p className="text-gray-500">
-            {order.items.length} items
-          </p>
-        </div>
-      </div>
-      
-      <ItemPreview items={order.items} />
-      
-      <ViewDetailsButton orderId={order.id} />
-    </div>
-  )
-}
-```
-
-### Item Preview Grid
-
-```tsx copy
-const ItemPreview = ({ items }) => {
-  const displayItems = items.slice(0, 3)
-  const remainingItems = items.length - 3
-
-  return (
-    <div className="mt-4">
-      <div className="grid grid-cols-3 gap-4">
-        {displayItems.map((item) => (
-          <div key={item.id} className="relative">
-            <div className="aspect-square rounded-md overflow-hidden">
-              <img
-                src={item.thumbnail}
-                alt={item.title}
-                className="object-cover w-full h-full"
-              />
-            </div>
-            <div className="absolute top-0 right-0 bg-white rounded-full px-2 py-1 text-sm">
-              x{item.quantity}
-            </div>
-          </div>
+      <h2 className="text-lg font-medium">You may also like</h2>
+      <div className="flex flex-col space-y-3">
+        {products.map((product) => (
+          <ProductStripPreview 
+            key={product.id} 
+            product={product} 
+            region={region} 
+          />
         ))}
       </div>
-      
-      {remainingItems > 0 && (
-        <p className="mt-2 text-gray-500 text-sm">
-          +{remainingItems} more items
-        </p>
-      )}
     </div>
   )
 }
 ```
 
-### View Details Button
+### In a Horizontal Scroll
+```jsx copy
+import ProductStripPreview from "@modules/products/components/product-strip-preview"
 
-```tsx copy
-const ViewDetailsButton = ({ orderId }) => {
+export default function RelatedProducts({ products, region }) {
   return (
-    <LocalizedClientLink
-      href={`/account/orders/${orderId}`}
-      className="mt-4 block w-full text-center py-2 px-4 border border-gray-300 rounded-md text-sm font-medium hover:bg-gray-50"
-    >
-      View Order Details
-    </LocalizedClientLink>
+    <div className="my-8">
+      <h2 className="text-xl font-bold mb-4">Related Products</h2>
+      <div className="flex overflow-x-auto pb-4 space-x-4 scrollbar-hide">
+        {products.map((product) => (
+          <ProductStripPreview 
+            key={product.id} 
+            product={product} 
+            region={region} 
+          />
+        ))}
+      </div>
+    </div>
   )
 }
 ```
 
-## Date Formatting
+### In a Sidebar
+```jsx copy
+import ProductStripPreview from "@modules/products/components/product-strip-preview"
 
-```tsx copy
-const formatDate = (date: string) => {
-  return new Date(date).toLocaleDateString('en-US', {
-    month: 'long',
-    day: 'numeric',
-    year: 'numeric'
-  })
+export default function CartSidebar({ cart, region, recommendedProducts }) {
+  return (
+    <div className="w-full max-w-md border-l border-gray-200 h-full bg-white p-6">
+      <h2 className="text-xl font-bold mb-6">Your Cart</h2>
+      
+      {/* Cart items */}
+      <div className="mb-8">
+        {/* Cart item components */}
+      </div>
+      
+      {/* Recommended products */}
+      <div className="border-t pt-6">
+        <h3 className="text-md font-medium mb-4">Frequently bought together</h3>
+        <div className="space-y-3">
+          {recommendedProducts.map((product) => (
+            <ProductStripPreview 
+              key={product.id} 
+              product={product} 
+              region={region} 
+            />
+          ))}
+        </div>
+      </div>
+    </div>
+  )
 }
 ```
 
-## Price Formatting
+## Technical Considerations
 
-```tsx copy
-const formatPrice = (amount: number, currency: string) => {
-  return new Intl.NumberFormat('en-US', {
-    style: 'currency',
-    currency: currency
-  }).format(amount / 100)
-}
-```
-
-## Best Practices
-
-1. Use proper image optimization techniques
-2. Implement loading states for data fetching
-3. Handle missing or invalid data gracefully
-4. Ensure responsive design across screen sizes
-5. Maintain consistent date and price formatting
-6. Use proper error boundaries
-7. Implement proper type checking
+- Uses client-side rendering with 'use client' directive
+- Implements useState hook for managing loading state
+- Gets product price using the getProductPrice utility
+- Uses the first variant as the default for add-to-cart functionality
+- Handles error cases in add-to-cart functionality
+- Uses optional chaining for safe property access
+- Provides fallbacks for missing variant information
+- Uses a reusable AddToCartButton component
+- Uses fixed dimensions for consistent card sizing
 
 ## Accessibility
 
-The component follows accessibility best practices:
+- Uses semantic heading element for product title
+- Maintains text contrast for readability
+- Provides error handling for cart operations
+- Uses proper spacing between interactive elements
+- Includes loading state for the add button
 
-- Semantic HTML structure
-- Proper image alt text
-- ARIA labels where needed
-- Keyboard navigation support
-- Sufficient color contrast
-- Focus management
+## Browser Support
 
-## Testing
-
-Example test cases for the component:
-
-```tsx copy
-describe('OrderCard', () => {
-  const mockOrder = {
-    id: 'order_123',
-    display_id: '123',
-    created_at: '2024-02-22T12:00:00Z',
-    total: 10000,
-    currency_code: 'USD',
-    items: [
-      {
-        id: 'item_1',
-        title: 'Test Product',
-        thumbnail: '/test.jpg',
-        quantity: 2
-      }
-    ]
-  }
-
-  it('displays order information correctly', () => {
-    render(<OrderCard order={mockOrder} />)
-    
-    expect(screen.getByText('Order #123')).toBeInTheDocument()
-    expect(screen.getByText('$100.00')).toBeInTheDocument()
-    expect(screen.getByText('1 items')).toBeInTheDocument()
-  })
-
-  it('handles multiple items correctly', () => {
-    const orderWithManyItems = {
-      ...mockOrder,
-      items: Array(5).fill(mockOrder.items[0])
-    }
-    
-    render(<OrderCard order={orderWithManyItems} />)
-    
-    expect(screen.getByText('+2 more items')).toBeInTheDocument()
-  })
-})
-```
-
-## Error Handling
-
-```tsx copy
-const handleMissingImage = (e: React.SyntheticEvent<HTMLImageElement>) => {
-  e.currentTarget.src = '/placeholder-image.jpg'
-}
-```
-
-## Dependencies
-
-- React
-- Next.js
-- Date formatting utilities
-- Price formatting utilities
-- Image optimization components
-- Navigation components
+Requires browsers with support for:
+- Modern JavaScript (ES6+)
+- React hooks
+- CSS Flexbox
+- Optional chaining

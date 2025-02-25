@@ -1,0 +1,217 @@
+# Image Gallery
+
+A React component that displays product images with certification badges and conditional product tags.
+
+## Syntax
+
+```jsx copy
+<ImageGallery 
+  images={productImages} 
+  product={product}
+  className="custom-class" 
+/>
+```
+
+## Description
+
+The ImageGallery component creates a product image display that:
+- Shows the main product image with a gradient background
+- Displays certification badges on the left side (3rd Party Lab Verified, Purity Guaranteed, USA Lab Verified)
+- Conditionally renders "NEW" and "Popular" tags based on product tags
+- Supports custom className for styling flexibility
+
+## Technical Details
+
+### Dependencies
+
+```javascript copy
+import { HttpTypes } from "@medusajs/types"
+import { Container } from "@medusajs/ui"
+import Image from "next/image"
+```
+
+### Props
+
+```typescript copy
+type ImageGalleryProps = {
+  images: HttpTypes.StoreProductImage[];
+  product?: HttpTypes.StoreProduct;
+  className?: string;
+};
+```
+
+| Prop | Type | Description | Required |
+|------|------|-------------|----------|
+| images | `HttpTypes.StoreProductImage[]` | Array of product images | Yes |
+| product | `HttpTypes.StoreProduct` | Product data containing tags | No |
+| className | `string` | Additional CSS classes | No |
+
+### Component Structure
+
+```javascript copy
+const ImageGallery = ({ images, product, className }: ImageGalleryProps) => {
+  const productTags = product?.tags ?? [];
+  const productIsNew = productTags.some(tag => tag.value === "New");
+  const productIsPopular = productTags.some(tag => tag.value === "Popular");
+  
+  return (
+    // Component content
+  )
+};
+```
+
+## Layout Structure
+
+### Container
+```jsx copy
+<div className={`flex items-start relative ${className || ''}`}>
+  <div className="relative flex h-[302px] items-center justify-end overflow-hidden rounded-2xl md:h-[520px]"
+    style={{
+      backgroundImage: `radial-gradient(45.54% 52.4% at 50% 61.9%,
+         rgb(255, 255, 255) 0%,
+         rgb(246, 249, 255) 25%,
+         rgb(239, 244, 255) 100%)`
+    }}>
+    {/* Content */}
+  </div>
+</div>
+```
+
+### Certification Badges
+```jsx copy
+<div className="absolute left-[10px] top-1/2 flex -translate-y-1/2 flex-col lg:gap-4 md:left-[10px] xl:left-[60px]">
+  <div className="w-[90px] h-[90px] rounded-full flex items-center justify-center ">
+    <Image
+      src={"/3rd-party-ex.avif"}
+      className="h-[50px] min-w-[50px] object-contain lg:h-[90px] lg:min-w-[90px]"
+      alt={"3rd Party Lab Verified"}
+      height={800}
+      width={800}
+    />
+  </div>
+  {/* Other badges */}
+</div>
+```
+
+### Product Images
+```jsx copy
+{images.map((image, index) => (
+  <div
+    key={image.id}
+    className="relative aspect-[32/34] w-[70%] overflow-hidden"
+    id={image.id}
+  >
+    {!!image.url && (
+      <Image
+        src={image.url}
+        priority={index <= 2}
+        className="h-full w-[90%] rounded-lg object-contain p-4 pr-0"
+        alt={`Product image ${index + 1}`}
+        height={1000}
+        width={1000}
+      />
+    )}
+  </div>
+))}
+```
+
+### Product Tags
+```jsx copy
+{/* NEW tag */}
+{productIsNew && (
+  <div className="absolute left-0 top-6">
+    <span className="text-[#008080] bg-white py-1 px-3 text-xs font-bold uppercase tracking-wider shadow"
+          style={{ clipPath: "polygon(100% 0, 0 0, 0 100%, 100% 100%, 90% 50%)" }}>
+      NEW
+    </span>
+  </div>
+)}
+
+{/* Popular tag */}
+{productIsPopular && (
+  <span className="absolute right-0 top-4 flex items-center gap-1 rounded-l-[4px] bg-white p-1 px-2 text-xs shadow-md">
+    <img src="/star.png" alt="img" height={12} width={12} /> Popular
+  </span>
+)}
+```
+
+## Styling
+
+The component uses Tailwind CSS and Next.js Image component with the following key features:
+
+### Container
+- Flexible layout with responsive height (`h-[302px]` on mobile, `h-[520px]` on medium screens)
+- Rounded corners (`rounded-2xl`)
+- Custom radial gradient background
+- Relative positioning for absolute children
+
+### Certification Badges
+- Positioned absolutely on the left side
+- Vertically centered with transform (`top-1/2 -translate-y-1/2`)
+- Responsive positioning (`left-[10px]` on mobile, `left-[60px]` on extra large screens)
+- Circular badge containers with flexible sizing between mobile and desktop
+
+### Product Images
+- Fixed aspect ratio (`aspect-[32/34]`)
+- Width set to 70% of container (`w-[70%]`)
+- Rounded corners (`rounded-lg`)
+- Padding for spacing (`p-4 pr-0`)
+
+### Tags
+- NEW tag: Custom polygon shape with clip-path, teal text on white background
+- Popular tag: White background with rounded left corners and shadow, includes star icon
+
+## Examples
+
+### Basic Usage
+```jsx copy
+import ImageGallery from "@modules/products/components/image-gallery"
+
+export default function ProductPage({ product }) {
+  return (
+    <div className="container mx-auto py-8">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+        <ImageGallery 
+          images={product.images} 
+          product={product} 
+        />
+        <div>
+          {/* Product details */}
+        </div>
+      </div>
+    </div>
+  )
+}
+```
+
+### With Custom Class
+```jsx copy
+<ImageGallery 
+  images={product.images} 
+  product={product}
+  className="mt-8 border border-gray-100" 
+/>
+```
+
+## Technical Considerations
+
+- Dynamically checks product tags to conditionally render NEW and Popular badges
+- Uses Next.js Image component for optimized image loading
+- Sets priority loading for the first three images
+- Handles missing product data with optional chaining and default empty array
+- Supports custom className for flexible integration
+
+## Accessibility
+
+- Provides alt text for all images (certification badges and product images)
+- Uses semantic HTML structure
+- Maintains visual hierarchy with proper positioning
+- Uses contrast between text and backgrounds for readability
+
+## Browser Support
+
+Requires browsers with support for:
+- Modern JavaScript (ES6+)
+- CSS Flexbox and Grid
+- CSS clip-path (for the NEW tag shape)
+- Depends on Next.js Image component and Medusa UI components

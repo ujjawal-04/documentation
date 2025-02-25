@@ -1,0 +1,238 @@
+# Add To Cart Button
+
+A client-side React component that provides a simple button for adding products to the shopping cart.
+
+## Syntax
+
+```jsx copy
+<AddToCartButton 
+  variantId="variant_123456" 
+  countryCode="us" 
+/>
+```
+
+## Description
+
+The AddToCartButton component creates a styled button that:
+- Adds a specific product variant to the cart
+- Handles loading and disabled states during the cart addition process
+- Provides error handling for failed cart operations
+- Uses a consistent teal-colored design matching the application theme
+- Displays appropriate text based on the current action ("Add to Cart" or "Adding...")
+
+## Technical Details
+
+### Dependencies
+
+```javascript copy
+"use client"
+
+import { addToCart } from "@lib/data/cart"
+import { Button } from "@medusajs/ui"
+import { useState } from "react"
+```
+
+### Props
+
+```typescript copy
+type AddToCartButtonProps = {
+  variantId: string
+  countryCode: string // Directly pass the countryCode instead of region data
+}
+```
+
+| Prop | Type | Description | Required |
+|------|------|-------------|----------|
+| variantId | `string` | ID of the product variant to add to cart | Yes |
+| countryCode | `string` | Country code for region-specific cart operations | Yes |
+
+## Component Structure
+
+```javascript copy
+export default function AddToCartButton({ variantId, countryCode }: AddToCartButtonProps) {
+  const [isAdding, setIsAdding] = useState(false)
+  
+  const handleAddToCart = async () => {
+    // Cart addition logic
+  }
+  
+  return (
+    <Button
+      onClick={handleAddToCart}
+      className="w-full h-10 bg-[#008080] hover:bg-[#3c9696] font-medium rounded-lg"
+      isLoading={isAdding}
+      disabled={isAdding}
+    >
+      {isAdding ? "Adding..." : "Add to Cart"}
+    </Button>
+  )
+}
+```
+
+## Key Features
+
+### Cart Addition Logic
+
+```javascript copy
+const handleAddToCart = async () => {
+  if (!variantId || !countryCode) {
+    console.error("Variant ID or Country Code is missing.")
+    return
+  }
+  
+  setIsAdding(true)
+  
+  try {
+    await addToCart({
+      variantId,
+      quantity: 1,
+      countryCode, // Use selected countryCode
+    })
+  } catch (error) {
+    console.error("Error adding to cart:", error)
+  } finally {
+    setIsAdding(false)
+  }
+}
+```
+
+### Button State Handling
+
+```javascript copy
+<Button
+  onClick={handleAddToCart}
+  className="w-full h-10 bg-[#008080] hover:bg-[#3c9696] font-medium rounded-lg"
+  isLoading={isAdding}
+  disabled={isAdding}
+>
+  {isAdding ? "Adding..." : "Add to Cart"}
+</Button>
+```
+
+## Styling
+
+The component uses Tailwind CSS with the following styling features:
+
+### Button
+- Full width design (`w-full`)
+- Fixed height (`h-10`)
+- Teal background color (`bg-[#008080]`)
+- Lighter teal hover state (`hover:bg-[#3c9696]`)
+- Medium font weight (`font-medium`)
+- Rounded corners (`rounded-lg`)
+- Loading state handled by Medusa UI's Button component
+
+## Examples
+
+### Basic Usage
+```jsx copy
+import AddToCartButton from "@modules/products/components/AddToCartButton"
+
+export default function ProductCard({ product, countryCode }) {
+  const defaultVariantId = product.variants[0]?.id || ""
+  
+  return (
+    <div className="p-4 border rounded-lg">
+      <h3>{product.title}</h3>
+      <p>${product.price}</p>
+      <AddToCartButton 
+        variantId={defaultVariantId} 
+        countryCode={countryCode} 
+      />
+    </div>
+  )
+}
+```
+
+### With Custom Variant Selection
+```jsx copy
+import { useState } from "react"
+import AddToCartButton from "@modules/products/components/AddToCartButton"
+
+export default function ProductOptions({ product, countryCode }) {
+  const [selectedVariant, setSelectedVariant] = useState(product.variants[0]?.id || "")
+  
+  return (
+    <div className="space-y-4">
+      <div className="flex gap-2">
+        {product.variants.map((variant) => (
+          <button
+            key={variant.id}
+            onClick={() => setSelectedVariant(variant.id)}
+            className={`px-3 py-1 border rounded ${
+              selectedVariant === variant.id ? "border-teal-500 bg-teal-50" : "border-gray-200"
+            }`}
+          >
+            {variant.title}
+          </button>
+        ))}
+      </div>
+      
+      <AddToCartButton 
+        variantId={selectedVariant} 
+        countryCode={countryCode} 
+      />
+    </div>
+  )
+}
+```
+
+### In a Quick Shop Modal
+```jsx copy
+import AddToCartButton from "@modules/products/components/AddToCartButton"
+
+export default function QuickShopModal({ product, countryCode, onClose }) {
+  const defaultVariantId = product.variants[0]?.id || ""
+  
+  return (
+    <div className="bg-white p-6 rounded-lg shadow-xl max-w-md mx-auto">
+      <div className="flex justify-between mb-4">
+        <h2 className="text-xl font-bold">{product.title}</h2>
+        <button onClick={onClose}>×</button>
+      </div>
+      
+      <div className="mb-6">
+        <img 
+          src={product.thumbnail} 
+          alt={product.title} 
+          className="w-full h-48 object-contain"
+        />
+      </div>
+      
+      <div className="mb-4">
+        <p className="text-lg font-medium">${product.price}</p>
+      </div>
+      
+      <AddToCartButton 
+        variantId={defaultVariantId} 
+        countryCode={countryCode} 
+      />
+    </div>
+  )
+}
+```
+
+## Technical Considerations
+
+- Uses React's useState hook for managing loading state
+- Implements client-side rendering with 'use client' directive
+- Validates inputs before proceeding with cart addition
+- Adds fixed quantity of 1 item to cart
+- Handles errors with try/catch and logs errors to console
+- Uses the finally block to ensure loading state is reset even if errors occur
+- Leverages Medusa UI's Button component for consistent design and built-in loading state
+
+## Accessibility
+
+- Disables button during loading state to prevent multiple submissions
+- Provides visual feedback during the loading process
+- Uses appropriate color contrast for text readability
+- Maintains adequate button size for touch interactions
+
+## Browser Support
+
+Requires browsers with support for:
+- Modern JavaScript (ES6+)
+- Async/await syntax
+- React hooks
+- Medusa UI components

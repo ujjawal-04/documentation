@@ -1,138 +1,253 @@
----
-title: 'Account Layout'
-description: 'A layout component for account-related pages that provides a consistent structure with navigation and content areas'
----
+# Features Section
 
-# Account Layout
+A visually engaging section component that showcases core product features with decorative background elements and responsive card layouts.
 
-The `AccountLayout` component serves as a wrapper for account-related pages, providing a consistent layout structure with navigation and content areas. It's designed to be responsive and works with the Medusa e-commerce framework.
+## Syntax
 
-## Component Overview
+```jsx copy
+<FeaturesSection />
+```
 
-The AccountLayout component creates a full-width container with a two-column layout on larger screens, featuring:
-- A navigation sidebar (only shown when a customer is logged in)
-- A main content area for child components
-- Responsive design that switches to a single column on mobile devices
+## Description
 
-## Props
+The FeaturesSection component creates a polished marketing section that:
+- Displays a compelling headline and descriptive subtext
+- Features three key product benefits in card format with icons
+- Includes decorative gradient background elements with blur effects
+- Adapts responsively to different screen sizes
+- Provides subtle hover interactions for improved user experience
 
-| Prop | Type | Required | Description |
-|------|------|----------|-------------|
-| customer | `HttpTypes.StoreCustomer \| null` | Yes | The customer object from Medusa's store API. Used to display account navigation |
-| children | `React.ReactNode` | Yes | The content to be rendered in the main area of the layout |
+## Technical Details
 
-## Usage
+### Dependencies
 
-```tsx copy
-import AccountLayout from './AccountLayout'
-import { StoreCustomer } from '@medusajs/types'
+```javascript copy
+import React from 'react';
+```
 
-const AccountPage = ({ customer }: { customer: StoreCustomer }) => {
+### Props
+
+This component doesn't accept any props as it's designed to be a self-contained section.
+
+### Component Structure
+
+The component is structured as a functional React component:
+
+```javascript copy
+const FeaturesSection = () => {
   return (
-    <AccountLayout customer={customer}>
-      <div>Account content goes here</div>
-    </AccountLayout>
-  )
-}
+    <section className="relative mx-auto max-w-7xl px-4 py-12 sm:px-6 sm:py-24 lg:px-8">
+      {/* Decorative top background */}
+      {/* Content container */}
+      {/* Feature cards */}
+      {/* Decorative bottom background */}
+    </section>
+  );
+};
+
+export default FeaturesSection;
 ```
 
 ## Implementation Details
 
-### Layout Structure
+### Decorative Background Elements
+```jsx copy
+<div aria-hidden="true" className="absolute inset-x-0 top-40 -z-10 transform-gpu overflow-hidden blur-3xl sm:top-0">
+  <div 
+    className="relative left-[calc(60%-11rem)] aspect-[1155/678] w-[36.125rem] -translate-x-1/2 rotate-[30deg] bg-gradient-to-tr from-[#00BFFF] to-[#1E90FF] opacity-30 sm:left-[calc(40%-20rem)] sm:w-[55rem]" 
+    style={{
+      clipPath: 'polygon(74.1% 44.1%, 100% 61.6%, 97.5% 26.9%, 85.5% 0.1%, 80.7% 2%, 72.5% 32.5%, 60.2% 62.4%, 52.4% 68.1%, 47.5% 58.3%, 45.2% 34.5%, 27.5% 76.7%, 0.1% 64.9%, 17.9% 100%, 27.6% 76.8%, 76.1% 97.7%, 74.1% 44.1%)'
+    }}
+  />
+</div>
+```
 
-The component uses a nested structure of flex and grid containers:
+### Section Title and Description
+```jsx copy
+<div className="relative">
+  <h2 className="mb-8 text-center text-4xl font-semibold">
+    Your Reliable Source for High-Quality Research Peptides
+  </h2>
+  <p className="mx-auto mb-12 max-w-3xl text-center text-lg text-gray-600">
+    Power Peptides™ is more than just a trusted U.S. supplier of research peptides. We are a catalyst for scientific advancement, dedicated to providing the highest quality peptides that empower our clients to push the boundaries.
+  </p>
+  
+  {/* Feature cards grid */}
+</div>
+```
 
-1. Outer container:
-   - Uses `flex-1` for flexible sizing
-   - Applies padding on larger screens with `small:py-12`
+### Feature Cards Grid
+```jsx copy
+<div className="grid grid-cols-1 gap-8 md:grid-cols-3">
+  {/* Feature cards */}
+</div>
+```
 
-2. Inner container:
-   - Maximum width of `max-w-5xl`
-   - Centered with `mx-auto`
-   - White background
-   - Flex column layout
+### Feature Card Structure (Example)
+```jsx copy
+<div className="flex flex-col relative overflow-hidden h-auto text-foreground box-border outline-none data-[focus-visible=true]:z-10 data-[focus-visible=true]:outline-2 data-[focus-visible=true]:outline-focus data-[focus-visible=true]:outline-offset-2 rounded-large transition-transform-background motion-reduce:transition-none bg-white/90 shadow-[0_4px_12px_rgba(0,0,0,0.1)] backdrop-blur-sm transition-shadow duration-300 hover:shadow-[0_4px_16px_rgba(0,0,0,0.15)]" tabIndex="-1">
+  <div className="relative flex w-full flex-auto flex-col place-content-inherit align-items-inherit h-auto break-words text-left overflow-y-auto subpixel-antialiased p-6">
+    <div className="mb-4 w-fit rounded-xl bg-blue-50 p-3">
+      <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24">
+        <path fill="currentColor" d="M5 19a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1c0-.21-.07-.41-.18-.57L13 8.35V4h-2v4.35L5.18 18.43c-.11.16-.18.36-.18.57m1 3a3 3 0 0 1-3-3c0-.6.18-1.16.5-1.63L9 7.81V6a1 1 0 0 1-1-1V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v1a1 1 0 0 1-1 1v1.81l5.5 9.56c.32.47.5 1.03.5 1.63a3 3 0 0 1-3 3zm7-6l1.34-1.34L16.27 18H7.73l2.66-4.61zm-.5-4a.5.5 0 0 1 .5.5a.5.5 0 0 1-.5.5a.5.5 0 0 1-.5-.5a.5.5 0 0 1 .5-.5"></path>
+      </svg>
+    </div>
+    <h3 className="mb-4 text-2xl font-medium">Unparalleled Quality</h3>
+    <p className="text-gray-600">Our proprietary processes and meticulous sourcing of premium materials ensure that every peptide we offer meets the most stringent standards.</p>
+  </div>
+</div>
+```
 
-3. Grid layout:
-   - Single column by default
-   - Two columns on larger screens using `small:grid-cols-[240px_1fr]`
-   - Fixed 240px sidebar width
-   - Flexible content area width
+## Layout Structure
 
-### Responsive Design
+### Container
+```jsx copy
+<section className="relative mx-auto max-w-7xl px-4 py-12 sm:px-6 sm:py-24 lg:px-8">
+  {/* Content */}
+</section>
+```
 
-The layout adapts to different screen sizes:
+### Feature Cards Grid
+```jsx copy
+<div className="grid grid-cols-1 gap-8 md:grid-cols-3">
+  {/* 3 feature cards */}
+</div>
+```
 
-- **Mobile** (< small breakpoint):
-  - Single column layout
-  - No top/bottom padding
-  - Full width content
+## Styling
 
-- **Desktop** (≥ small breakpoint):
-  - Two column layout
-  - 12 units of padding top/bottom
-  - Fixed width sidebar
+The component uses Tailwind CSS for styling with the following key features:
 
-### Navigation
+### Section Container
+- Relative positioning for decorative backgrounds
+- Max width constraint (`max-w-7xl`)
+- Responsive padding that increases at larger breakpoints
+- Vertical spacing that increases at tablet breakpoints and up
 
-The `AccountNav` component is conditionally rendered based on the presence of a customer:
-- Only shown when `customer` prop is not null
-- Receives the customer object as a prop
-- Contained within the left column of the grid
+### Decorative Background Elements
+- Absolute positioning with negative z-index
+- GPU-accelerated transforms for performance
+- Blur effect for modern UI aesthetic
+- Responsive positioning and sizing
+- Custom polygon clip paths for organic shapes
+- Semi-transparent gradient background
 
-## Dependencies
+### Typography
+- Large heading with semibold weight
+- Centered text alignment
+- Constrained paragraph width for readability
+- Subtle text color for description
 
-- React
-- UnderlineLink component from common modules
-- AccountNav component
-- Medusa types for customer data
-- Tailwind CSS for styling
+### Feature Cards
+- Glass-like effect with backdrop blur
+- Subtle shadow with hover state enhancement
+- Consistent padding and spacing
+- Rounded corners
+- Flex column layout
+- Focus state styling for accessibility
+- Motion reduction support
 
-## Testing
-
-The component includes a data-testid attribute (`account-page`) for easy targeting in tests.
+### Feature Icons
+- Consistent sizing
+- Light blue background with rounded container
+- SVG icons with current color
 
 ## Examples
 
-### With Customer
+### Basic Usage
+```jsx copy
+import FeaturesSection from "@modules/marketing/components/features-section"
 
-```tsx copy
-const LoggedInExample = () => {
-  const customer = {
-    id: "cust_123",
-    email: "user@example.com",
-    // ... other customer properties
-  }
-  
+export default function HomePage() {
   return (
-    <AccountLayout customer={customer}>
-      <h1>Welcome back!</h1>
-      <p>Your account details...</p>
-    </AccountLayout>
+    <main>
+      <HeroSection />
+      <FeaturesSection />
+      <TestimonialsSection />
+      <ContactSection />
+    </main>
   )
 }
 ```
 
-### Without Customer
+### With Container
+```jsx copy
+import FeaturesSection from "@modules/marketing/components/features-section"
 
-```tsx copy
-const LoggedOutExample = () => {
+export default function AboutPage() {
   return (
-    <AccountLayout customer={null}>
-      <h1>Please log in</h1>
-      <p>Login form goes here...</p>
-    </AccountLayout>
+    <div className="about-page">
+      <div className="mb-16">
+        <h1 className="text-5xl font-bold text-center">About Us</h1>
+        <p className="mt-4 text-xl text-center text-gray-600">Learn more about our mission and values</p>
+      </div>
+      
+      <FeaturesSection />
+      
+      <div className="mt-16">
+        <h2 className="text-3xl font-semibold mb-8">Our History</h2>
+        {/* History content */}
+      </div>
+    </div>
   )
 }
 ```
 
-## Best Practices
+### Custom Wrapper
+```jsx copy
+import FeaturesSection from "@modules/marketing/components/features-section"
 
-1. Always provide a customer prop, even if null, to ensure proper rendering
-2. Use semantic HTML within the content area
-3. Ensure child components respect the layout's padding and width constraints
-4. Consider the responsive nature of the layout when designing child components
+export default function ProductPage() {
+  return (
+    <div className="product-page">
+      <ProductDetails />
+      
+      <div className="py-16 bg-gray-50">
+        <FeaturesSection />
+      </div>
+      
+      <RelatedProducts />
+    </div>
+  )
+}
+```
 
-## Related Components
+## Technical Considerations
 
-- AccountNav: Provides the navigation sidebar
-- UnderlineLink: Used within the navigation for interactive elements
+- Self-contained component with no external props
+- Uses decorative elements with `aria-hidden="true"` for accessibility
+- Responsive design with mobile-first approach
+- Uses Tailwind CSS for styling
+- Incorporates glass morphism design style with backdrop blur
+- Includes motion reduction support for users with vestibular disorders
+- Performance optimizations with transform-gpu
+- Uses consistent SVG icons for feature representation
+- Custom clip-path for organic background shapes
+- Subtle hover effects for improved interactivity
+- No client-side JavaScript logic - purely presentational
+
+## Accessibility
+
+- Decorative elements are properly hidden from screen readers
+- Semantic HTML structure with proper heading hierarchy
+- Appropriate text contrast
+- Focus states defined for interactive elements
+- Motion reduction support for users who prefer reduced motion
+- Proper spacing for readability
+- tabIndex="-1" on non-interactive card elements
+
+## Browser Support
+
+Requires browsers with support for:
+- Modern JavaScript (ES6+)
+- CSS Grid
+- CSS Flexbox
+- CSS backdrop-filter (for blur effects)
+- CSS clip-path
+- Tailwind CSS utility classes
+- Modern SVG support
+
+### Feature Degradation
+
+- The backdrop blur effect may not appear in older browsers, but the cards will still be visible with a semi-transparent background
+- The clip-path polygons for background elements may render as rectangles in older browsers

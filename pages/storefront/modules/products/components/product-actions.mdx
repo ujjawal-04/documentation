@@ -1,194 +1,263 @@
----
-title: 'AccountNav'
-description: 'A navigation component for managing user account sections and authentication state.'
----
+# Product Actions
 
-# AccountNav Component
+A client-side React component that handles product variant selection, quantity picking, and add-to-cart functionality.
 
-The `AccountNav` component provides navigation for users to manage their account settings, including profile information, addresses, orders, and logout functionality. It adapts its layout for both mobile and desktop views.
+## Syntax
 
-## Installation
-
-First, ensure you have the component in your project:
-
-```tsx copy
-import AccountNav from "@components/AccountNav"
+```jsx copy
+<ProductActions 
+  product={product} 
+  region={region}
+  disabled={false} 
+/>
 ```
 
-## Props
+## Description
 
-| Prop Name | Type | Required | Description |
-|-----------|------|----------|-------------|
-| `customer` | `HttpTypes.StoreCustomer \| null` | Yes | The currently logged-in customer's data |
+The ProductActions component creates a product options interface that:
+- Displays product variant options (size, color, etc.) with smart default selection
+- Provides a custom dropdown quantity selector with scrollable values (1-100)
+- Handles adding selected product variants to the cart
+- Includes mobile-optimized actions that appear when the main component is out of view
+- Validates variant availability and inventory status
 
-## Usage
+## Technical Details
 
-Here's a basic example of how to use the AccountNav component:
+### Dependencies
 
-```tsx copy
-import AccountNav from "@components/AccountNav"
+```javascript copy
+'use client'
 
-const MyAccountPage = ({ customer }) => {
-  return (
-    <div>
-      <AccountNav customer={customer} />
-      {/* Rest of your account page content */}
-    </div>
-  )
+import { addToCart } from "@lib/data/cart"
+import { useIntersection } from "@lib/hooks/use-in-view"
+import { HttpTypes } from "@medusajs/types"
+import { Button } from "@medusajs/ui"
+import Divider from "@modules/common/components/divider"
+import OptionSelect from "@modules/products/components/product-actions/option-select"
+import { isEqual } from "lodash"
+import { useParams } from "next/navigation"
+import { useEffect, useMemo, useRef, useState } from "react"
+import MobileActions from "./mobile-actions"
+import { ChevronDown, ChevronUp, Check } from "lucide-react"
+```
+
+### Props
+
+```typescript copy
+type ProductActionsProps = {
+  product: HttpTypes.StoreProduct
+  region: HttpTypes.StoreRegion
+  disabled?: boolean
 }
 ```
 
-## Features
+| Prop | Type | Description | Required |
+|------|------|-------------|----------|
+| product | `HttpTypes.StoreProduct` | Product data containing variants and options | Yes |
+| region | `HttpTypes.StoreRegion` | Regional store settings | Yes |
+| disabled | `boolean` | Disables all interactive elements | No |
 
-### Responsive Design
-- **Desktop View**: Full navigation menu with all options visible
-- **Mobile View**: Condensed navigation with appropriate layout adjustments
-- Automatic adaptation based on screen size
+## Component Structure
 
-### Navigation Options
-- Profile settings
-- Address management
-- Order history 
-- Logout functionality
+The component consists of two main parts:
+1. The main `ProductActions` component
+2. A nested `CustomQuantitySelector` component
 
-### Active State Handling
-- Visual indication of current section
-- Uses `clx` utility for conditional styling
-- Highlights active navigation item
+### CustomQuantitySelector
 
-## Subcomponents
-
-### AccountNavLink
-
-A helper component used internally to create consistent navigation links.
-
-#### Props
-
-| Prop Name | Type | Required | Description |
-|-----------|------|----------|-------------|
-| `href` | `string` | Yes | Destination URL for the link |
-| `route` | `string` | Yes | Current route pathname |
-| `children` | `React.ReactNode` | Yes | Content to display inside the link |
-| `data-testid` | `string` | No | Test identifier for the link |
-
-#### Example Usage
-
-```tsx copy
-<AccountNavLink 
-  href="/account/orders" 
-  route={route}
-  data-testid="account-nav-orders"
->
-  Orders
-</AccountNavLink>
+```javascript copy
+const CustomQuantitySelector = ({ value, onChange, disabled }: { 
+  value: number, 
+  onChange: (val: number) => void, 
+  disabled?: boolean 
+}) => {
+  // Implementation
+}
 ```
 
-## Behavior
+### ProductActions
 
-### Authentication Flow
-- Checks for customer data to determine authentication state
-- Provides logout functionality through `signout` function
-- Handles country code for region-specific logout behavior
+```javascript copy
+export default function ProductActions({
+  product,
+  disabled,
+}: ProductActionsProps) {
+  // Implementation with state management, variant selection logic, and cart functionality
+}
+```
 
-### Navigation States
-1. **Default State**
-   - Displays user name when on `/account`
-   - Shows all available navigation options
+## Key Features
 
-2. **Active Link**
-   - Highlights current section
-   - Provides visual feedback for user location
+### Smart Default Option Selection
 
-3. **Mobile State**
-   - Collapses into mobile-friendly layout
-   - Maintains all functionality in compressed format
+```javascript copy
+useEffect(() => {
+  if (product.variants?.length === 1) {
+    const variantOptions = optionsAsKeymap(product.variants[0].options)
+    setOptions(variantOptions ?? {})
+  } else if (product.options) {
+    const optionsMap: Record<string, string> = {}
+
+    product.options.forEach(option => {
+      if (!option.values?.length) return
+
+      if (option.title.toLowerCase() === 'size') {
+        // Smart size selection logic that tries to default to Medium, then other common sizes,
+        // then middle of available sizes, and finally the first size
+        // ...
+      } else {
+        optionsMap[option.id] = option.values[0].value
+      }
+    })
+
+    setOptions(optionsMap)
+  }
+}, [product.variants, product.options])
+```
+
+### Custom Quantity Selector
+
+The component includes a custom dropdown for quantity selection that:
+- Shows numbers 1-100 in a scrollable dropdown
+- Positions the dropdown intelligently based on available screen space
+- Auto-scrolls to show the current selection
+- Includes a checkmark indicator for the selected value
+- Handles outside clicks to close the dropdown
+
+### Dynamic Variant Selection
+
+```javascript copy
+const selectedVariant = useMemo(() => {
+  if (!product.variants || product.variants.length === 0) {
+    return
+  }
+
+  return product.variants.find((v) => {
+    const variantOptions = optionsAsKeymap(v.options)
+    return isEqual(variantOptions, options)
+  })
+}, [product.variants, options])
+```
+
+### Inventory Validation
+
+```javascript copy
+const inStock = useMemo(() => {
+  if (!selectedVariant) return false
+  if (!selectedVariant.manage_inventory || selectedVariant.allow_backorder) {
+    return true
+  }
+  return (selectedVariant.inventory_quantity ?? 0) > 0
+}, [selectedVariant])
+```
+
+### Add to Cart Functionality
+
+```javascript copy
+const handleAddToCart = async (qty: number = quantity) => {
+  if (!selectedVariant?.id) return null
+  setIsAdding(true)
+
+  await addToCart({
+    variantId: selectedVariant.id,
+    quantity: qty,
+    countryCode,
+  })
+
+  setIsAdding(false)
+}
+```
+
+### Mobile Optimization
+
+```javascript copy
+<MobileActions
+  product={product}
+  variant={selectedVariant}
+  options={options}
+  updateOptions={setOptionValue}
+  inStock={inStock}
+  handleAddToCart={handleAddToCart}
+  isAdding={isAdding}
+  show={!inView}
+  optionsDisabled={!!disabled || isAdding}
+/>
+```
 
 ## Styling
 
-The component uses Tailwind CSS for styling:
+The component uses Tailwind CSS with the following styling features:
 
-```tsx copy
-// Example of styled link
-<div className={clx(
-  "text-sm flex items-center gap-x-2 px-4 py-2 rounded-rounded",
-  {
-    "text-ui-fg-base hover:text-ui-fg-base": href !== route,
-    "bg-ui-bg-subtle font-semibold": href === route,
-  }
-)}>
-  {children}
-</div>
-```
+### Product Options
+- Vertical spacing between option groups (`gap-y-4`)
+- Divider with extended width for visual separation (`w-[150%] -mr-10`)
 
-### Style Features
-- Consistent spacing and padding
-- Hover and active states
-- Responsive layout adjustments
-- Clear visual hierarchy
+### Add to Cart Section
+- Flex layout with gap spacing (`flex items-center gap-4`)
+- Custom teal button styling (`bg-[#008080] hover:bg-teal-600`)
+- Cart icon integrated in the button
+- Loading state indicators
 
-## Dependencies
-
-- Next.js for routing
-- Tailwind CSS for styling
-- `clx` utility for conditional classes
-- Various icon components (`ChevronDown`, `User`, etc.)
+### Quantity Selector
+- Fixed width container (`w-20`)
+- Rounded styling (`rounded-xl`) 
+- Gray background with hover state (`bg-gray-100 hover:bg-gray-200`)
+- Custom dropdown styling with shadow and rounded corners
+- Hidden scrollbars for cleaner UI
 
 ## Examples
 
-### Basic Implementation
+### Basic Usage
+```jsx copy
+import ProductActions from "@modules/products/components/product-actions"
 
-```tsx copy
-function AccountPage() {
-  const { customer } = useCustomer()
-  
+export default function ProductPage({ product, region }) {
   return (
-    <div className="flex flex-col">
-      <AccountNav customer={customer} />
-      <div className="account-content">
-        {/* Account page content */}
+    <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
+      {/* Product Images */}
+      <div>
+        <ProductActions 
+          product={product} 
+          region={region} 
+        />
       </div>
     </div>
   )
 }
 ```
 
-### With Custom Styling
-
-```tsx copy
-<AccountNav 
-  customer={customer}
-  className="custom-nav-class"
-  data-testid="account-navigation"
+### Disabled State
+```jsx copy
+<ProductActions 
+  product={product} 
+  region={region}
+  disabled={!isAvailableInRegion} 
 />
 ```
 
-## Testing
+## Technical Considerations
 
-The component includes data-testid attributes for easy testing:
-
-```tsx copy
-// Example test
-it('should highlight active link', () => {
-  render(<AccountNav customer={mockCustomer} />)
-  const activeLink = screen.getByTestId('account-nav-orders')
-  expect(activeLink).toHaveClass('bg-ui-bg-subtle')
-})
-```
-
-## Best Practices
-
-1. Always provide the customer prop
-2. Use within authenticated routes
-3. Place at the top of account-related pages
-4. Maintain consistent navigation structure
-5. Handle loading and error states appropriately
+- Uses client-side rendering with 'use client' directive
+- Implements optimistic UI updates during cart operations
+- Leverages memoization for performance optimization
+- Handles complex dropdown positioning with dynamic calculations
+- Uses intersection observer to detect when component is out of view
+- Implements smart defaults for product options, particularly for clothing sizes
 
 ## Accessibility
 
-The component follows accessibility best practices:
+- Disables buttons appropriately based on product state (adding to cart, out of stock)
+- Provides visual indicators for selected options
+- Uses appropriate button elements for interactive components
+- Includes loading states to prevent multiple submissions
+- Shows checkmark indicators for selected values
+- Uses appropriate ARIA attributes where needed
 
-- Semantic HTML structure
-- Keyboard navigation support
-- ARIA labels where appropriate
-- Focus management
-- High contrast active states
+## Browser Support
+
+Requires browsers with support for:
+- Modern JavaScript (ES6+)
+- React hooks and effects
+- Intersection Observer API
+- CSS Flexbox
+- requestAnimationFrame API

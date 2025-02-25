@@ -1,0 +1,43 @@
+# medusa
+
+## Import Statements
+```typescript copy
+import { Region as MedusaRegion, ProductVariant } from "@medusajs/medusa"
+```
+
+## Variant Types
+
+### Variant
+A type representing a product variant, omitting the `beforeInsert` method from the original Medusa ProductVariant.
+
+```typescript copy
+export type Variant = Omit<ProductVariant, "beforeInsert">
+```
+
+### CalculatedVariant
+Extends the ProductVariant type with calculated pricing fields.
+
+```typescript copy
+export type CalculatedVariant = ProductVariant & {
+  calculated_price: number
+  calculated_price_type: "sale" | "default"
+  original_price: number
+}
+```
+
+| Additional Property   | Type                | Description                                       |
+|----------------------|---------------------|---------------------------------------------------|
+| calculated_price     | number              | The final calculated price for the variant        |
+| calculated_price_type| "sale" \| "default" | Indicates if the price is a sale or regular price |
+| original_price       | number              | The original price before any discounts           |
+
+## Region Type
+
+### Region
+A complete Region type that omits the `beforeInsert` method from the original Medusa Region type.
+
+```typescript copy
+export interface Region extends Omit<MedusaRegion, "beforeInsert"> {}
+```
+
+This type creates a Region interface that inherits all properties and methods from MedusaRegion except for the `beforeInsert` method, making it safe to use in frontend applications or contexts where the database hooks are not needed.
