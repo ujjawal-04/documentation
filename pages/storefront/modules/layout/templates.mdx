@@ -1,3 +1,147 @@
-# layout Templates
+# Layout Template
 
-This is the index page for the layout Templates folder!
+A React template component that provides the common page structure by wrapping content with consistent navigation and footer components. This template establishes the standard layout pattern used across the application.
+
+## Syntax
+
+```jsx copy
+<Layout>
+  <YourPageContent />
+</Layout>
+```
+
+## Description
+
+The Layout template creates a consistent page structure that serves as the foundation for all pages in the application. It:
+- Wraps the main content with navigation and footer components
+- Maintains consistent styling across pages
+- Provides a clean separation between content and layout concerns
+- Ensures proper positioning of the main content
+
+## Technical Details
+
+### Dependencies
+
+```javascript copy
+import React from "react"
+import Footer from "@modules/layout/templates/footer"
+import Nav from "@modules/layout/templates/nav"
+```
+
+### Props
+
+The component accepts children as its only prop:
+
+```typescript copy
+interface LayoutProps {
+  children: React.ReactNode;
+}
+```
+
+### Component Structure
+
+```javascript copy
+const Layout: React.FC<{
+  children: React.ReactNode
+}> = ({ children }) => {
+  return (
+    <div>
+      <Nav />
+      <main className="relative">{children}</main>
+      <Footer />
+    </div>
+  )
+}
+```
+
+## Layout Structure
+
+### Container
+```jsx copy
+<div>
+  <Nav />
+  <main className="relative">{children}</main>
+  <Footer />
+</div>
+```
+
+### Main Content
+```jsx copy
+<main className="relative">{children}</main>
+```
+
+## Styling
+
+The component uses minimal styling with the following key features:
+
+### Main Content
+- Relative positioning (`relative`) to allow absolute positioning of child elements
+- No specific padding or margin, allowing content components to define their own spacing
+- Wrapped in a semantic `<main>` tag for accessibility
+
+### Container
+- Simple div wrapper without specific styling
+- Natural flow layout without additional positioning
+- Relies on Nav and Footer components for their own styling
+
+## Examples
+
+### Basic Usage in Pages
+```jsx copy
+import Layout from "@modules/layout/templates/layout"
+
+export default function HomePage() {
+  return (
+    <Layout>
+      <div className="container mx-auto py-8">
+        <h1 className="text-2xl font-bold">Welcome to our store</h1>
+        <p>Browse our products and find what you need.</p>
+      </div>
+    </Layout>
+  )
+}
+```
+
+### With Page-Specific Styling
+```jsx copy
+import Layout from "@modules/layout/templates/layout"
+
+export default function ProductPage() {
+  return (
+    <Layout>
+      <div className="bg-gray-50 min-h-screen">
+        <div className="container mx-auto py-12">
+          <h1 className="text-3xl font-bold mb-8">Product Details</h1>
+          {/* Product content */}
+        </div>
+      </div>
+    </Layout>
+  )
+}
+```
+
+## Technical Considerations
+
+- Fundamental template component that establishes the application's layout structure
+- Simple wrapper template with no state management
+- Relies on Nav and Footer components for header and footer functionality
+- Uses TypeScript for type safety
+- Provides a consistent structure across all pages
+- Main content is placed in a semantic `<main>` element
+- Relative positioning allows for absolute positioning within page content
+
+## Accessibility
+
+- Uses semantic HTML structure with `<main>` element
+- Properly segregates navigation and footer from main content
+- Follows a logical document structure
+- Creates a consistent interface pattern across the site
+- Allows page content to be properly focused
+
+## Browser Support
+
+Requires browsers with support for:
+- Modern JavaScript (ES6+)
+- React
+- CSS position: relative
+- Depends on Nav and Footer components' browser compatibility

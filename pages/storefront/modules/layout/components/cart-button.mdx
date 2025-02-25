@@ -1,132 +1,97 @@
-# Address Select
+# Cart Button
 
-The `Address Select` component creates a dropdown list for selecting shipping addresses. It uses the Headless UI Listbox component to create an accessible address selection interface with a custom design.
+A server-side React component that asynchronously retrieves the cart data and conditionally renders a CartDropdown component based on cart availability.
 
-## Overview
+## Syntax
 
-The `Address Select` component allows users to select from a list of previously saved addresses. It displays address details in a dropdown format and supports keyboard navigation and screen readers.
+```jsx copy
+<CartButton />
+```
 
-## Props
+## Description
 
-The component accepts the following props:
+The Cart Button component is a server component that:
+- Asynchronously fetches cart data using the retrieveCart function
+- Passes the retrieved cart data to the CartDropdown component
+- Handles error cases by providing a null cart to CartDropdown when retrieval fails
 
-### addresses
-- Type: `HttpTypes.StoreCustomerAddress[]`
-- Required: Yes
-- Description: An array of address objects containing customer address information.
+## Technical Details
 
-### addressInput
-- Type: `HttpTypes.StoreCartAddress | null`
-- Required: Yes
-- Description: The currently selected address in the cart, or null if no address is selected.
+### Dependencies
 
-### onSelect
-- Type: `(address: HttpTypes.StoreCartAddress | undefined, email?: string) => void`
-- Required: Yes
-- Description: Callback function that is called when a new address is selected.
+```javascript copy
+import { retrieveCart } from "@lib/data/cart"
+import CartDropdown from "../cart-dropdown"
+```
 
-## Address Object Structure
+### Data Fetching
 
-Each address object in the `addresses` array should contain the following properties:
+The component uses an asynchronous function to fetch cart data:
 
-```typescript copy
-{
-  id: string
-  first_name: string
-  last_name: string
-  company?: string
-  address_1: string
-  address_2?: string
-  city: string
-  postal_code: string
-  province?: string
-  country_code: string
+```javascript copy
+const cart = await retrieveCart().catch(() => null)
+```
+
+### Conditional Rendering
+
+The component conditionally renders the CartDropdown based on cart availability:
+
+```javascript copy
+if (!cart) {
+  return <CartDropdown cart={null} />
+}
+
+return <CartDropdown cart={cart} />
+```
+
+## Layout Structure
+
+### Component Structure
+```jsx copy
+export default async function CartButton() {
+  const cart = await retrieveCart().catch(() => null)
+  
+  if (!cart) {
+    return <CartDropdown cart={null} />
+  }
+  
+  return <CartDropdown cart={cart} />
 }
 ```
 
 ## Examples
 
 ### Basic Usage
-
 ```jsx copy
-import AddressSelect from "@modules/common/components/address-select"
+import CartButton from "./CartButton"
 
-function ShippingForm() {
-  const addresses = [
-    {
-      id: "addr_1",
-      first_name: "John",
-      last_name: "Doe",
-      address_1: "123 Main St",
-      city: "Boston",
-      postal_code: "02101",
-      country_code: "US"
-    }
-  ]
-
-  const handleAddressSelect = (address) => {
-    // Handle address selection
-    console.log("Selected address:", address)
-  }
-
+export default function Header() {
   return (
-    <AddressSelect
-      addresses={addresses}
-      addressInput={null}
-      onSelect={handleAddressSelect}
-    />
+    <header>
+      <nav>
+        {/* Other navigation items */}
+        <CartButton />
+      </nav>
+    </header>
   )
 }
 ```
 
-## Features
+### Related Components
 
-- Accessible dropdown menu using Headless UI
-- Keyboard navigation support
-- Visual feedback for selected address
-- Optional company name display
-- Formatted address display including:
-  - Full name
-  - Street address (with optional second line)
-  - City and postal code
-  - Province (if provided)
-  - Country code
+This component works with:
+- `CartDropdown` - Renders the cart UI with the provided cart data
+- `retrieveCart` - Utility function for fetching cart data
 
-## Styling
+## Technical Considerations
 
-The component uses Tailwind CSS classes for styling and includes:
-
-- Hover states for address options
-- Focus states for keyboard navigation
-- Custom radio button indicators
-- Transition animations for dropdown
-
-## Dependencies
-
-- @headlessui/react: For accessible dropdown functionality
-- @medusajs/icons: For chevron icons
-- @medusajs/ui: For utility functions
-- @medusajs/types: For TypeScript types
-
-## Accessibility
-
-The component implements several accessibility features:
-
-- ARIA attributes via Headless UI
-- Keyboard navigation support
-- Focus management
-- Screen reader announcements for selection changes
+- This is a Server Component that uses async/await
+- Error handling is implemented via catch() to prevent rendering failures
+- The CartDropdown component must accept a null cart prop and handle that case appropriately
 
 ## Browser Support
 
-This component relies on modern JavaScript features and React. It should work in all modern browsers that support:
-
-- CSS Grid
-- CSS Flexbox
-- CSS Transitions
+Requires browsers with support for:
+- React Server Components
 - Modern JavaScript (ES6+)
-
-## See Also
-
-- [Headless UI Listbox Documentation](https://headlessui.dev/react/listbox)
-- [Medusa UI Documentation](https://docs.medusajs.com/ui)
+- Fetch API or equivalent

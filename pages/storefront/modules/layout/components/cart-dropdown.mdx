@@ -1,228 +1,302 @@
-# Addresses
+# Cart Dropdown
 
-The `Addresses` component is a client-side React component that handles shipping and billing address management in a checkout flow. It provides functionality for displaying, editing, and managing both shipping and billing addresses.
+A client-side React component that displays an interactive cart dropdown with detailed product information, quantity controls, free shipping progress indicators, and checkout options.
 
-## Overview
+## Syntax
 
-```typescript copy
-// @ts-nocheck
-"use client"
-
-import { setAddresses } from "@lib/data/cart"
-import compareAddresses from "@lib/util/compare-addresses"
-import { CheckCircleSolid } from "@medusajs/icons"
-import { HttpTypes } from "@medusajs/types"
-import { Heading, Text, useToggleState } from "@medusajs/ui"
-import Divider from "@modules/common/components/divider"
-import Spinner from "@modules/common/icons/spinner"
-import { usePathname, useRouter, useSearchParams } from "next/navigation"
-import { useActionState } from "react"
-import BillingAddress from "../billing_address"
-import ErrorMessage from "../error-message"
-import ShippingAddress from "../shipping-address"
-import { SubmitButton } from "../submit-button"
+```jsx copy
+<CartDropdown cart={cartData} />
 ```
 
-## Props
+## Description
 
-The component accepts the following props:
+The Cart Dropdown component creates a slide-out cart panel that:
+- Displays a responsive cart interface with product details
+- Shows cart item count and manages cart open/close state
+- Displays shipping incentives and free gift thresholds
+- Provides quantity adjustment controls
+- Offers direct checkout access
+- Disables body scrolling when open
+
+## Technical Details
+
+### Dependencies
+
+```javascript copy
+import React, { useState, useEffect } from 'react';
+import { Cart } from "@medusajs/medusa";
+import { Button } from "@medusajs/ui";
+import { usePathname } from "next/navigation";
+import { X, ChevronDown } from "lucide-react";
+import { formatAmount } from "@lib/util/prices";
+import DeleteButton from "@modules/common/components/delete-button";
+import LocalizedClientLink from "@modules/common/components/localized-client-link";
+import Thumbnail from "@modules/products/components/thumbnail";
+import { updateLineItem } from "@lib/data/cart";
+import ProductStripPreview from "@modules/products/components/product-strip-preview";
+import { useCart } from 'context/cartContext';
+```
+
+### Props
+
+The component accepts a cart object with the following structure:
 
 ```typescript copy
-type AddressesProps = {
-  cart: HttpTypes.StoreCart | null
-  customer: HttpTypes.StoreCustomer | null
+interface CartDropdownProps {
+  cart?: Omit<Cart, "beforeInsert" | "afterLoad"> | null;
 }
 ```
 
-### cart
-- Type: `HttpTypes.StoreCart | null`
-- Required: Yes
-- Description: The current cart object containing shipping and billing address information.
+### State Management
 
-### customer
-- Type: `HttpTypes.StoreCustomer | null`
-- Required: Yes
-- Description: The current customer object containing customer information.
+The component uses several state hooks to manage the UI:
 
-## Component Structure
-
-```typescript copy
-const Addresses = ({
-  cart,
-  customer,
-}: {
-  cart: HttpTypes.StoreCart | null
-  customer: HttpTypes.StoreCustomer | null
-}) => {
-  // Component implementation
-}
+```javascript copy
+const { isCartOpen, setIsCartOpen } = useCart(); // From context
+const [showTotalDetails, setShowTotalDetails] = useState(false);
+const [hasMounted, setHasMounted] = useState(false);
 ```
 
-## State Management
+### Client-Side Hydration
 
-The component uses several state management hooks:
+To prevent hydration mismatches, the component:
 
-```typescript copy
-const searchParams = useSearchParams()
-const router = useRouter()
-const pathname = usePathname()
+```javascript copy
+// Prevent hydration mismatch by waiting until after mounting
+useEffect(() => {
+  setHasMounted(true);
+}, []);
 
-const isOpen = searchParams.get("step") === "address"
+// Return null until the component has mounted on the client
+if (!hasMounted) return null;
+```
 
-const { state: sameAsBilling, toggle: toggleSameAsBilling } = useToggleState(
-  cart?.shipping_address && cart?.billing_address
-    ? compareAddresses(cart?.shipping_address, cart?.billing_address)
-    : true
-)
+### Body Scroll Management
 
-const { state: termsCheck, toggle: toggleTermsCheck } = useToggleState(false)
+The component disables body scrolling when the cart is open:
 
-const [message, formAction] = useActionState(setAddresses, null)
+```javascript copy
+useEffect(() => {
+  if (isCartOpen) {
+    document.body.style.overflow = "hidden";
+  } else {
+    document.body.style.overflow = "unset";
+  }
+  return () => {
+    document.body.style.overflow = "unset";
+  };
+}, [isCartOpen]);
 ```
 
 ## Features
 
-### Address Editing
-```typescript copy
-const handleEdit = () => {
-  router.push(pathname + "?step=address")
-}
+### Cart Counter Badge
+
+Displays the total number of items in the cart:
+
+```jsx copy
+{totalItems > 0 && (
+  <span className="flex z-10 absolute box-border rounded-full whitespace-nowrap place-content-center origin-center items-center 
+    select-none font-regular scale-100 opacity-100 subpixel-antialiased px-0 border-2 border-background 
+    w-5 h-5 min-w-5 min-h-5 top-[5%] right-[5%] translate-x-1/2 -translate-y-1/2 
+    bg-[#008080] text-[14px] text-white">
+    {totalItems}
+  </span>
+)}
 ```
 
-### Form Structure
-```typescript copy
-<form action={formAction}>
-  <div className="pb-8">
-    <ShippingAddress
-      customer={customer}
-      checked={sameAsBilling}
-      terms={termsCheck}
-      toggleTerms={toggleTermsCheck}
-      onChange={toggleSameAsBilling}
-      cart={cart}
-    />
-    {/* Billing address section */}
-  </div>
-</form>
-```
+### Shipping Threshold Indicators
 
-### Address Display
-When not in edit mode, addresses are displayed in a three-column layout:
-```typescript copy
-<div className="flex items-start gap-x-8">
-  <div className="flex items-start gap-x-1 w-full">
-    <div className="flex flex-col w-1/3" data-testid="shipping-address-summary">
-      {/* Shipping address display */}
-    </div>
-    <div className="flex flex-col w-1/3" data-testid="shipping-contact-summary">
-      {/* Contact information display */}
-    </div>
-    <div className="flex flex-col w-1/3" data-testid="billing-address-summary">
-      {/* Billing address display */}
-    </div>
-  </div>
+Visualizes progress toward free shipping and gift thresholds:
+
+```jsx copy
+<div className="h-2 w-full overflow-hidden rounded-lg bg-[#C4C4C4]">
+  <div
+    className="h-full bg-[#008080]"
+    style={{ width: `${Math.min((currentAmount / 200) * 100, 100)}%` }}
+  />
 </div>
 ```
 
-## Usage Example
+### Quantity Selector
+
+Allows users to adjust item quantities:
 
 ```jsx copy
-import Addresses from "@modules/checkout/components/addresses"
-
-function CheckoutPage() {
-  const cart = {
-    shipping_address: {
-      first_name: "John",
-      last_name: "Doe",
-      address_1: "123 Main St",
-      city: "Boston",
-      postal_code: "02101",
-      country_code: "US",
-      phone: "+1234567890"
-    },
-    billing_address: {/* ... */},
-    email: "john@example.com"
+<select
+  value={item.quantity}
+  onChange={(e) =>
+    updateLineItem({
+      lineId: item.id,
+      quantity: parseInt(e.target.value, 10),
+    })
   }
+  className="w-full appearance-none rounded-lg bg-[#F4F4F5] px-3 py-2 text-sm cursor-pointer no-scrollbar hover:bg-[#F9F9FA] pr-10"
+>
+  {[...Array(49)].map((_, i) => (
+    <option key={i + 1} value={i + 1}>
+      {i + 1}
+    </option>
+  ))}
+</select>
+```
 
-  const customer = {
-    // Customer details
-  }
+### Tiered Pricing Display
 
+Shows volume discount information:
+
+```jsx copy
+<ul className="list-inside list-disc rounded-lg bg-[#F5F6F8] p-2 lg:p-4 mx-[12px] sm:mx-[24px]">
+  <li className={`text-[#52525B] lg:text-base text-xs ${item.quantity >= 3 ? 'line-through' : ''}`}>
+    Buy <span className="font-bold"> 3 +</span>and get<span className="font-bold"> 5% </span>OFF!
+  </li>
+  {/* Additional tiers... */}
+</ul>
+```
+
+### Free Gift Display
+
+Automatically displays free gifts based on order value:
+
+```jsx copy
+{(cartState.subtotal || 0) >= 400 && (() => {
+  // Calculate the free gift quantity based on the subtotal in €.
+  const freeGiftQty = Math.floor(cartState.subtotal / 400);
   return (
-    <Addresses 
-      cart={cart}
-      customer={customer}
-    />
-  )
-}
+    <div className="flex items-start gap-x-4 px-[12px] py-4 sm:gap-x-4 sm:px-[24px]">
+      {/* Gift item details... */}
+    </div>
+  );
+})()}
+```
+
+## Layout Structure
+
+### Trigger Button
+```jsx copy
+<button 
+  onClick={() => setIsCartOpen(!isCartOpen)} 
+  className="relative flex items-center gap-2"
+>
+  {/* Cart Icon with Badge */}
+</button>
+```
+
+### Overlay
+```jsx copy
+<div 
+  className={`fixed inset-0 bg-black transition-opacity duration-300 ${
+    isCartOpen ? 'opacity-50 visible z-[999]' : 'opacity-0 invisible'
+  }`} 
+  onClick={() => setIsCartOpen(false)} 
+/>
+```
+
+### Slide-out Panel
+```jsx copy
+<div className={`fixed top-0 right-0 h-full w-full sm:w-[36vw] sm:min-w-[480px] max-w-[600px] bg-white shadow-xl transform transition-transform duration-300 ease-in-out z-[9999] ${
+  isCartOpen ? 'translate-x-0' : 'translate-x-full'
+}`}>
+  {/* Panel content */}
+</div>
+```
+
+## Animations
+
+### Panel Slide Animation
+```css copy
+transform transition-transform duration-300 ease-in-out
+```
+
+### Panel Entrance/Exit
+```jsx copy
+${isCartOpen ? 'translate-x-0' : 'translate-x-full'}
+```
+
+### Overlay Fade
+```jsx copy
+transition-opacity duration-300 ${isCartOpen ? 'opacity-50 visible' : 'opacity-0 invisible'}
+```
+
+## Empty State
+
+```jsx copy
+{(!cartState || !cartState.items || cartState.items.length === 0) ? (
+  <div className="px-[12px] py-[30px] sm:px-[24px]">
+    <div className=" text-[#11181C] ">
+      <p className="w-[350px] h-[24px] text-base sm:text-lg">
+        You have no items in your shopping cart.
+      </p>
+      <LocalizedClientLink
+        className="w-[228px] h-[21px] text-sm sm:text-base underline underline-offset-4 text-center mt-2"
+        href="/store"
+      >
+        Click here to continue shopping.
+      </LocalizedClientLink>
+    </div>
+  </div>
+) : (
+  /* Cart content */
+)}
 ```
 
 ## Styling
 
-The component uses Tailwind CSS for styling with custom classes:
+The component uses Tailwind CSS for styling with the following key features:
 
-- Background: `bg-white`
-- Button colors: `bg-[#008080]`, `hover:bg-[#3c9696]`
-- Text styles: `text-3xl-regular`, `txt-medium`, `txt-medium-plus`
-- Layout: Flexbox and width utilities (`w-1/3`, `gap-x-8`, etc.)
+### Responsive Design
+- Full-width panel on mobile, fixed width on larger screens
+- Adaptive padding and font sizes
+- Stack layout on small screens, more spacious on larger screens
 
-## Testing
+### Interactive Elements
+- Hover states on buttons and selectors
+- Animated transitions for panel slide and overlay
+- Visual feedback for quantity changes
 
-The component includes several data-testid attributes for testing:
+### Color Scheme
+- Primary color: #008080 (teal)
+- Background colors: white, #F3F4F6 (light gray)
+- Text colors: #181E22 (dark gray), #5A5A62 (medium gray)
 
-```typescript copy
-data-testid="edit-address-button"
-data-testid="submit-address-button"
-data-testid="address-error-message"
-data-testid="shipping-address-summary"
-data-testid="shipping-contact-summary"
-data-testid="billing-address-summary"
+## Examples
+
+### Basic Usage
+```jsx copy
+import CartDropdown from "./CartDropdown";
+import { useCart } from 'context/cartContext';
+
+export default function Header() {
+  const cart = useCart();
+  
+  return (
+    <header>
+      <CartDropdown cart={cart} />
+    </header>
+  );
+}
 ```
 
-## Dependencies
+## Technical Considerations
 
-- @medusajs/ui: UI components and hooks
-- @medusajs/icons: Icon components
-- @medusajs/types: TypeScript types
-- next/navigation: Next.js routing utilities
-- React hooks and components
-
-## State and Navigation
-
-The component manages several states:
-- Edit mode through URL parameters (`?step=address`)
-- Same billing/shipping address toggle
-- Terms acceptance
-- Form submission state
-- Error messages
+- This is a Client Component (uses 'use client' directive)
+- Requires CartContext for state management
+- Handles hydration mismatches via hasMounted state
+- Manages body overflow to prevent background scrolling
+- Responsive design with different layouts for mobile/desktop
 
 ## Accessibility
 
-- Semantic HTML structure
-- ARIA attributes through Medusa UI components
-- Clear error messaging
-- Proper heading hierarchy
+- Implements proper keyboard navigation
+- Manages focus when opening/closing
+- Uses semantic HTML
+- Maintains appropriate contrast ratios
+- Provides text alternatives for icons
 
-## Loading States
+## Browser Support
 
-The component shows a spinner when cart data is loading:
-```typescript copy
-{!cart && (
-  <div>
-    <Spinner />
-  </div>
-)}
-```
-
-## Error Handling
-
-Errors are displayed using the ErrorMessage component:
-```typescript copy
-<ErrorMessage error={message} data-testid="address-error-message" />
-```
-
-## See Also
-
-- [Medusa Documentation](https://docs.medusajs.com)
-- [Next.js Navigation](https://nextjs.org/docs/app/api-reference/functions/use-router)
-- [Tailwind CSS](https://tailwindcss.com/docs)
+Requires browsers with support for:
+- Modern JavaScript (ES6+)
+- React Hooks
+- CSS Transitions and Transforms
+- Flexbox and Grid layouts

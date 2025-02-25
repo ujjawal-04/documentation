@@ -1,244 +1,141 @@
-# Discount Code
+# Medusa CTA
 
-The `Discount Code` component is a client-side React component that handles the application and display of promotion codes in a shopping cart. It provides functionality for adding and removing discount codes and displaying active promotions.
+A React component that displays a horizontal list of legal policy links, typically used in a footer or important information section.
 
-## Overview
-
-```typescript copy
-"use client"
-
-import { Badge, Heading, Input, Label, Text, Tooltip } from "@medusajs/ui"
-import React, { useActionState } from "react"
-import { applyPromotions, submitPromotionForm } from "@lib/data/cart"
-import { convertToLocale } from "@lib/util/money"
-import { InformationCircleSolid } from "@medusajs/icons"
-import { HttpTypes } from "@medusajs/types"
-import Trash from "@modules/common/icons/trash"
-```
-
-## Props
-
-```typescript copy
-type DiscountCodeProps = {
-  cart: HttpTypes.StoreCart & {
-    promotions: HttpTypes.StorePromotion[]
-  }
-}
-```
-
-### cart
-- Type: `HttpTypes.StoreCart & { promotions: HttpTypes.StorePromotion[] }`
-- Required: Yes
-- Description: Cart object containing items and active promotions.
-
-## State Management
-
-The component uses React's useState and useActionState hooks:
-
-```typescript copy
-const [isOpen, setIsOpen] = React.useState(false)
-const [message, formAction] = useActionState(submitPromotionForm, null)
-```
-
-## Core Functions
-
-### Remove Promotion Code
-```typescript copy
-const removePromotionCode = async (code: string) => {
-  const validPromotions = promotions.filter(
-    (promotion) => promotion.code !== code
-  )
-
-  await applyPromotions(
-    validPromotions.filter((p) => p.code === undefined).map((p) => p.code!)
-  )
-}
-```
-
-### Add Promotion Code
-```typescript copy
-const addPromotionCode = async (formData: FormData) => {
-  const code = formData.get("code")
-  if (!code) {
-    return
-  }
-  const input = document.getElementById("promotion-input") as HTMLInputElement
-  const codes = promotions
-    .filter((p) => p.code === undefined)
-    .map((p) => p.code!)
-  codes.push(code.toString())
-
-  await applyPromotions(codes)
-
-  if (input) {
-    input.value = ""
-  }
-}
-```
-
-## Component Structure
-
-### Discount Input Form
-```typescript copy
-<form action={(a) => addPromotionCode(a)} className="w-full mb-5">
-  <Label className="flex gap-x-1 my-2 items-center">
-    <button
-      onClick={() => setIsOpen(!isOpen)}
-      type="button"
-      className="txt-medium text-ui-fg-interactive hover:text-ui-fg-interactive-hover"
-      data-testid="add-discount-button"
-    >
-      Add gift card or discount code
-    </button>
-  </Label>
-
-  {isOpen && (
-    <>
-      <div className="flex w-full gap-x-2">
-        <Input
-          placeholder="Please enter code"
-          className="size-full"
-          id="promotion-input"
-          name="code"
-          type="text"
-          autoFocus={true}
-          data-testid="discount-input"
-        />
-        <SubmitButton
-          variant="secondary"
-          className="bg-gray-300 rounded-xl font-semibold"
-          data-testid="discount-apply-button"
-        >
-          Apply
-        </SubmitButton>
-      </div>
-      <ErrorMessage
-        error={message}
-        data-testid="discount-error-message"
-      />
-    </>
-  )}
-</form>
-```
-
-### Active Promotions Display
-```typescript copy
-{promotions.length > 0 && (
-  <div className="w-full flex items-center">
-    <div className="flex flex-col w-full">
-      <Heading className="txt-medium mb-2">
-        Promotion(s) applied:
-      </Heading>
-      {promotions.map((promotion) => (
-        <div
-          key={promotion.id}
-          className="flex items-center justify-between w-full max-w-full mb-2"
-          data-testid="discount-row"
-        >
-          {/* Promotion details */}
-        </div>
-      ))}
-    </div>
-  </div>
-)}
-```
-
-## Usage Example
+## Syntax
 
 ```jsx copy
-import DiscountCode from "@modules/checkout/components/discount-code"
+<MedusaCTA />
+```
 
-function CheckoutPage() {
-  const cart = {
-    items: [],
-    promotions: [
-      {
-        id: "promo_1",
-        code: "SUMMER10",
-        is_automatic: false,
-        application_method: {
-          type: "percentage",
-          value: 10,
-          currency_code: "USD"
-        }
-      }
-    ]
-  }
+## Description
 
+The Medusa CTA component creates a simple, responsive layout for essential policy links. It:
+- Displays three important legal links (Shipping & Returns, Terms & Conditions, Privacy Policy)
+- Uses a consistent, accessible text style
+- Adjusts text size and spacing based on screen size
+- Maintains equal spacing between links
+- Centers the links horizontally
+
+## Technical Details
+
+### Dependencies
+
+```javascript copy
+import { Text } from "@medusajs/ui"
+```
+
+### Component Structure
+
+The component is a simple functional component with no props:
+
+```javascript copy
+const MedusaCTA = () => {
   return (
-    <DiscountCode cart={cart} />
+    // Component content
   )
 }
+```
+
+## Layout Structure
+
+### Container
+```jsx copy
+<Text className="flex w-full flex-row items-center justify-center gap-2 py-2 md:gap-4">
+  {/* Link elements */}
+</Text>
+```
+
+### Link Elements
+```jsx copy
+<a href="/shipping-and-returns" rel="noreferrer" className="text-sm text-gray-600 md:text-base">
+  Shipping & Returns
+</a>
+<a href="/terms-and-conditions" rel="noreferrer" className="text-sm text-gray-600 md:text-base">
+  Terms & Conditions
+</a>
+<a href="/privacy-policy" rel="noreferrer" className="text-sm text-gray-600 md:text-base">
+  Privacy Policy
+</a>
 ```
 
 ## Styling
 
-The component uses Tailwind CSS for styling:
-- Layout: `w-full`, `flex`, `flex-col`
-- Spacing: `gap-x-1`, `gap-x-2`, `mb-2`, `mb-5`
-- Colors: `bg-white`, `bg-gray-300`
-- Typography: `txt-medium`, `txt-small-plus`
-- Interactions: `hover:text-ui-fg-interactive-hover`
+The component uses Tailwind CSS for styling with the following key features:
 
-## Testing
+### Responsive Design
+- Smaller text on mobile devices (`text-sm`)
+- Larger text on medium screens and up (`md:text-base`)
+- Smaller gap between links on mobile (`gap-2`)
+- Larger gap between links on medium screens and up (`md:gap-4`)
 
-The component includes data-testid attributes for testing:
-```typescript copy
-data-testid="add-discount-button"
-data-testid="discount-input"
-data-testid="discount-apply-button"
-data-testid="discount-error-message"
-data-testid="discount-row"
-data-testid="discount-code"
-data-testid="remove-discount-button"
+### Layout
+- Flex container with row direction (`flex flex-row`)
+- Full width container (`w-full`)
+- Centered content horizontally (`justify-center`)
+- Vertically aligned items (`items-center`)
+- Consistent vertical padding (`py-2`)
+
+### Typography
+- Muted text color for links (`text-gray-600`)
+- Consistent font size based on screen size
+- Uses the Text component from Medusa UI for typography consistency
+
+## Examples
+
+### Basic Usage
+```jsx copy
+import MedusaCTA from "./MedusaCTA"
+
+export default function Footer() {
+  return (
+    <footer>
+      <div className="container mx-auto">
+        {/* Other footer content */}
+        <MedusaCTA />
+      </div>
+    </footer>
+  )
+}
 ```
 
-## Dependencies
+### With Additional Styling
+```jsx copy
+import MedusaCTA from "./MedusaCTA"
 
-- @medusajs/ui: UI components (Badge, Heading, Input, Label, Text, Tooltip)
-- @medusajs/icons: Icon components
-- @medusajs/types: TypeScript types
-- @lib/data/cart: Cart utility functions
-- @lib/util/money: Currency conversion utilities
-- React hooks (useState, useActionState)
+export default function Footer() {
+  return (
+    <footer className="bg-gray-100 py-8">
+      <div className="container mx-auto">
+        {/* Other footer content */}
+        <div className="border-t pt-4">
+          <MedusaCTA />
+        </div>
+      </div>
+    </footer>
+  )
+}
+```
 
-## Features
+## Technical Considerations
 
-1. Add promotion codes
-2. Remove non-automatic promotion codes
-3. Display active promotions
-4. Show promotion values (percentage or fixed amount)
-5. Handle automatic promotions
-6. Form validation and error handling
-7. Responsive design
-
-## Error Handling
-
-- Form validation for empty codes
-- Error message display through ErrorMessage component
-- Input field clearing after submission
-- Proper error state management
+- Simple component with no props or state management
+- Uses Medusa UI's Text component for consistent typography
+- Links use `rel="noreferrer"` for security and privacy
+- Hard-coded URLs assume specific routes exist in the application
+- Links open in the same window/tab (no `target="_blank"`)
 
 ## Accessibility
 
-- Proper button and input labeling
-- Screen reader support with sr-only text
-- Keyboard navigation support
-- Focus management
-- ARIA attributes through UI components
+- Uses semantic HTML with proper anchor (`<a>`) elements
+- Maintains sufficient color contrast for readability
+- Provides adequate spacing between clickable elements
+- Scales appropriately with text size changes
+- Consistent with platform navigation patterns
 
-## Best Practices
+## Browser Support
 
-1. Clear user feedback for actions
-2. Proper form handling
-3. Type safety with TypeScript
-4. Separation of concerns
-5. Responsive design
-6. Error handling
-7. Accessibility compliance
-
-## See Also
-
-- [Medusa Documentation](https://docs.medusajs.com)
-- [React Forms Documentation](https://react.dev/reference/react-dom/components/input)
-- [Tailwind CSS Documentation](https://tailwindcss.com/docs)
+Requires browsers with support for:
+- Modern JavaScript (ES6+)
+- CSS Flexbox
+- Media queries for responsive design

@@ -1,202 +1,236 @@
-# Checkout Form 
+# Nav
 
-An asynchronous server component that orchestrates the complete checkout process, managing shipping methods, payment options, and customer information.
+A server-side React component that renders a responsive navigation header with a free shipping banner, brand logo, navigation links, and utility icons.
 
-## Props
+## Syntax
 
-| Prop | Type | Required | Description |
-|------|------|----------|-------------|
-| cart | HttpTypes.StoreCart \| null | Yes | The current cart object containing items and checkout information |
-| customer | HttpTypes.StoreCustomer \| null | Yes | Customer information if available |
+```jsx copy
+<Nav />
+```
 
-## Component Structure
+## Description
 
-The CheckoutForm coordinates four main checkout steps:
+The Nav component creates a complete navigation interface that:
+- Displays a promotional free shipping banner
+- Provides a sticky header that remains visible when scrolling
+- Shows appropriate navigation options based on screen size
+- Includes a side menu for mobile navigation
+- Offers quick access to search, account, and cart functionality
+- Integrates with region settings for localized navigation
+- Handles component suspense for async data loading
 
-1. Address Collection (`Addresses`)
-2. Shipping Method Selection (`Shipping`)
-3. Payment Method Selection (`Payment`)
-4. Order Review (`Review` - currently commented out)
+## Technical Details
 
-## Usage
+### Dependencies
 
-```tsx copy
-import CheckoutForm from "./components/CheckoutForm"
+```javascript copy
+import { Suspense } from "react";
+import { listRegions } from "@lib/data/regions";
+import { StoreRegion } from "@medusajs/types";
+import LocalizedClientLink from "@modules/common/components/localized-client-link";
+import CartButton from "@modules/layout/components/cart-button";
+import SideMenu from "@modules/layout/components/side-menu";
+import { Search, User } from "lucide-react";
+import Image from "next/image";
+```
 
-const CheckoutPage = async () => {
-  const cart = await fetchCart()
-  const customer = await fetchCustomer()
+### Data Fetching
 
+The component fetches region data using a server action:
+
+```javascript copy
+const regions = await listRegions().then((regions: StoreRegion[]) => regions);
+```
+
+### Feature Flags
+
+The component uses environment variables to conditionally render features:
+
+```javascript copy
+{process.env.NEXT_PUBLIC_FEATURE_SEARCH_ENABLED && (
+  <LocalizedClientLink
+    className="hover:text-ui-fg-base flex items-center"
+    href="/search"
+    scroll={false}
+    data-testid="nav-search-link"
+  >
+    <Search size={20} />
+    <span className="hidden sm:inline ml-2">Search</span>
+  </LocalizedClientLink>
+)}
+```
+
+## Layout Structure
+
+### Container Structure
+```jsx copy
+<>
+  {/* Free Shipping Banner */}
+  {/* Sticky Navbar */}
+</>
+```
+
+### Free Shipping Banner
+```jsx copy
+<div className="bg-gradient-to-r from-blue-50 to-blue-100 text-center text-sm py-3 flex font-medium items-center justify-center gap-x-2">
+  <Image src="/delivery.png" alt="Delivery" width={20} height={20} />
+  Free US shipping for orders above $200
+</div>
+```
+
+### Sticky Header
+```jsx copy
+<header className="sticky top-0 z-30 h-16 mx-auto border-b bg-white border-gray-200 flex items-center justify-between px-6">
+  {/* Left Side - Logo and Navigation */}
+  {/* Right Side - Utility Icons */}
+</header>
+```
+
+### Left Side - Logo and Navigation
+```jsx copy
+<div className="flex items-center h-full">
+  {/* Side Menu for mobile/tablet */}
+  <div className="block xl:hidden">
+    <SideMenu regions={regions} />
+  </div>
+  
+  {/* Logo/Brand */}
+  <LocalizedClientLink href="/" className="text-lg font-bold flex items-center">
+    <p className="text-4xl ml-6 mr-8 text-[#008080]">RUO</p>
+  </LocalizedClientLink>
+  
+  {/* Desktop navigation links */}
+  <nav className="hidden lg:flex gap-x-6 text-gray-700">
+    <LocalizedClientLink href="/store" className="hover:opacity-50">
+      Buy Peptides
+    </LocalizedClientLink>
+    <LocalizedClientLink href="/contact" className="hover:opacity-50">
+      Contact
+    </LocalizedClientLink>
+    <LocalizedClientLink href="/why-us" className="hover:opacity-50">
+      Why Us
+    </LocalizedClientLink>
+  </nav>
+</div>
+```
+
+### Right Side - Utility Icons
+```jsx copy
+<div className="flex items-center gap-x-4">
+  {/* Conditional Search Link */}
+  {/* Account/Login Link */}
+  <LocalizedClientLink href="/account" className="hover:opacity-50 hidden sm:inline">
+    <span className="flex items-center">
+      <User size={20} />
+      <span className="ml-2">Log in</span>
+    </span>
+  </LocalizedClientLink>
+  
+  {/* Cart with Suspense */}
+  <Suspense>
+    <span className="flex items-center gap-x-2">
+      <CartButton />
+      <span className="hidden sm:inline">Cart</span>
+    </span>
+  </Suspense>
+</div>
+```
+
+## Styling
+
+The component uses Tailwind CSS for styling with the following key features:
+
+### Header Container
+- Sticky positioning (`sticky top-0`)
+- High z-index for overlay behavior (`z-30`)
+- Fixed height (`h-16`)
+- White background (`bg-white`)
+- Bottom border for visual separation (`border-b border-gray-200`)
+- Horizontal padding for content spacing (`px-6`)
+- Flexbox for layout with space between (`flex items-center justify-between`)
+
+### Banner
+- Gradient background for visual interest (`bg-gradient-to-r from-blue-50 to-blue-100`)
+- Center alignment (`text-center`, `flex justify-center items-center`)
+- Appropriate text size (`text-sm`)
+- Medium font weight (`font-medium`)
+- Vertical padding (`py-3`)
+- Gap between icon and text (`gap-x-2`)
+
+### Navigation Elements
+- Responsive visibility (`hidden lg:flex`, `block xl:hidden`)
+- Consistent spacing (`gap-x-6`, `gap-x-4`)
+- Hover states for interactive feedback (`hover:opacity-50`)
+- Text color for appropriate contrast (`text-gray-700`)
+- Icon and text alignment (`flex items-center`)
+
+### Responsive Text
+- Text shown/hidden based on screen size (`hidden sm:inline`)
+- Spacing between icon and text (`ml-2`)
+
+## Examples
+
+### Basic Usage
+```jsx copy
+import Nav from "./Nav"
+
+export default function Layout({ children }) {
   return (
-    <div className="container">
-      <CheckoutForm 
-        cart={cart}
-        customer={customer}
-      />
+    <div className="min-h-screen flex flex-col">
+      <Nav />
+      <main className="flex-grow">
+        {children}
+      </main>
+      <Footer />
     </div>
   )
 }
 ```
 
-## Data Fetching
+### With Banner Override
+```jsx copy
+import Nav from "./Nav"
+import Banner from "./Banner"
 
-The component fetches necessary data for the checkout process:
-
-```typescript copy
-// Fetch available shipping methods
-const shippingMethods = await listCartShippingMethods(cart.id)
-
-// Payment methods configuration
-const paymentMethods = [
-  { id: 'pp_stripe_stripe', is_enabled: true },
-  { id: 'pp_system_default', is_enabled: true },
-  { id: 'pp_zelle_default', is_enabled: true },
-  { id: 'pp_crypto_default', is_enabled: true },
-]
-```
-
-## Payment Methods
-
-The component supports multiple payment providers:
-
-- Stripe (`pp_stripe_stripe`)
-- System Default (`pp_system_default`)
-- Zelle (`pp_zelle_default`)
-- Cryptocurrency (`pp_crypto_default`)
-
-## Component Layout
-
-Uses a responsive grid layout:
-
-```tsx copy
-<div className="w-full grid grid-cols-1 gap-y-8">
-  <Addresses ... />
-  <Shipping ... />
-  <Payment ... />
-  {/* <Review ... /> */}
-</div>
-```
-
-## Sub-Components
-
-### Addresses Component
-Handles collection and validation of shipping and billing addresses:
-```tsx copy
-<Addresses 
-  cart={cart} 
-  customer={customer} 
-/>
-```
-
-### Shipping Component
-Manages shipping method selection:
-```tsx copy
-<Shipping 
-  cart={cart} 
-  availableShippingMethods={shippingMethods} 
-/>
-```
-
-### Payment Component
-Handles payment method selection and processing:
-```tsx copy
-<Payment 
-  cart={cart} 
-  availablePaymentMethods={paymentMethods} 
-/>
-```
-
-### Review Component (Optional)
-Final order review step (currently disabled):
-```tsx copy
-{/* <Review cart={cart} /> */}
-```
-
-## Error Handling
-
-The component implements basic error handling:
-
-- Returns null if cart is not available
-- Returns null if shipping or payment methods cannot be fetched
-- Sub-components handle their own error states
-
-## Dependencies
-
-### External Libraries
-- `@medusajs/types`: For type definitions
-- Data fetching utilities from `@lib/data`
-
-### Internal Components
-- `@modules/checkout/components/addresses`
-- `@modules/checkout/components/payment`
-- `@modules/checkout/components/review`
-- `@modules/checkout/components/shipping`
-
-## Best Practices
-
-1. Validate cart existence before processing
-2. Ensure all required methods are available
-3. Handle loading and error states appropriately
-4. Maintain proper order of checkout steps
-5. Provide clear feedback for each step
-6. Implement proper type checking
-
-## Data Flow
-
-```mermaid
-graph TD
-    A[CheckoutForm] --> B[Fetch Shipping Methods]
-    A --> C[Configure Payment Methods]
-    B --> D[Render Components]
-    C --> D
-    D --> E[Addresses]
-    D --> F[Shipping]
-    D --> G[Payment]
-    D --> H[Review]
+export default function LayoutWithCustomBanner({ children, bannerText }) {
+  return (
+    <div className="min-h-screen flex flex-col">
+      <Banner text={bannerText} />
+      <Nav />
+      <main className="flex-grow">
+        {children}
+      </main>
+      <Footer />
+    </div>
+  )
+}
 ```
 
 ## Technical Considerations
 
-### Server Component
-- Uses the `async` keyword for server-side rendering
-- Handles data fetching before component render
-- Provides data to client-side sub-components
+- This is a Server Component (no 'use client' directive)
+- Performs data fetching for regions
+- Uses Suspense for asynchronous cart data
+- Integrates with environment variables for feature flagging
+- Uses Next.js Image component for optimized image loading
+- Includes test IDs for automated testing
+- Clean commented code shows evolution of component and alternatives
 
-### Performance
-- Minimizes client-side data fetching
-- Loads payment methods configuration statically
-- Implements null checks for efficient rendering
+## Accessibility
 
-### Type Safety
-- Uses Medusa HTTP types for proper type checking
-- Implements null checks for optional props
-- Ensures type safety in sub-component props
+- Uses semantic HTML with appropriate header element
+- Provides alt text for images
+- Maintains proper focus management with interactive elements
+- Offers sufficient color contrast for readability
+- Includes proper spacing for touch targets
+- Uses clear, descriptive link text
 
-## Testing Considerations
+## Browser Support
 
-Key areas to test:
-1. Cart validation
-2. Shipping method availability
-3. Payment method configuration
-4. Component rendering with various prop combinations
-5. Error state handling
-6. Data fetching failures
-7. Sub-component integration
-
-## Customization
-
-The component can be customized by:
-1. Modifying the payment methods array
-2. Adjusting the grid layout classes
-3. Enabling/disabling the Review step
-4. Adding additional checkout steps
-5. Modifying the data fetching logic
-
-## Future Improvements
-
-Potential enhancements:
-1. Re-enable Review step with proper integration
-2. Add progress indicator for checkout steps
-3. Implement better error handling and recovery
-4. Add loading states for data fetching
-5. Enhance type safety with stricter types
+Requires browsers with support for:
+- Modern JavaScript (ES6+)
+- CSS Flexbox
+- CSS Gradients
+- CSS position: sticky
+- React Server Components
+- React Suspense

@@ -1,184 +1,290 @@
 # Country Select
 
-The `Country Select` component is a forwarded React component that creates a select dropdown for countries based on a region's available countries. It extends the native select component with region-specific functionality.
+A client-side React component that provides a dropdown selector for countries with flag icons, enabling users to change their shipping region.
 
-## Overview
+## Syntax
 
-```typescript copy
-import { forwardRef, useImperativeHandle, useMemo, useRef } from "react"
-import NativeSelect, {
-  NativeSelectProps,
-} from "@modules/common/components/native-select"
-import { HttpTypes } from "@medusajs/types"
-
-const CountrySelect = forwardRef<
-  HTMLSelectElement,
-  NativeSelectProps & {
-    region?: HttpTypes.StoreRegion
-  }
->((props, ref) => {
-  // Component implementation
-})
+```jsx copy
+<CountrySelect toggleState={toggleState} regions={regions} />
 ```
 
-## Props
+## Description
 
-The component extends `NativeSelectProps` and adds additional props:
+The Country Select component creates an interactive dropdown that:
+- Displays the currently selected country with its flag
+- Provides a list of available countries grouped by region
+- Updates the cart region when a new country is selected
+- Integrates with URL parameters for region-specific navigation
+- Includes smooth transitions for dropdown visibility
+
+## Technical Details
+
+### Dependencies
+
+```javascript copy
+import {
+  Listbox,
+  ListboxButton,
+  ListboxOption,
+  ListboxOptions,
+  Transition,
+} from "@headlessui/react"
+import { Fragment, useEffect, useMemo, useState } from "react"
+import ReactCountryFlag from "react-country-flag"
+import { StateType } from "@lib/hooks/use-toggle-state"
+import { useParams, usePathname } from "next/navigation"
+import { updateRegion } from "@lib/data/cart"
+import { HttpTypes } from "@medusajs/types"
+```
+
+### Props
+
+The component accepts two required props:
 
 ```typescript copy
-type CountrySelectProps = NativeSelectProps & {
-  region?: HttpTypes.StoreRegion
-  placeholder?: string
-  defaultValue?: string
+type CountrySelectProps = {
+  toggleState: StateType;
+  regions: HttpTypes.StoreRegion[];
 }
 ```
 
-### region
-- Type: `HttpTypes.StoreRegion`
-- Required: No
-- Description: A region object containing available countries.
+### Types
 
-### placeholder
-- Type: `string`
-- Required: No
-- Default: "Country"
-- Description: Placeholder text for the select input.
+The component uses custom types for country options:
 
-### defaultValue
-- Type: `string`
-- Required: No
-- Description: Default selected value for the select input.
-
-### Additional Props
-- Inherits all props from `NativeSelectProps`
-
-## Implementation Details
-
-### Ref Handling
 ```typescript copy
-const innerRef = useRef<HTMLSelectElement>(null)
-
-useImperativeHandle<HTMLSelectElement | null, HTMLSelectElement | null>(
-  ref,
-  () => innerRef.current
-)
+type CountryOption = {
+  country: string;  // ISO 2-letter country code
+  region: string;   // Region ID
+  label: string;    // Display name
+}
 ```
 
-### Country Options Generation
-```typescript copy
-const countryOptions = useMemo(() => {
-  if (!region) {
-    return []
-  }
+### State Management
 
-  return region.countries?.map((country) => ({
-    value: country.iso_2,
-    label: country.display_name,
-  }))
-}, [region])
+The component uses React's useState hook to track the current selection:
+
+```javascript copy
+const [current, setCurrent] = useState<
+  | { country: string | undefined; region: string; label: string | undefined }
+  | undefined
+>(undefined)
 ```
 
-### Component Structure
-```typescript copy
-return (
-  <NativeSelect
-    ref={innerRef}
-    placeholder={placeholder}
-    defaultValue={defaultValue}
-    {...props}
-  >
-    {countryOptions?.map(({ value, label }, index) => (
-      <option key={index} value={value}>
-        {label}
-      </option>
-    ))}
-  </NativeSelect>
-)
+### URL Integration
+
+The component reads and integrates with URL parameters:
+
+```javascript copy
+const { countryCode } = useParams()
+const currentPath = usePathname().split(`/${countryCode}`)[1]
 ```
 
-## Usage Example
+### Data Processing
 
+Country options are processed and sorted alphabetically:
+
+```javascript copy
+const options = useMemo(() => {
+  return regions
+    ?.map((r) => {
+      return r.countries?.map((c) => ({
+        country: c.iso_2,
+        region: r.id,
+        label: c.display_name,
+      }))
+    })
+    .flat()
+    .sort((a, b) => (a?.label ?? "").localeCompare(b?.label ?? ""))
+}, [regions])
+```
+
+### Region Updates
+
+The component handles region changes and updates the cart:
+
+```javascript copy
+const handleChange = (option: CountryOption) => {
+  updateRegion(option.country, currentPath)
+  close()
+}
+```
+
+## Layout Structure
+
+### Container
 ```jsx copy
-import CountrySelect from "@modules/common/components/country-select"
+<div>
+  <Listbox
+    as="span"
+    onChange={handleChange}
+    defaultValue={
+      countryCode
+        ? options?.find((o) => o?.country === countryCode)
+        : undefined
+    }
+  >
+    {/* Listbox content */}
+  </Listbox>
+</div>
+```
 
-function ShippingForm() {
-  const region = {
-    countries: [
-      { iso_2: "US", display_name: "United States" },
-      { iso_2: "CA", display_name: "Canada" },
-      { iso_2: "MX", display_name: "Mexico" }
-    ]
-  }
+### Current Selection
+```jsx copy
+<ListboxButton className="py-1 w-full">
+  <div className="txt-compact-small flex items-start gap-x-2">
+    <span>Shipping to:</span>
+    {current && (
+      <span className="txt-compact-small flex items-center gap-x-2">
+        <ReactCountryFlag
+          svg
+          style={{
+            width: "16px",
+            height: "16px",
+          }}
+          countryCode={current.country ?? ""}
+        />
+        {current.label}
+      </span>
+    )}
+  </div>
+</ListboxButton>
+```
 
+### Dropdown Options
+```jsx copy
+<div className="flex relative w-full min-w-[320px]">
+  <Transition
+    show={state}
+    as={Fragment}
+    leave="transition ease-in duration-150"
+    leaveFrom="opacity-100"
+    leaveTo="opacity-0"
+  >
+    <ListboxOptions
+      className="absolute -bottom-[calc(100%-36px)] left-0 xsmall:left-auto xsmall:right-0 max-h-[442px] overflow-y-scroll z-[900] bg-white drop-shadow-md text-small-regular uppercase text-black no-scrollbar rounded-rounded w-full"
+      static
+    >
+      {options?.map((o, index) => (
+        <ListboxOption
+          key={index}
+          value={o}
+          className="py-2 hover:bg-gray-200 px-3 cursor-pointer flex items-center gap-x-2"
+        >
+          <ReactCountryFlag
+            svg
+            style={{
+              width: "16px",
+              height: "16px",
+            }}
+            countryCode={o?.country ?? ""}
+          />{" "}
+          {o?.label}
+        </ListboxOption>
+      ))}
+    </ListboxOptions>
+  </Transition>
+</div>
+```
+
+## Animations
+
+### Dropdown Transition
+```jsx copy
+<Transition
+  show={state}
+  as={Fragment}
+  leave="transition ease-in duration-150"
+  leaveFrom="opacity-100"
+  leaveTo="opacity-0"
+>
+```
+
+## Styling
+
+The component uses Tailwind CSS for styling with the following key features:
+
+### Responsive Design
+- Adjusts dropdown position based on screen size (`xsmall:left-auto xsmall:right-0`)
+- Ensures minimum width for usability (`min-w-[320px]`)
+- Limited height with scrolling (`max-h-[442px] overflow-y-scroll`)
+
+### Interactive Elements
+- Hover states on options (`hover:bg-gray-200`)
+- Cursor feedback (`cursor-pointer`)
+- Proper spacing for readability (`gap-x-2`)
+
+### Visual Appearance
+- Dropdown shadow for depth (`drop-shadow-md`)
+- Rounded corners (`rounded-rounded`)
+- Uppercase text for region names (`uppercase`)
+- Hidden scrollbar for cleaner look (`no-scrollbar`)
+
+## Examples
+
+### Basic Usage
+```jsx copy
+import CountrySelect from "./CountrySelect"
+import { useToggleState } from "@lib/hooks/use-toggle-state"
+import { useRegions } from "@lib/hooks/use-regions"
+
+export default function Header() {
+  const toggleState = useToggleState()
+  const { regions } = useRegions()
+  
   return (
-    <CountrySelect
-      region={region}
-      name="country"
-      placeholder="Select a country"
-      defaultValue="US"
-      onChange={(e) => console.log(e.target.value)}
-    />
+    <header>
+      <nav>
+        <CountrySelect toggleState={toggleState} regions={regions} />
+      </nav>
+    </header>
   )
 }
 ```
 
-## Performance Optimization
+### With Dropdown Trigger
+```jsx copy
+import CountrySelect from "./CountrySelect"
+import { useToggleState } from "@lib/hooks/use-toggle-state"
+import { useRegions } from "@lib/hooks/use-regions"
 
-The component uses `useMemo` to optimize the generation of country options:
-- Options are only regenerated when the region prop changes
-- Empty array is returned when no region is provided
-- Prevents unnecessary re-renders of option elements
+export default function RegionSelector() {
+  const toggleState = useToggleState()
+  const { regions } = useRegions()
+  
+  return (
+    <div>
+      <button onClick={toggleState.toggle}>
+        Change Region
+      </button>
+      <CountrySelect toggleState={toggleState} regions={regions} />
+    </div>
+  )
+}
+```
 
-## TypeScript Support
+## Technical Considerations
 
-The component is fully typed with TypeScript:
-- Uses `forwardRef` generic types for proper ref typing
-- Extends `NativeSelectProps` for complete prop type coverage
-- Properly types the region prop using Medusa's `HttpTypes.StoreRegion`
-
-## Dependencies
-
-- React hooks (forwardRef, useImperativeHandle, useMemo, useRef)
-- NativeSelect component from common components
-- @medusajs/types for TypeScript definitions
+- This is a Client Component (uses 'use client' directive)
+- Uses HeadlessUI for accessible dropdown functionality
+- Integrates with Next.js routing via useParams and usePathname
+- Implements memoization for performance
+- Handles external state via props
+- Supports internationalization with display names
 
 ## Accessibility
 
-- Uses native select element for optimal accessibility
-- Supports forwarded refs for form integration
-- Maintains all native select accessibility features
-- Properly labels options with display names
+- Uses HeadlessUI components which provide ARIA attributes
+- Maintains proper focus management
+- Includes keyboard navigation support
+- Provides visual feedback for interactive elements
+- Has sufficient color contrast
 
-## Component Display Name
+## Browser Support
 
-```typescript copy
-CountrySelect.displayName = "CountrySelect"
-```
-
-## Event Handling
-
-The component inherits all event handlers from NativeSelectProps:
-- onChange
-- onFocus
-- onBlur
-- etc.
-
-## Best Practices
-
-1. Always provide a region prop for meaningful country options
-2. Use placeholder text that makes sense for your form context
-3. Consider providing a defaultValue that matches your region
-4. Implement proper error handling for when region is undefined
-5. Use with form libraries through the forwarded ref
-
-## Limitations
-
-- Requires a valid region object with countries array
-- Empty selection list when no region is provided
-- Limited to countries available in the provided region
-
-## See Also
-
-- [Medusa Region Documentation](https://docs.medusajs.com/modules/regions-and-currencies/regions)
-- [React forwardRef Documentation](https://react.dev/reference/react/forwardRef)
-- [Native Select MDN Documentation](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/select)
+Requires browsers with support for:
+- Modern JavaScript (ES6+)
+- React Hooks
+- CSS Flexbox
+- CSS Transitions
+- SVG for country flags

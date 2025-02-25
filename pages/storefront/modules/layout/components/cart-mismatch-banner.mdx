@@ -1,270 +1,171 @@
-# Billing Address
+# Cart Mismatch Banner
 
-The `Billing Address` component is a React component that renders a form for collecting billing address information. It provides a comprehensive set of input fields for address details with proper validation and state management.
+A client-side React component that displays a warning banner when a cart transfer issue is detected, with an option to retry the transfer.
 
-## Overview
-
-```typescript copy
-import { HttpTypes } from "@medusajs/types"
-import Input from "@modules/common/components/input"
-import React, { useState } from "react"
-import CountrySelect from "../country-select"
-import Checkbox from "@modules/common/components/checkbox"
-
-const BillingAddress = ({ cart }: { cart: HttpTypes.StoreCart | null }) => {
-  // Component implementation
-}
-```
-
-## Props
-
-```typescript copy
-type BillingAddressProps = {
-  cart: HttpTypes.StoreCart | null
-}
-```
-
-### cart
-- Type: `HttpTypes.StoreCart | null`
-- Required: Yes
-- Description: The current cart object containing existing billing address information, if any.
-
-## State Management
-
-The component uses React's useState hook to manage form data:
-
-```typescript copy
-const [formData, setFormData] = useState<any>({
-  "billing_address.first_name": cart?.billing_address?.first_name || "",
-  "billing_address.last_name": cart?.billing_address?.last_name || "",
-  "billing_address.address_1": cart?.billing_address?.address_1 || "",
-  "billing_address.company": cart?.billing_address?.company || "",
-  "billing_address.postal_code": cart?.billing_address?.postal_code || "",
-  "billing_address.city": cart?.billing_address?.city || "",
-  "billing_address.country_code": cart?.billing_address?.country_code || "US",
-  "billing_address.province": cart?.billing_address?.province || "",
-  "billing_address.phone": cart?.billing_address?.phone || "",
-})
-```
-
-## Event Handlers
-
-```typescript copy
-const handleChange = (
-  e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
-) => {
-  setFormData({
-    ...formData,
-    [e.target.name]: e.target.value,
-  })
-}
-```
-
-## Form Structure
-
-The component renders a form with the following fields:
-
-### Country Selection
-```typescript copy
-<CountrySelect
-  aria-label="Country"
-  name="billing_address.country_code"
-  autoComplete="country"
-  region={cart?.region}
-  value={formData["billing_address.country_code"]}
-  onChange={handleChange}
-  required
-  data-testid="billing-country-select"
-/>
-```
-
-### Personal Information
-```typescript copy
-<div className="grid grid-cols-2 gap-4">
-  <div>
-    <Input
-      label="First name"
-      type="text"
-      name="billing_address.first_name"
-      value={formData["billing_address.first_name"]}
-      onChange={handleChange}
-      required
-      data-testid="billing-first-name-input"
-    />
-  </div>
-  <div>
-    <Input
-      label="Last name"
-      type="text"
-      name="billing_address.last_name"
-      value={formData["billing_address.last_name"]}
-      onChange={handleChange}
-      required
-      data-testid="billing-last-name-input"
-    />
-  </div>
-</div>
-```
-
-### Company Information
-```typescript copy
-<Input
-  label="Company"
-  type="text"
-  name="billing_address.company"
-  value={formData["billing_address.company"]}
-  onChange={handleChange}
-  data-testid="billing-company-input"
-/>
-```
-
-### Address Details
-```typescript copy
-<Input
-  label="Address"
-  type="text"
-  name="billing_address.address_1"
-  value={formData["billing_address.address_1"]}
-  onChange={handleChange}
-  required
-  data-testid="billing-address-input"
-/>
-
-<Input
-  label="Apartment, suite, etc."
-  type="text"
-  name="billing_address.address_2"
-  value={formData["billing_address.address_2"]}
-  onChange={handleChange}
-/>
-```
-
-### Location Information
-```typescript copy
-<div className="grid md:grid-cols-3 grid-cols-2 gap-4">
-  <div className="col-span-2 md:col-span-1">
-    <Input
-      label="City"
-      type="text"
-      name="billing_address.city"
-      value={formData["billing_address.city"]}
-      onChange={handleChange}
-      required
-      data-testid="billing-city-input"
-    />
-  </div>
-  <div>
-    <Input
-      label="State / Province"
-      type="text"
-      name="billing_address.province"
-      value={formData["billing_address.province"]}
-      onChange={handleChange}
-      required
-      data-testid="billing-province-input"
-    />
-  </div>
-  <div>
-    <Input
-      label="Postal Code"
-      type="text"
-      name="billing_address.postal_code"
-      value={formData["billing_address.postal_code"]}
-      onChange={handleChange}
-      required
-      data-testid="billing-postal-input"
-    />
-  </div>
-</div>
-```
-
-### Contact Information
-```typescript copy
-<Input
-  label="Phone"
-  type="tel"
-  name="billing_address.phone"
-  value={formData["billing_address.phone"]}
-  onChange={handleChange}
-  data-testid="billing-phone-input"
-/>
-```
-
-## Usage Example
+## Syntax
 
 ```jsx copy
-import BillingAddress from "@modules/checkout/components/billing-address"
+<CartMismatchBanner customer={customerData} cart={cartData} />
+```
 
-function CheckoutPage() {
-  const cart = {
-    billing_address: {
-      first_name: "John",
-      last_name: "Doe",
-      address_1: "123 Main St",
-      city: "Boston",
-      postal_code: "02101",
-      country_code: "US",
-      province: "MA",
-      phone: "+1234567890"
-    }
-  }
+## Description
 
-  return (
-    <BillingAddress cart={cart} />
-  )
+The Cart Mismatch Banner component displays a notification when there's a discrepancy between the authenticated customer and the cart ownership. It:
+- Shows a warning message about cart transfer issues
+- Provides a button to retry the cart transfer operation
+- Displays loading states during transfer attempts
+- Automatically hides when no mismatch is detected
+
+## Technical Details
+
+### Dependencies
+
+```javascript copy
+import { transferCart } from "@lib/data/customer"
+import { ExclamationCircleSolid } from "@medusajs/icons"
+import { StoreCart, StoreCustomer } from "@medusajs/types"
+import { Button } from "@medusajs/ui"
+import { useState } from "react"
+```
+
+### Props
+
+The component accepts two required props:
+
+```typescript copy
+interface CartMismatchBannerProps {
+  customer: StoreCustomer;
+  cart: StoreCart;
 }
+```
+
+### State Management
+
+The component uses React's useState hook to manage UI states:
+
+```javascript copy
+const [isPending, setIsPending] = useState(false)
+const [actionText, setActionText] = useState("Run transfer again")
+```
+
+### Conditional Rendering
+
+The component conditionally renders based on customer and cart state:
+
+```javascript copy
+if (!customer || !!cart.customer_id) {
+  return
+}
+```
+
+### Transfer Operation
+
+The component handles the cart transfer operation:
+
+```javascript copy
+const handleSubmit = async () => {
+  try {
+    setIsPending(true)
+    setActionText("Transferring..")
+    
+    await transferCart()
+  } catch {
+    setActionText("Run transfer again")
+    setIsPending(false)
+  }
+}
+```
+
+## Layout Structure
+
+### Banner Container
+```jsx copy
+<div className="flex items-center justify-center small:p-4 p-2 text-center bg-orange-300 small:gap-2 gap-1 text-sm mt-2 text-orange-800">
+  {/* Banner content */}
+</div>
+```
+
+### Message and Button Layout
+```jsx copy
+<div className="flex flex-col small:flex-row small:gap-2 gap-1 items-center">
+  <span className="flex items-center gap-1">
+    <ExclamationCircleSolid className="inline" />
+    Something went wrong when we tried to transfer your cart
+  </span>
+  
+  <span>·</span>
+  
+  <Button
+    variant="transparent"
+    className="hover:bg-transparent active:bg-transparent focus:bg-transparent disabled:text-orange-500 text-orange-950 p-0 bg-transparent"
+    size="base"
+    disabled={isPending}
+    onClick={handleSubmit}
+  >
+    {actionText}
+  </Button>
+</div>
 ```
 
 ## Styling
 
-The component uses Tailwind CSS for styling:
-- Layout: `max-w-[800px]`, `mx-auto`, `space-y-4`
-- Grid system: `grid`, `grid-cols-2`, `grid-cols-3`
-- Responsive design: `md:grid-cols-3`, `md:col-span-1`
-- Spacing: `gap-4`
+The component uses Tailwind CSS for styling with the following key features:
 
-## Testing
+### Responsive Design
+- Adjusts padding based on screen size (`small:p-4 p-2`)
+- Changes layout from column to row on larger screens (`flex-col small:flex-row`)
+- Consistent spacing with gap utilities (`small:gap-2 gap-1`)
 
-The component includes data-testid attributes for testing:
-```typescript copy
-data-testid="billing-country-select"
-data-testid="billing-first-name-input"
-data-testid="billing-last-name-input"
-data-testid="billing-company-input"
-data-testid="billing-address-input"
-data-testid="billing-city-input"
-data-testid="billing-province-input"
-data-testid="billing-postal-input"
-data-testid="billing-phone-input"
+### Alert Styling
+- Orange background for warning state (`bg-orange-300`)
+- Dark orange text for contrast (`text-orange-800`)
+- Icon to enhance visibility of the warning
+
+### Button States
+- Transparent background that doesn't change on interaction
+- Disabled state styling (`disabled:text-orange-500`)
+- Custom hover and focus states
+
+## Examples
+
+### Basic Usage
+```jsx copy
+import CartMismatchBanner from "./CartMismatchBanner"
+import { useCustomer } from "@lib/hooks/use-customer"
+import { useCart } from "@lib/hooks/use-cart"
+
+export default function CartPage() {
+  const { customer } = useCustomer()
+  const { cart } = useCart()
+  
+  return (
+    <div>
+      <CartMismatchBanner customer={customer} cart={cart} />
+      {/* Other cart content */}
+    </div>
+  )
+}
 ```
 
-## Dependencies
+## Technical Considerations
 
-- @medusajs/types: TypeScript types for cart and address data
-- Input: Custom input component
-- CountrySelect: Custom country selection component
-- Checkbox: Custom checkbox component
-- React hooks (useState)
+- This is a Client Component (uses 'use client' directive)
+- Performs asynchronous operations with error handling
+- Uses visual feedback during asynchronous operations
+- Intelligently hides when not needed, preventing unnecessary UI elements
+- Only displays when there's an actual mismatch (customer exists but doesn't own the cart)
 
 ## Accessibility
 
-- Required field indication
-- Proper input labels
-- ARIA labels for country select
-- Semantic HTML structure
-- Proper input types (text, tel)
-- Form autocomplete support
+- Uses appropriate color contrast for warning states
+- Includes an icon to enhance visibility
+- Disables the button during operations to prevent multiple submissions
+- Provides text feedback about the operation status
 
-## Responsive Design
+## Browser Support
 
-The component implements responsive design through Tailwind CSS:
-- Default grid layout for mobile (2 columns)
-- Enhanced grid layout for medium screens and up (3 columns)
-- Flexible width constraints
-- Responsive spacing
-
-## See Also
-
-- [Medusa Documentation](https://docs.medusajs.com)
-- [React Forms Documentation](https://react.dev/reference/react-dom/components/input)
-- [Tailwind CSS Grid](https://tailwindcss.com/docs/grid-template-columns)
+Requires browsers with support for:
+- Modern JavaScript (ES6+)
+- React Hooks
+- Async/Await syntax
+- Flexbox layouts
