@@ -31,7 +31,7 @@ The component relies on several key imports:
 - Cart Context Provider
 
 ### Server-Side Data Fetching
-```typescript
+```typescript copy
 const customer = await retrieveCustomer()
 const cart = await retrieveCart()
 ```
@@ -42,7 +42,7 @@ Data is fetched server-side before rendering, ensuring:
 - Shipping options availability
 
 ### Metadata Configuration
-```typescript
+```typescript copy
 export const metadata: Metadata = {
   metadataBase: new URL(getBaseURL()),
 }
@@ -51,7 +51,7 @@ Sets the base URL for metadata, supporting SEO and proper link resolution.
 
 ## Rendering Structure
 
-```jsx
+```jsx copy
 <CartProvider>
   <Nav />
   {customer && cart && (
