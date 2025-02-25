@@ -1,241 +1,202 @@
-# Payment Button
+# Order Summary
 
-The `Payment Button` component is a client-side React component that handles different types of payment processing in a checkout flow. It supports multiple payment providers including Stripe, Manual, Zelle, and Crypto payments.
+A React component that displays an order summary, including subtotal, discounts, shipping, taxes, and total amount.
 
-## Overview
-
-```typescript copy
-"use client"
-
-import { isCrypto, isManual, isStripe, isZelle } from "@lib/constants"
-import { placeOrder, retrieveCart } from "@lib/data/cart"
-import { HttpTypes } from "@medusajs/types"
-import { Button } from "@medusajs/ui"
-import { useElements, useStripe } from "@stripe/react-stripe-js"
-```
-
-## Props
-
-```typescript copy
-type PaymentButtonProps = {
-  cart: HttpTypes.StoreCart
-  "data-testid": string
-}
-```
-
-## Component Structure
-
-The main component acts as a router to specific payment implementations based on the payment provider:
-
-```typescript copy
-const PaymentButton: React.FC<PaymentButtonProps> = ({
-  cart,
-  "data-testid": dataTestId,
-}) => {
-  if(!cart) {
-    return notFound()
-  }
-
-  const paymentSession = cart.payment_collection?.payment_sessions?.[0]
-
-  switch (true) {
-    case isStripe(paymentSession?.provider_id):
-      return <StripePaymentButton /*...*/ />
-    case isManual(paymentSession?.provider_id):
-      return <ManualTestPaymentButton /*...*/ />
-    case isZelle(paymentSession?.provider_id):
-      return <ManualTestPaymentButton /*...*/ />
-    case isCrypto(paymentSession?.provider_id):
-      return <ManualTestPaymentButton /*...*/ />
-    default:
-      return <Button disabled>Select a payment method</Button>
-  }
-}
-```
-
-## Sub-Components
-
-### StripePaymentButton
-
-Handles Stripe-specific payment processing:
-
-```typescript copy
-const StripePaymentButton = ({
-  cart,
-  notReady,
-  "data-testid": dataTestId,
-}: {
-  cart: HttpTypes.StoreCart
-  notReady: boolean
-  "data-testid"?: string
-}) => {
-  const [submitting, setSubmitting] = useState(false)
-  const [errorMessage, setErrorMessage] = useState<string | null>(null)
-  const stripe = useStripe()
-  const elements = useElements()
-  const card = elements?.getElement("card")
-
-  // Implementation details for Stripe payment processing
-}
-```
-
-#### Stripe Payment Processing
-```typescript copy
-const handlePayment = async () => {
-  setSubmitting(true)
-
-  if (!stripe || !elements || !card || !cart) {
-    setSubmitting(false)
-    return
-  }
-
-  await stripe
-    .confirmCardPayment(session?.data.client_secret as string, {
-      payment_method: {
-        card: card,
-        billing_details: {
-          // Billing details structure
-        },
-      },
-    })
-    .then(({ error, paymentIntent }) => {
-      // Handle payment result
-    })
-}
-```
-
-### ManualTestPaymentButton
-
-Handles manual, Zelle, and crypto payments:
-
-```typescript copy
-const ManualTestPaymentButton = ({ 
-  notReady 
-}: { 
-  notReady: boolean 
-}) => {
-  const [submitting, setSubmitting] = useState(false)
-  const [errorMessage, setErrorMessage] = useState<string | null>(null)
-
-  // Implementation for manual payment processing
-}
-```
-
-## Validation
-
-The component implements several validation checks:
-
-```typescript copy
-const notReady =
-  !cart ||
-  !cart.shipping_address ||
-  !cart.billing_address ||
-  !cart.email ||
-  (cart.shipping_methods?.length ?? 0) < 1
-```
-
-## Usage Example
+## Syntax
 
 ```jsx copy
-import PaymentButton from "@modules/checkout/components/payment-button"
+<OrderSummary order={orderData} />
+```
 
-function CheckoutPage() {
-  const cart = {
-    shipping_address: { /* ... */ },
-    billing_address: { /* ... */ },
-    email: "customer@example.com",
-    shipping_methods: [{ /* ... */ }],
-    payment_collection: {
-      payment_sessions: [{
-        provider_id: "stripe",
-        status: "pending"
-      }]
+## Description
+
+The `OrderSummary` component provides a financial breakdown of an order, displaying all costs and discounts in a clear, organized manner.
+
+### Features:
+- Displays the order subtotal
+- Shows any applicable discounts (from promotions or gift cards)
+- Includes shipping and tax costs
+- Calculates and displays the final total
+- Correctly formats currency values based on the order's currency code
+
+## Technical Details
+
+### Dependencies
+
+```javascript copy
+import { convertToLocale } from "@lib/util/money"
+import { HttpTypes } from "@medusajs/types"
+```
+
+### Props
+
+| Prop  | Type                  | Description                          |
+|-------|----------------------|--------------------------------------|
+| order | HttpTypes.StoreOrder | The order object with pricing details. |
+
+### Component Structure
+
+```javascript copy
+type OrderSummaryProps = {
+  order: HttpTypes.StoreOrder
+}
+
+const OrderSummary = ({ order }: OrderSummaryProps) => {
+  const getAmount = (amount?: number | null) => {
+    if (!amount) {
+      return
     }
+    
+    return convertToLocale({
+      amount,
+      currency_code: order.currency_code,
+    })
   }
 
   return (
-    <PaymentButton 
-      cart={cart}
-      data-testid="payment-button"
-    />
+    <div>
+      <h2 className="text-base-semi">Order Summary</h2>
+      <div className="text-small-regular text-ui-fg-base my-2">
+        <div className="flex items-center justify-between text-base-regular text-ui-fg-base mb-2">
+          <span>Subtotal</span>
+          <span>{getAmount(order.subtotal)}</span>
+        </div>
+        <div className="flex flex-col gap-y-1">
+          {order.discount_total > 0 && (
+            <div className="flex items-center justify-between">
+              <span>Discount</span>
+              <span>- {getAmount(order.discount_total)}</span>
+            </div>
+          )}
+          {order.gift_card_total > 0 && (
+            <div className="flex items-center justify-between">
+              <span>Discount</span>
+              <span>- {getAmount(order.gift_card_total)}</span>
+            </div>
+          )}
+          <div className="flex items-center justify-between">
+            <span>Shipping</span>
+            <span>{getAmount(order.shipping_total)}</span>
+          </div>
+          <div className="flex items-center justify-between">
+            <span>Taxes</span>
+            <span>{getAmount(order.tax_total)}</span>
+          </div>
+        </div>
+        <div className="h-px w-full border-b border-gray-200 border-dashed my-4" />
+        <div className="flex items-center justify-between text-base-regular text-ui-fg-base mb-2">
+          <span>Total</span>
+          <span>{getAmount(order.total)}</span>
+        </div>
+      </div>
+    </div>
   )
 }
 ```
 
-## Error Handling
+## Layout Structure
 
-Both payment handlers include error management:
-
-```typescript copy
-const [errorMessage, setErrorMessage] = useState<string | null>(null)
-
-// Error handling in payment processing
-.catch((err) => {
-  setErrorMessage(err.message)
-})
-.finally(() => {
-  setSubmitting(false)
-})
+### Order Summary Header
+```jsx copy
+<h2 className="text-base-semi">Order Summary</h2>
 ```
 
-## Testing
-
-The component includes data-testid attributes for testing:
-```typescript copy
-data-testid="stripe-payment-error-message"
-data-testid="manual-payment-error-message"
-data-testid="submit-order-button"
+### Subtotal Section
+```jsx copy
+<div className="flex items-center justify-between text-base-regular text-ui-fg-base mb-2">
+  <span>Subtotal</span>
+  <span>{getAmount(order.subtotal)}</span>
+</div>
 ```
 
-## Dependencies
-
-- @medusajs/ui: UI components
-- @medusajs/types: TypeScript types
-- @stripe/react-stripe-js: Stripe React components and hooks
-- @lib/constants: Payment method utilities
-- @lib/data/cart: Cart management functions
-- React hooks (useState)
-- next/navigation: Next.js utilities
-
-## States
-
-The component manages several states:
-
-1. Loading State:
-```typescript copy
-const [submitting, setSubmitting] = useState(false)
+### Itemized Costs Section
+```jsx copy
+<div className="flex flex-col gap-y-1">
+  {order.discount_total > 0 && (
+    <div className="flex items-center justify-between">
+      <span>Discount</span>
+      <span>- {getAmount(order.discount_total)}</span>
+    </div>
+  )}
+  {order.gift_card_total > 0 && (
+    <div className="flex items-center justify-between">
+      <span>Discount</span>
+      <span>- {getAmount(order.gift_card_total)}</span>
+    </div>
+  )}
+  <div className="flex items-center justify-between">
+    <span>Shipping</span>
+    <span>{getAmount(order.shipping_total)}</span>
+  </div>
+  <div className="flex items-center justify-between">
+    <span>Taxes</span>
+    <span>{getAmount(order.tax_total)}</span>
+  </div>
+</div>
 ```
 
-2. Error State:
-```typescript copy
-const [errorMessage, setErrorMessage] = useState<string | null>(null)
+### Divider
+```jsx copy
+<div className="h-px w-full border-b border-gray-200 border-dashed my-4" />
 ```
 
-3. Payment Ready State:
-```typescript copy
-const disabled = !stripe || !elements ? true : false
+### Total Section
+```jsx copy
+<div className="flex items-center justify-between text-base-regular text-ui-fg-base mb-2">
+  <span>Total</span>
+  <span>{getAmount(order.total)}</span>
+</div>
 ```
 
-## Best Practices
+## Styling
 
-1. Validation before payment
-2. Error handling and display
-3. Loading state management
-4. Payment method type checking
-5. Proper error messaging
-6. Type safety with TypeScript
-7. Testing support
+- **Header:** Uses `text-base-semi` to style the component header.
+- **Content Container:** Styled with `text-small-regular text-ui-fg-base my-2`.
+- **Row Layout:** Uses flexbox with `flex items-center justify-between` to create the key-value pairs.
+- **Divider:** Uses a dashed border with `h-px w-full border-b border-gray-200 border-dashed my-4`.
+- **Spacing:** Uses gap utility `gap-y-1` for consistent spacing between rows.
 
-## Security Considerations
+## Currency Formatting
 
-1. Payment session validation
-2. Secure handling of payment credentials
-3. Error message sanitization
-4. Input validation
-5. Proper use of Stripe Elements
+The component uses a utility function `getAmount` that:
+- Handles null or undefined amounts gracefully
+- Uses the `convertToLocale` utility to format amounts according to the order's currency code
 
-## See Also
+## Examples
 
-- [Stripe Elements Documentation](https://stripe.com/docs/stripe-js)
-- [Medusa Payment Documentation](https://docs.medusajs.com/modules/carts-and-checkout/payment)
-- [React Testing Library](https://testing-library.com/docs/react-testing-library/intro/)
+### Basic Usage
+
+```jsx copy
+import OrderSummary from "./OrderSummary"
+
+export default function OrderConfirmation({ order }) {
+  return (
+    <div className="container mx-auto py-8">
+      <h1 className="text-2xl font-bold mb-4">Thank you for your order!</h1>
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+        <div>
+          <OrderDetails order={order} showStatus={true} />
+        </div>
+        <div className="bg-gray-50 p-6 rounded-lg">
+          <OrderSummary order={order} />
+        </div>
+      </div>
+    </div>
+  )
+}
+```
+
+## Accessibility
+
+- Uses semantic HTML elements (headings, divs with appropriate roles)
+- Maintains text contrast ratios for readability
+- Uses consistent layout patterns for predictable information hierarchy
+
+## Browser Support
+
+The component works in modern browsers supporting:
+
+- ES6+ JavaScript
+- CSS Flexbox
+- Optional chaining syntax
+- Tailwind CSS utility classes

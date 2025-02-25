@@ -1,184 +1,138 @@
-# Country Select
+# OnboardingCta
 
-The `Country Select` component is a forwarded React component that creates a select dropdown for countries based on a region's available countries. It extends the native select component with region-specific functionality.
+A React component that provides a call-to-action for completing store setup after successfully creating a test order.
 
-## Overview
-
-```typescript copy
-import { forwardRef, useImperativeHandle, useMemo, useRef } from "react"
-import NativeSelect, {
-  NativeSelectProps,
-} from "@modules/common/components/native-select"
-import { HttpTypes } from "@medusajs/types"
-
-const CountrySelect = forwardRef<
-  HTMLSelectElement,
-  NativeSelectProps & {
-    region?: HttpTypes.StoreRegion
-  }
->((props, ref) => {
-  // Component implementation
-})
-```
-
-## Props
-
-The component extends `NativeSelectProps` and adds additional props:
-
-```typescript copy
-type CountrySelectProps = NativeSelectProps & {
-  region?: HttpTypes.StoreRegion
-  placeholder?: string
-  defaultValue?: string
-}
-```
-
-### region
-- Type: `HttpTypes.StoreRegion`
-- Required: No
-- Description: A region object containing available countries.
-
-### placeholder
-- Type: `string`
-- Required: No
-- Default: "Country"
-- Description: Placeholder text for the select input.
-
-### defaultValue
-- Type: `string`
-- Required: No
-- Description: Default selected value for the select input.
-
-### Additional Props
-- Inherits all props from `NativeSelectProps`
-
-## Implementation Details
-
-### Ref Handling
-```typescript copy
-const innerRef = useRef<HTMLSelectElement>(null)
-
-useImperativeHandle<HTMLSelectElement | null, HTMLSelectElement | null>(
-  ref,
-  () => innerRef.current
-)
-```
-
-### Country Options Generation
-```typescript copy
-const countryOptions = useMemo(() => {
-  if (!region) {
-    return []
-  }
-
-  return region.countries?.map((country) => ({
-    value: country.iso_2,
-    label: country.display_name,
-  }))
-}, [region])
-```
-
-### Component Structure
-```typescript copy
-return (
-  <NativeSelect
-    ref={innerRef}
-    placeholder={placeholder}
-    defaultValue={defaultValue}
-    {...props}
-  >
-    {countryOptions?.map(({ value, label }, index) => (
-      <option key={index} value={value}>
-        {label}
-      </option>
-    ))}
-  </NativeSelect>
-)
-```
-
-## Usage Example
+## Syntax
 
 ```jsx copy
-import CountrySelect from "@modules/common/components/country-select"
+<OnboardingCta orderId="12345" />
+```
 
-function ShippingForm() {
-  const region = {
-    countries: [
-      { iso_2: "US", display_name: "United States" },
-      { iso_2: "CA", display_name: "Canada" },
-      { iso_2: "MX", display_name: "Mexico" }
-    ]
-  }
+## Description
 
+The `OnboardingCta` component displays a confirmation message and a button that allows users to finalize the onboarding process in the admin dashboard.
+
+### Features:
+- Displays a success message after creating a test order
+- Provides a call-to-action button for completing setup
+- Uses Medusa UI components for consistent styling
+
+## Technical Details
+
+### Dependencies
+
+```javascript copy
+import { resetOnboardingState } from "@lib/data/onboarding"
+import { Button, Container, Text } from "@medusajs/ui"
+```
+
+### Props
+
+| Prop     | Type   | Description                          |
+|----------|--------|--------------------------------------|
+| orderId  | string | The unique identifier of the order. |
+
+### Component Structure
+
+The component receives `orderId` as a prop and renders a success message with a button to complete the onboarding setup.
+
+```javascript copy
+const OnboardingCta = ({ orderId }: { orderId: string }) => {
   return (
-    <CountrySelect
-      region={region}
-      name="country"
-      placeholder="Select a country"
-      defaultValue="US"
-      onChange={(e) => console.log(e.target.value)}
-    />
+    <Container className="max-w-4xl h-full bg-ui-bg-subtle w-full">
+      <div className="flex flex-col gap-y-4 center p-4 md:items-center">
+        <Text className="text-ui-fg-base text-xl">
+          Your test order was successfully created! 🎉
+        </Text>
+        <Text className="text-ui-fg-subtle text-small-regular">
+          You can now complete setting up your store in the admin.
+        </Text>
+        <Button
+          className="w-fit"
+          size="xlarge"
+          onClick={() => resetOnboardingState(orderId)}
+        >
+          Complete setup in admin
+        </Button>
+      </div>
+    </Container>
   )
 }
 ```
 
-## Performance Optimization
+## Layout Structure
 
-The component uses `useMemo` to optimize the generation of country options:
-- Options are only regenerated when the region prop changes
-- Empty array is returned when no region is provided
-- Prevents unnecessary re-renders of option elements
+### Container
 
-## TypeScript Support
+```jsx copy
+<Container className="max-w-4xl h-full bg-ui-bg-subtle w-full">
+  {/* Content */}
+</Container>
+```
 
-The component is fully typed with TypeScript:
-- Uses `forwardRef` generic types for proper ref typing
-- Extends `NativeSelectProps` for complete prop type coverage
-- Properly types the region prop using Medusa's `HttpTypes.StoreRegion`
+### Message
 
-## Dependencies
+```jsx copy
+<Text className="text-ui-fg-base text-xl">
+  Your test order was successfully created! 🎉
+</Text>
+<Text className="text-ui-fg-subtle text-small-regular">
+  You can now complete setting up your store in the admin.
+</Text>
+```
 
-- React hooks (forwardRef, useImperativeHandle, useMemo, useRef)
-- NativeSelect component from common components
-- @medusajs/types for TypeScript definitions
+### Button
+
+```jsx copy
+<Button
+  className="w-fit"
+  size="xlarge"
+  onClick={() => resetOnboardingState(orderId)}
+>
+  Complete setup in admin
+</Button>
+```
+
+## Styling
+
+The component follows Medusa UI's styling conventions:
+
+- **Container:** Background color for subtle UI sections (`bg-ui-bg-subtle`)
+- **Text:**
+  - Base text (`text-ui-fg-base text-xl`)
+  - Subtle text (`text-ui-fg-subtle text-small-regular`)
+- **Button:**
+  - Large size (`size="xlarge"`)
+  - Auto-width (`w-fit`)
+
+## Examples
+
+### Basic Usage
+
+```jsx copy
+import OnboardingCta from "./OnboardingCta"
+
+export default function Dashboard() {
+  return (
+    <div className="container mx-auto py-8">
+      <h1 className="text-2xl font-bold mb-4">Dashboard</h1>
+      <OnboardingCta orderId="test_order_123" />
+    </div>
+  )
+}
+```
 
 ## Accessibility
 
-- Uses native select element for optimal accessibility
-- Supports forwarded refs for form integration
-- Maintains all native select accessibility features
-- Properly labels options with display names
+- Uses semantic HTML elements (`Text`, `Button`, `Container`)
+- Provides clear, readable messages
+- Ensures interactive elements are keyboard accessible
 
-## Component Display Name
+## Browser Support
 
-```typescript copy
-CountrySelect.displayName = "CountrySelect"
-```
+The component works in modern browsers supporting:
 
-## Event Handling
+- ES6+ JavaScript
+- CSS Flexbox
+- Medusa UI components
 
-The component inherits all event handlers from NativeSelectProps:
-- onChange
-- onFocus
-- onBlur
-- etc.
-
-## Best Practices
-
-1. Always provide a region prop for meaningful country options
-2. Use placeholder text that makes sense for your form context
-3. Consider providing a defaultValue that matches your region
-4. Implement proper error handling for when region is undefined
-5. Use with form libraries through the forwarded ref
-
-## Limitations
-
-- Requires a valid region object with countries array
-- Empty selection list when no region is provided
-- Limited to countries available in the provided region
-
-## See Also
-
-- [Medusa Region Documentation](https://docs.medusajs.com/modules/regions-and-currencies/regions)
-- [React forwardRef Documentation](https://react.dev/reference/react/forwardRef)
-- [Native Select MDN Documentation](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/select)

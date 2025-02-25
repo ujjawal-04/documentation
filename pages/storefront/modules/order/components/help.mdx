@@ -1,132 +1,145 @@
-# Address Select
+# Help
 
-The `Address Select` component creates a dropdown list for selecting shipping addresses. It uses the Headless UI Listbox component to create an accessible address selection interface with a custom design.
+A React component that provides quick access to support resources with links to contact and returns/exchanges pages.
 
-## Overview
-
-The `Address Select` component allows users to select from a list of previously saved addresses. It displays address details in a dropdown format and supports keyboard navigation and screen readers.
-
-## Props
-
-The component accepts the following props:
-
-### addresses
-- Type: `HttpTypes.StoreCustomerAddress[]`
-- Required: Yes
-- Description: An array of address objects containing customer address information.
-
-### addressInput
-- Type: `HttpTypes.StoreCartAddress | null`
-- Required: Yes
-- Description: The currently selected address in the cart, or null if no address is selected.
-
-### onSelect
-- Type: `(address: HttpTypes.StoreCartAddress | undefined, email?: string) => void`
-- Required: Yes
-- Description: Callback function that is called when a new address is selected.
-
-## Address Object Structure
-
-Each address object in the `addresses` array should contain the following properties:
-
-```typescript copy
-{
-  id: string
-  first_name: string
-  last_name: string
-  company?: string
-  address_1: string
-  address_2?: string
-  city: string
-  postal_code: string
-  province?: string
-  country_code: string
-}
-```
-
-## Examples
-
-### Basic Usage
+## Syntax
 
 ```jsx copy
-import AddressSelect from "@modules/common/components/address-select"
+<Help />
+```
 
-function ShippingForm() {
-  const addresses = [
-    {
-      id: "addr_1",
-      first_name: "John",
-      last_name: "Doe",
-      address_1: "123 Main St",
-      city: "Boston",
-      postal_code: "02101",
-      country_code: "US"
-    }
-  ]
+## Description
 
-  const handleAddressSelect = (address) => {
-    // Handle address selection
-    console.log("Selected address:", address)
-  }
+The Help component creates a simple support navigation section that:
+- Displays a "Need help?" heading
+- Provides direct links to the contact page
+- Includes a link to returns and exchanges information
+- Uses consistent styling aligned with the application design system
 
+## Technical Details
+
+### Dependencies
+
+```javascript copy
+import { Heading } from "@medusajs/ui"
+import LocalizedClientLink from "@modules/common/components/localized-client-link"
+import React from "react"
+```
+
+### Component Structure
+
+The component is a simple functional component with no props:
+
+```javascript copy
+const Help = () => {
   return (
-    <AddressSelect
-      addresses={addresses}
-      addressInput={null}
-      onSelect={handleAddressSelect}
-    />
+    // Component content
   )
 }
 ```
 
-## Features
+## Layout Structure
 
-- Accessible dropdown menu using Headless UI
-- Keyboard navigation support
-- Visual feedback for selected address
-- Optional company name display
-- Formatted address display including:
-  - Full name
-  - Street address (with optional second line)
-  - City and postal code
-  - Province (if provided)
-  - Country code
+### Container
+```jsx copy
+<div className="mt-6">
+  <Heading className="text-base-semi">Need help?</Heading>
+  <div className="text-base-regular my-2">
+    <ul className="gap-y-2 flex flex-col">
+      {/* Links */}
+    </ul>
+  </div>
+</div>
+```
+
+### Links
+```jsx copy
+<li>
+  <LocalizedClientLink href="/contact">Contact</LocalizedClientLink>
+</li>
+<li>
+  <LocalizedClientLink href="/contact">
+    Returns & Exchanges
+  </LocalizedClientLink>
+</li>
+```
 
 ## Styling
 
-The component uses Tailwind CSS classes for styling and includes:
+The component uses Tailwind CSS and Medusa UI components for styling with the following key features:
 
-- Hover states for address options
-- Focus states for keyboard navigation
-- Custom radio button indicators
-- Transition animations for dropdown
+### Container
+- Top margin for spacing from preceding content (`mt-6`)
 
-## Dependencies
+### Heading
+- Uses Medusa UI's Heading component for consistent typography
+- Semi-bold base text class for proper emphasis (`text-base-semi`)
 
-- @headlessui/react: For accessible dropdown functionality
-- @medusajs/icons: For chevron icons
-- @medusajs/ui: For utility functions
-- @medusajs/types: For TypeScript types
+### Content
+- Regular base text styling (`text-base-regular`)
+- Vertical margin for spacing (`my-2`)
+- Flex column layout for link list (`flex flex-col`)
+- Consistent spacing between links (`gap-y-2`)
+
+## Examples
+
+### Basic Usage
+```jsx copy
+import Help from "./Help"
+
+export default function SupportPage() {
+  return (
+    <div className="container mx-auto py-8">
+      <h1 className="text-2xl font-bold mb-4">Support Center</h1>
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+        <div className="col-span-2">
+          {/* Main content */}
+        </div>
+        <div>
+          <Help />
+          {/* Other support widgets */}
+        </div>
+      </div>
+    </div>
+  )
+}
+```
+
+### In Sidebar
+```jsx copy
+import Help from "./Help"
+import FAQ from "./FAQ"
+
+export default function Sidebar() {
+  return (
+    <div className="bg-gray-50 p-4 rounded-lg">
+      <Help />
+      <div className="border-t my-4"></div>
+      <FAQ />
+    </div>
+  )
+}
+```
+
+## Technical Considerations
+
+- Simple component with no props or state management
+- Uses Medusa UI's Heading component for consistent typography
+- Uses LocalizedClientLink for localization support
+- Both links currently point to the same "/contact" URL
+- Minimal, focused component with a single responsibility
 
 ## Accessibility
 
-The component implements several accessibility features:
-
-- ARIA attributes via Headless UI
-- Keyboard navigation support
-- Focus management
-- Screen reader announcements for selection changes
+- Uses semantic HTML with proper heading and list elements
+- Follows a logical content hierarchy
+- Links have descriptive text
+- Maintains consistent spacing for usability
+- Part of a cohesive support interface system
 
 ## Browser Support
 
-This component relies on modern JavaScript features and React. It should work in all modern browsers that support:
-
-- CSS Grid
-- CSS Flexbox
-- CSS Transitions
+Requires browsers with support for:
 - Modern JavaScript (ES6+)
-
-## See Also
-
-- [Headless UI Listbox Documentation](https://headlessui.dev/react/listbox)
-- [Medusa UI Documentation](https://docs.medusajs.com/ui)
+- CSS Flexbox
+- Depends on Medusa UI components and LocalizedClientLink browser compatibility

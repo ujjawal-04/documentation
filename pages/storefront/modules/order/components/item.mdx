@@ -1,228 +1,219 @@
-# Addresses
+# Item
 
-The `Addresses` component is a client-side React component that handles shipping and billing address management in a checkout flow. It provides functionality for displaying, editing, and managing both shipping and billing addresses.
+A React component that renders a single line item within a cart or order table, displaying product information with thumbnail, details, and pricing.
 
-## Overview
-
-```typescript copy
-// @ts-nocheck
-"use client"
-
-import { setAddresses } from "@lib/data/cart"
-import compareAddresses from "@lib/util/compare-addresses"
-import { CheckCircleSolid } from "@medusajs/icons"
-import { HttpTypes } from "@medusajs/types"
-import { Heading, Text, useToggleState } from "@medusajs/ui"
-import Divider from "@modules/common/components/divider"
-import Spinner from "@modules/common/icons/spinner"
-import { usePathname, useRouter, useSearchParams } from "next/navigation"
-import { useActionState } from "react"
-import BillingAddress from "../billing_address"
-import ErrorMessage from "../error-message"
-import ShippingAddress from "../shipping-address"
-import { SubmitButton } from "../submit-button"
-```
-
-## Props
-
-The component accepts the following props:
-
-```typescript copy
-type AddressesProps = {
-  cart: HttpTypes.StoreCart | null
-  customer: HttpTypes.StoreCustomer | null
-}
-```
-
-### cart
-- Type: `HttpTypes.StoreCart | null`
-- Required: Yes
-- Description: The current cart object containing shipping and billing address information.
-
-### customer
-- Type: `HttpTypes.StoreCustomer | null`
-- Required: Yes
-- Description: The current customer object containing customer information.
-
-## Component Structure
-
-```typescript copy
-const Addresses = ({
-  cart,
-  customer,
-}: {
-  cart: HttpTypes.StoreCart | null
-  customer: HttpTypes.StoreCustomer | null
-}) => {
-  // Component implementation
-}
-```
-
-## State Management
-
-The component uses several state management hooks:
-
-```typescript copy
-const searchParams = useSearchParams()
-const router = useRouter()
-const pathname = usePathname()
-
-const isOpen = searchParams.get("step") === "address"
-
-const { state: sameAsBilling, toggle: toggleSameAsBilling } = useToggleState(
-  cart?.shipping_address && cart?.billing_address
-    ? compareAddresses(cart?.shipping_address, cart?.billing_address)
-    : true
-)
-
-const { state: termsCheck, toggle: toggleTermsCheck } = useToggleState(false)
-
-const [message, formAction] = useActionState(setAddresses, null)
-```
-
-## Features
-
-### Address Editing
-```typescript copy
-const handleEdit = () => {
-  router.push(pathname + "?step=address")
-}
-```
-
-### Form Structure
-```typescript copy
-<form action={formAction}>
-  <div className="pb-8">
-    <ShippingAddress
-      customer={customer}
-      checked={sameAsBilling}
-      terms={termsCheck}
-      toggleTerms={toggleTermsCheck}
-      onChange={toggleSameAsBilling}
-      cart={cart}
-    />
-    {/* Billing address section */}
-  </div>
-</form>
-```
-
-### Address Display
-When not in edit mode, addresses are displayed in a three-column layout:
-```typescript copy
-<div className="flex items-start gap-x-8">
-  <div className="flex items-start gap-x-1 w-full">
-    <div className="flex flex-col w-1/3" data-testid="shipping-address-summary">
-      {/* Shipping address display */}
-    </div>
-    <div className="flex flex-col w-1/3" data-testid="shipping-contact-summary">
-      {/* Contact information display */}
-    </div>
-    <div className="flex flex-col w-1/3" data-testid="billing-address-summary">
-      {/* Billing address display */}
-    </div>
-  </div>
-</div>
-```
-
-## Usage Example
+## Syntax
 
 ```jsx copy
-import Addresses from "@modules/checkout/components/addresses"
+<Item item={lineItem} currencyCode="USD" />
+```
 
-function CheckoutPage() {
-  const cart = {
-    shipping_address: {
-      first_name: "John",
-      last_name: "Doe",
-      address_1: "123 Main St",
-      city: "Boston",
-      postal_code: "02101",
-      country_code: "US",
-      phone: "+1234567890"
-    },
-    billing_address: {/* ... */},
-    email: "john@example.com"
-  }
+## Description
 
-  const customer = {
-    // Customer details
-  }
+The Item component creates a structured table row that:
+- Displays a product thumbnail image
+- Shows the product title and variant options
+- Includes quantity information
+- Presents unit price and total price with proper currency formatting
+- Maintains consistent styling with the application design system
+- Works with both cart line items and order line items
 
+## Technical Details
+
+### Dependencies
+
+```javascript copy
+import { HttpTypes } from "@medusajs/types"
+import { Table, Text } from "@medusajs/ui"
+import LineItemOptions from "@modules/common/components/line-item-options"
+import LineItemPrice from "@modules/common/components/line-item-price"
+import LineItemUnitPrice from "@modules/common/components/line-item-unit-price"
+import Thumbnail from "@modules/products/components/thumbnail"
+```
+
+### Props
+
+The component accepts two required props:
+
+```typescript copy
+type ItemProps = {
+  item: HttpTypes.StoreCartLineItem | HttpTypes.StoreOrderLineItem;
+  currencyCode: string;
+}
+```
+
+### Component Structure
+
+```javascript copy
+const Item = ({ item, currencyCode }: ItemProps) => {
   return (
-    <Addresses 
-      cart={cart}
-      customer={customer}
-    />
+    <Table.Row className="w-full" data-testid="product-row">
+      {/* Thumbnail cell */}
+      {/* Details cell */}
+      {/* Price cell */}
+    </Table.Row>
   )
 }
 ```
 
-## Styling
+## Layout Structure
 
-The component uses Tailwind CSS for styling with custom classes:
-
-- Background: `bg-white`
-- Button colors: `bg-[#008080]`, `hover:bg-[#3c9696]`
-- Text styles: `text-3xl-regular`, `txt-medium`, `txt-medium-plus`
-- Layout: Flexbox and width utilities (`w-1/3`, `gap-x-8`, etc.)
-
-## Testing
-
-The component includes several data-testid attributes for testing:
-
-```typescript copy
-data-testid="edit-address-button"
-data-testid="submit-address-button"
-data-testid="address-error-message"
-data-testid="shipping-address-summary"
-data-testid="shipping-contact-summary"
-data-testid="billing-address-summary"
+### Table Row
+```jsx copy
+<Table.Row className="w-full" data-testid="product-row">
+  {/* Table cells */}
+</Table.Row>
 ```
 
-## Dependencies
+### Thumbnail Cell
+```jsx copy
+<Table.Cell className="!pl-0 p-4 w-24">
+  <div className="flex w-16">
+    <Thumbnail thumbnail={item.thumbnail} size="square" />
+  </div>
+</Table.Cell>
+```
 
-- @medusajs/ui: UI components and hooks
-- @medusajs/icons: Icon components
-- @medusajs/types: TypeScript types
-- next/navigation: Next.js routing utilities
-- React hooks and components
+### Details Cell
+```jsx copy
+<Table.Cell className="text-left">
+  <Text
+    className="txt-medium-plus text-ui-fg-base"
+    data-testid="product-name"
+  >
+    {item.title}
+  </Text>
+  <LineItemOptions variant={item.variant} data-testid="product-variant" />
+</Table.Cell>
+```
 
-## State and Navigation
+### Price Cell
+```jsx copy
+<Table.Cell className="!pr-0">
+  <span className="!pr-0 flex flex-col items-end h-full justify-center">
+    <span className="flex gap-x-1 ">
+      <Text className="text-ui-fg-muted">
+        <span data-testid="product-quantity">{item.quantity}</span>x{" "}
+      </Text>
+      <LineItemUnitPrice
+        item={item}
+        style="tight"
+        currencyCode={currencyCode}
+      />
+    </span>
+    
+    <LineItemPrice
+      item={item}
+      style="tight"
+      currencyCode={currencyCode}
+    />
+  </span>
+</Table.Cell>
+```
 
-The component manages several states:
-- Edit mode through URL parameters (`?step=address`)
-- Same billing/shipping address toggle
-- Terms acceptance
-- Form submission state
-- Error messages
+## Styling
+
+The component uses Tailwind CSS and Medusa UI components for styling with the following key features:
+
+### Table Structure
+- Full width row (`w-full`)
+- Custom cell padding with left padding removed from first cell (`!pl-0 p-4`)
+- Right padding removed from last cell (`!pr-0`)
+- Fixed width for thumbnail cell (`w-24`)
+
+### Content Alignment
+- Left alignment for product details (`text-left`)
+- Right alignment for pricing information (`items-end`)
+- Vertical centering of price information (`justify-center`)
+- Column layout for price breakdown (`flex flex-col`)
+
+### Typography
+- Medium plus text style for product title (`txt-medium-plus`)
+- Base foreground color for title (`text-ui-fg-base`)
+- Muted foreground color for quantity text (`text-ui-fg-muted`)
+- Horizontal spacing between quantity and price (`gap-x-1`)
+
+## Examples
+
+### Basic Usage in Cart
+```jsx copy
+import Item from "./Item"
+import { Table } from "@medusajs/ui"
+
+export default function CartItems({ cart }) {
+  return (
+    <Table>
+      <Table.Header>
+        <Table.Row>
+          <Table.HeaderCell>Product</Table.HeaderCell>
+          <Table.HeaderCell>Details</Table.HeaderCell>
+          <Table.HeaderCell>Price</Table.HeaderCell>
+        </Table.Row>
+      </Table.Header>
+      <Table.Body>
+        {cart.items.map((item) => (
+          <Item 
+            key={item.id} 
+            item={item} 
+            currencyCode={cart.region.currency_code} 
+          />
+        ))}
+      </Table.Body>
+    </Table>
+  )
+}
+```
+
+### In Order Summary
+```jsx copy
+import Item from "./Item"
+import { Table } from "@medusajs/ui"
+
+export default function OrderSummary({ order }) {
+  return (
+    <div>
+      <h2>Order Items</h2>
+      <Table>
+        <Table.Body>
+          {order.items.map((item) => (
+            <Item 
+              key={item.id} 
+              item={item} 
+              currencyCode={order.currency_code} 
+            />
+          ))}
+        </Table.Body>
+      </Table>
+    </div>
+  )
+}
+```
+
+## Technical Considerations
+
+- Designed to work with both cart and order line items
+- Relies on several specialized components for different aspects:
+  - LineItemOptions for variant display
+  - LineItemPrice for total price calculation and display
+  - LineItemUnitPrice for unit price display
+  - Thumbnail for product image
+- Includes data-testid attributes for automated testing
+- Uses Medusa UI components for consistent design
+- Requires a currency code for proper price formatting
 
 ## Accessibility
 
-- Semantic HTML structure
-- ARIA attributes through Medusa UI components
-- Clear error messaging
-- Proper heading hierarchy
+- Uses semantic Table components for proper structure
+- Maintains logical content hierarchy
+- Includes proper text descriptions for products
+- Has sufficient spacing for readability
+- Uses appropriate text contrast for content
+- Includes test IDs for automated accessibility testing
 
-## Loading States
+## Browser Support
 
-The component shows a spinner when cart data is loading:
-```typescript copy
-{!cart && (
-  <div>
-    <Spinner />
-  </div>
-)}
-```
-
-## Error Handling
-
-Errors are displayed using the ErrorMessage component:
-```typescript copy
-<ErrorMessage error={message} data-testid="address-error-message" />
-```
-
-## See Also
-
-- [Medusa Documentation](https://docs.medusajs.com)
-- [Next.js Navigation](https://nextjs.org/docs/app/api-reference/functions/use-router)
-- [Tailwind CSS](https://tailwindcss.com/docs)
+Requires browsers with support for:
+- Modern JavaScript (ES6+)
+- CSS Flexbox
+- React
+- Depends on Medusa UI components and related line item components for full compatibility

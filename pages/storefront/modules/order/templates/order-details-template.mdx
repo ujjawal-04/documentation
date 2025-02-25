@@ -1,219 +1,220 @@
-# Checkout Summary 
+# Order Details Template
 
-A component that displays a comprehensive summary of the shopping cart, including items, totals, and discount code functionality. It provides a sticky positioning for better user experience during checkout.
+A React client component that displays comprehensive order details for a specific order in a user account, including order information, items, shipping details, and order summary.
 
-## Props
+## Syntax
 
-| Prop | Type | Required | Description |
-|------|------|----------|-------------|
-| cart | any | Yes | The cart object containing items, totals, and other cart-related information |
+```jsx copy
+<OrderDetailsTemplate order={orderData} />
+```
 
-## Component Structure
+## Description
 
-The CheckoutSummary combines several key features:
-1. Cart items preview
-2. Cart totals calculation
-3. Discount code application
-4. Sticky positioning for better UX
+The `OrderDetailsTemplate` component provides a detailed view of a specific order, typically used in the customer account section. It organizes order information into logical sections and includes a navigation link back to the orders overview.
 
-## Usage
+### Features:
+- Displays complete order details including status information
+- Shows all items in the order with quantities and prices
+- Presents shipping information
+- Includes an order summary with price breakdown
+- Provides help section for customer support
+- Offers navigation back to the orders overview page
 
-```tsx copy
-import CheckoutSummary from "./components/CheckoutSummary"
+## Technical Details
 
-const CheckoutPage = ({ cart }) => {
+### Dependencies
+
+```javascript copy
+"use client"
+
+import { XMark } from "@medusajs/icons"
+import { HttpTypes } from "@medusajs/types"
+import LocalizedClientLink from "@modules/common/components/localized-client-link"
+import Help from "@modules/order/components/help"
+import Items from "@modules/order/components/items"
+import OrderDetails from "@modules/order/components/order-details"
+import OrderSummary from "@modules/order/components/order-summary"
+import ShippingDetails from "@modules/order/components/shipping-details"
+import React from "react"
+```
+
+### Props
+
+| Prop  | Type                  | Description                              |
+|-------|----------------------|------------------------------------------|
+| order | HttpTypes.StoreOrder | The complete order object with all details |
+
+### Component Structure
+
+```javascript copy
+"use client"
+
+import { XMark } from "@medusajs/icons"
+import { HttpTypes } from "@medusajs/types"
+import LocalizedClientLink from "@modules/common/components/localized-client-link"
+import Help from "@modules/order/components/help"
+import Items from "@modules/order/components/items"
+import OrderDetails from "@modules/order/components/order-details"
+import OrderSummary from "@modules/order/components/order-summary"
+import ShippingDetails from "@modules/order/components/shipping-details"
+import React from "react"
+
+type OrderDetailsTemplateProps = {
+  order: HttpTypes.StoreOrder
+}
+
+const OrderDetailsTemplate: React.FC<OrderDetailsTemplateProps> = ({
+  order,
+}) => {
   return (
-    <div className="checkout-container">
-      <CheckoutSummary cart={cart} />
+    <div className="flex flex-col justify-center gap-y-4">
+      <div className="flex gap-2 justify-between items-center">
+        <h1 className="text-2xl-semi">Order details</h1>
+        <LocalizedClientLink
+          href="/account/orders"
+          className="flex gap-2 items-center text-ui-fg-subtle hover:text-ui-fg-base"
+          data-testid="back-to-overview-button"
+        >
+          <XMark /> Back to overview
+        </LocalizedClientLink>
+      </div>
+      <div
+        className="flex flex-col gap-4 h-full bg-white w-full"
+        data-testid="order-details-container"
+      >
+        <OrderDetails order={order} showStatus />
+        <Items order={order} />
+        <ShippingDetails order={order} />
+        <OrderSummary order={order} />
+        <Help />
+      </div>
     </div>
   )
 }
+
+export default OrderDetailsTemplate
 ```
 
 ## Layout Structure
 
-```tsx copy
-<div className="sticky top-0 flex flex-col-reverse small:flex-col gap-y-8 py-8 small:py-0">
-  <div className="w-full bg-white flex flex-col">
-    {/* Content */}
-  </div>
+### Main Container
+```jsx copy
+<div className="flex flex-col justify-center gap-y-4">
+  {/* Header and content */}
 </div>
 ```
 
-## Sub-Components
+### Header with Navigation
+```jsx copy
+<div className="flex gap-2 justify-between items-center">
+  <h1 className="text-2xl-semi">Order details</h1>
+  <LocalizedClientLink
+    href="/account/orders"
+    className="flex gap-2 items-center text-ui-fg-subtle hover:text-ui-fg-base"
+    data-testid="back-to-overview-button"
+  >
+    <XMark /> Back to overview
+  </LocalizedClientLink>
+</div>
+```
 
-### Cart Header
-```tsx copy
-<Heading
-  level="h2"
-  className="flex flex-row text-3xl-regular items-baseline"
+### Content Container
+```jsx copy
+<div
+  className="flex flex-col gap-4 h-full bg-white w-full"
+  data-testid="order-details-container"
 >
-  In your Cart
-</Heading>
+  {/* Section components */}
+</div>
 ```
 
-### Items Preview
-Displays cart items using the ItemsPreviewTemplate:
-```tsx copy
-<ItemsPreviewTemplate cart={cart} />
-```
-
-### Cart Totals
-Shows the cart total calculations:
-```tsx copy
-<CartTotals totals={cart} />
-```
-
-### Discount Code
-Provides discount code input functionality:
-```tsx copy
-<DiscountCode cart={cart} />
+### Order Information Sections
+```jsx copy
+<OrderDetails order={order} showStatus />
+<Items order={order} />
+<ShippingDetails order={order} />
+<OrderSummary order={order} />
+<Help />
 ```
 
 ## Styling
 
-The component uses a combination of utility classes for:
+- **Main Container:** Uses `flex flex-col justify-center gap-y-4` for vertical layout with consistent spacing between sections.
+- **Header Row:** Uses `flex gap-2 justify-between items-center` to position the heading and back button on opposite sides.
+- **Page Title:** Styled with `text-2xl-semi` for appropriate heading size and weight.
+- **Back Link:** Uses `flex gap-2 items-center text-ui-fg-subtle hover:text-ui-fg-base` for subtle styling with hover state.
+- **Content Container:** Uses `flex flex-col gap-4 h-full bg-white w-full` for clean background and consistent spacing between components.
+- **Section Spacing:** Consistent `gap-4` between sections for visual hierarchy.
 
-### Responsive Layout
-- Uses `small:` breakpoint for different layouts
-- Switches between `flex-col` and `flex-col-reverse` based on screen size
+## Client Component
 
-### Positioning
-- Implements sticky positioning: `sticky top-0`
-- Maintains proper spacing with `gap-y-8`
+This is a Next.js client component (indicated by the `"use client"` directive), which:
+- Runs in the browser after initial page load
+- Can use client-side hooks and event handlers
+- Enables client-side interactivity
+- Supports client-side navigation via the `LocalizedClientLink` component
 
-### Visual Separation
-- Uses `Divider` component for content separation
-- Applies consistent margin spacing
+## Child Components
 
-## Dependencies
+### Required Components
+- `OrderDetails`: Shows order ID, email, dates, and status (with the `showStatus` prop enabled)
+- `Items`: Displays line items in the order
+- `ShippingDetails`: Displays shipping address and method
+- `OrderSummary`: Shows price breakdown including subtotal, shipping, taxes, and total
+- `Help`: Provides customer support information
+- `LocalizedClientLink`: Provides localized navigation for the back button
 
-### Components
-- `@medusajs/ui`: `Heading`
-- `@modules/cart/templates/preview`: `ItemsPreviewTemplate`
-- `@modules/checkout/components/discount-code`: `DiscountCode`
-- `@modules/common/components/cart-totals`: `CartTotals`
-- `@modules/common/components/divider`: `Divider`
+## Navigation
 
-## Responsive Design
-
-The component implements responsive behavior:
-
-### Mobile View
-- Reversed column layout
-- Additional divider visibility
-- Modified padding
-
-### Desktop View
-- Standard column layout
-- Hidden top divider
-- Adjusted padding
-
-## Best Practices
-
-1. Cart Data Handling
-   - Validate cart data before rendering
-   - Handle empty cart states appropriately
-   - Update cart totals when items change
-
-2. Responsive Design
-   - Maintain readability across screen sizes
-   - Ensure sticky positioning works correctly
-   - Properly handle layout changes
-
-3. User Experience
-   - Keep totals visible during checkout
-   - Provide clear item preview
-   - Make discount code entry accessible
-
-## Component Features
-
-### Sticky Positioning
-- Keeps cart summary visible while scrolling
-- Improves user experience during checkout
-- Maintains context during form filling
-
-### Visual Hierarchy
-- Clear heading for cart contents
-- Separated sections with dividers
-- Organized display of information
-
-### Interactive Elements
-- Discount code application
-- Cart items preview
-- Totals calculation
-
-## Technical Considerations
-
-### Performance
-- Efficient rendering of cart items
-- Proper handling of cart updates
-- Optimized sticky positioning
-
-### Accessibility
-- Semantic heading structure
-- Proper ARIA attributes (inherited from sub-components)
-- Keyboard navigation support
-
-### State Management
-- Cart state handled through props
-- Discount code state managed in sub-component
-- Updates reflected in totals
-
-## Related Components
-
-- Main checkout form
-- Cart page
-- Individual cart item components
-- Payment summary components
-
-## Testing Considerations
-
-Key areas to test:
-1. Cart data rendering
-2. Responsive layout changes
-3. Sticky positioning behavior
-4. Discount code functionality
-5. Totals calculation accuracy
-6. Empty cart states
-
-## Future Improvements
-
-Potential enhancements:
-1. Type safety for cart prop
-2. Loading states for async operations
-3. Error handling for invalid cart data
-4. Animation for total updates
-5. Enhanced mobile experience
-6. Additional cart summary features
+The component includes a back navigation link to the orders overview page:
+```jsx copy
+<LocalizedClientLink
+  href="/account/orders"
+  className="flex gap-2 items-center text-ui-fg-subtle hover:text-ui-fg-base"
+  data-testid="back-to-overview-button"
+>
+  <XMark /> Back to overview
+</LocalizedClientLink>
+```
 
 ## Examples
 
-### Basic Implementation
-```tsx copy
-<CheckoutSummary cart={{
-  items: [],
-  total: 0,
-  subtotal: 0,
-  discount_total: 0,
-  shipping_total: 0
-}} />
+### Basic Usage
+
+```jsx copy
+import OrderDetailsTemplate from "./OrderDetailsTemplate"
+
+export default function OrderDetailsPage({ params }) {
+  const { id } = params
+  
+  // Fetch order data from API
+  const order = await getOrder(id)
+  
+  return <OrderDetailsTemplate order={order} />
+}
 ```
 
-### With Items and Discount
-```tsx copy
-<CheckoutSummary cart={{
-  items: [
-    {
-      id: "item_1",
-      title: "Product 1",
-      quantity: 2,
-      unit_price: 1000
-    }
-  ],
-  total: 2000,
-  subtotal: 2000,
-  discount_total: 200,
-  shipping_total: 500
-}} />
+## Status Display
+
+Unlike some other templates, this component explicitly enables the status display on the OrderDetails component:
+```jsx copy
+<OrderDetails order={order} showStatus />
 ```
+
+## Accessibility
+
+- Uses semantic HTML structure with appropriate heading level
+- Implements a logical section order for screen readers
+- Provides clear navigation back to the orders list
+- Uses data-testid attributes for testing purposes
+- Shows visual hover states for interactive elements
+- Maintains a consistent layout structure for predictability
+
+## Browser Support
+
+The component works in modern browsers supporting:
+
+- Next.js client components
+- CSS Flexbox layout
+- React components and props
+- Client-side navigation

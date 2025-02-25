@@ -1,202 +1,221 @@
-# Checkout Form 
+# Order Completed Template
 
-An asynchronous server component that orchestrates the complete checkout process, managing shipping methods, payment options, and customer information.
+A React server component that displays the order confirmation page after a successful checkout, including order details, summary, shipping information, and payment details.
 
-## Props
+## Syntax
 
-| Prop | Type | Required | Description |
-|------|------|----------|-------------|
-| cart | HttpTypes.StoreCart \| null | Yes | The current cart object containing items and checkout information |
-| customer | HttpTypes.StoreCustomer \| null | Yes | Customer information if available |
+```jsx copy
+<OrderCompletedTemplate order={orderData} />
+```
 
-## Component Structure
+## Description
 
-The CheckoutForm coordinates four main checkout steps:
+The `OrderCompletedTemplate` component provides a comprehensive order confirmation page that is displayed after a customer successfully completes a purchase. It presents all relevant order information in a structured and easy-to-read format.
 
-1. Address Collection (`Addresses`)
-2. Shipping Method Selection (`Shipping`)
-3. Payment Method Selection (`Payment`)
-4. Order Review (`Review` - currently commented out)
+### Features:
+- Displays a thank you message and order confirmation
+- Shows complete order details including order number and date
+- Presents an itemized order summary
+- Displays shipping information and delivery details
+- Shows payment method and transaction details
+- Includes cart totals with price breakdown
+- Provides help section for customer support
+- Conditionally renders an onboarding CTA for merchants during setup
 
-## Usage
+## Technical Details
 
-```tsx copy
-import CheckoutForm from "./components/CheckoutForm"
+### Dependencies
 
-const CheckoutPage = async () => {
-  const cart = await fetchCart()
-  const customer = await fetchCustomer()
+```javascript copy
+import { Heading } from "@medusajs/ui"
+import { cookies as nextCookies } from "next/headers"
 
+import CartTotals from "@modules/common/components/cart-totals"
+import Help from "@modules/order/components/help"
+import Items from "@modules/order/components/items"
+import OnboardingCta from "@modules/order/components/onboarding-cta"
+import OrderDetails from "@modules/order/components/order-details"
+import ShippingDetails from "@modules/order/components/shipping-details"
+import PaymentDetails from "@modules/order/components/payment-details"
+import { HttpTypes } from "@medusajs/types"
+```
+
+### Props
+
+| Prop  | Type                  | Description                              |
+|-------|----------------------|------------------------------------------|
+| order | HttpTypes.StoreOrder | The complete order object with all details |
+
+### Component Structure
+
+```javascript copy
+type OrderCompletedTemplateProps = {
+  order: HttpTypes.StoreOrder
+}
+
+export default async function OrderCompletedTemplate({
+  order,
+}: OrderCompletedTemplateProps) {
+  const cookies = await nextCookies()
+  
+  const isOnboarding = cookies.get("_medusa_onboarding")?.value === "true"
+  
   return (
-    <div className="container">
-      <CheckoutForm 
-        cart={cart}
-        customer={customer}
-      />
+    <div className="py-6 min-h-[calc(100vh-64px)]">
+      <div className="content-container flex flex-col justify-center items-center gap-y-10 max-w-4xl h-full w-full">
+        {isOnboarding && <OnboardingCta orderId={order.id} />}
+        <div
+          className="flex flex-col gap-4 max-w-4xl h-full bg-white w-full py-10"
+          data-testid="order-complete-container"
+        >
+          <Heading
+            level="h1"
+            className="flex flex-col gap-y-3 text-ui-fg-base text-3xl mb-4"
+          >
+            <span>Thank you!</span>
+            <span>Your order was placed successfully.</span>
+          </Heading>
+          <OrderDetails order={order} />
+          <Heading level="h2" className="flex flex-row text-3xl-regular">
+            Summary
+          </Heading>
+          <Items order={order} />
+          <CartTotals totals={order} />
+          <ShippingDetails order={order} />
+          <PaymentDetails order={order} />
+          <Help />
+        </div>
+      </div>
     </div>
   )
 }
 ```
 
-## Data Fetching
+## Layout Structure
 
-The component fetches necessary data for the checkout process:
-
-```typescript copy
-// Fetch available shipping methods
-const shippingMethods = await listCartShippingMethods(cart.id)
-
-// Payment methods configuration
-const paymentMethods = [
-  { id: 'pp_stripe_stripe', is_enabled: true },
-  { id: 'pp_system_default', is_enabled: true },
-  { id: 'pp_zelle_default', is_enabled: true },
-  { id: 'pp_crypto_default', is_enabled: true },
-]
-```
-
-## Payment Methods
-
-The component supports multiple payment providers:
-
-- Stripe (`pp_stripe_stripe`)
-- System Default (`pp_system_default`)
-- Zelle (`pp_zelle_default`)
-- Cryptocurrency (`pp_crypto_default`)
-
-## Component Layout
-
-Uses a responsive grid layout:
-
-```tsx copy
-<div className="w-full grid grid-cols-1 gap-y-8">
-  <Addresses ... />
-  <Shipping ... />
-  <Payment ... />
-  {/* <Review ... /> */}
+### Container
+```jsx copy
+<div className="py-6 min-h-[calc(100vh-64px)]">
+  <div className="content-container flex flex-col justify-center items-center gap-y-10 max-w-4xl h-full w-full">
+    {/* Content */}
+  </div>
 </div>
 ```
 
-## Sub-Components
-
-### Addresses Component
-Handles collection and validation of shipping and billing addresses:
-```tsx copy
-<Addresses 
-  cart={cart} 
-  customer={customer} 
-/>
+### Onboarding CTA (Conditional)
+```jsx copy
+{isOnboarding && <OnboardingCta orderId={order.id} />}
 ```
 
-### Shipping Component
-Manages shipping method selection:
-```tsx copy
-<Shipping 
-  cart={cart} 
-  availableShippingMethods={shippingMethods} 
-/>
+### Content Container
+```jsx copy
+<div
+  className="flex flex-col gap-4 max-w-4xl h-full bg-white w-full py-10"
+  data-testid="order-complete-container"
+>
+  {/* Section content */}
+</div>
 ```
 
-### Payment Component
-Handles payment method selection and processing:
-```tsx copy
-<Payment 
-  cart={cart} 
-  availablePaymentMethods={paymentMethods} 
-/>
+### Thank You Message
+```jsx copy
+<Heading
+  level="h1"
+  className="flex flex-col gap-y-3 text-ui-fg-base text-3xl mb-4"
+>
+  <span>Thank you!</span>
+  <span>Your order was placed successfully.</span>
+</Heading>
 ```
 
-### Review Component (Optional)
-Final order review step (currently disabled):
-```tsx copy
-{/* <Review cart={cart} /> */}
+### Sections
+```jsx copy
+<OrderDetails order={order} />
+<Heading level="h2" className="flex flex-row text-3xl-regular">
+  Summary
+</Heading>
+<Items order={order} />
+<CartTotals totals={order} />
+<ShippingDetails order={order} />
+<PaymentDetails order={order} />
+<Help />
 ```
 
-## Error Handling
+## Styling
 
-The component implements basic error handling:
+- **Container:** Uses `py-6 min-h-[calc(100vh-64px)]` to ensure proper vertical spacing and minimum height.
+- **Content Container:** Uses `content-container flex flex-col justify-center items-center gap-y-10 max-w-4xl h-full w-full` for centered layout with consistent spacing.
+- **Order Content Box:** Uses `flex flex-col gap-4 max-w-4xl h-full bg-white w-full py-10` for proper content layout.
+- **Headings:** 
+  - Primary heading: `flex flex-col gap-y-3 text-ui-fg-base text-3xl mb-4`
+  - Section heading: `flex flex-row text-3xl-regular`
+- **Section Spacing:** Consistent `gap-4` between sections for visual hierarchy.
 
-- Returns null if cart is not available
-- Returns null if shipping or payment methods cannot be fetched
-- Sub-components handle their own error states
+## Server Component
 
-## Dependencies
+This is a Next.js server component (indicated by the `async` function), which:
+- Has direct access to server-side APIs
+- Can read cookies from the request headers
+- Doesn't use client-side hooks or interactivity
+- Renders on the server before being sent to the client
 
-### External Libraries
-- `@medusajs/types`: For type definitions
-- Data fetching utilities from `@lib/data`
+## Cookie Handling
 
-### Internal Components
-- `@modules/checkout/components/addresses`
-- `@modules/checkout/components/payment`
-- `@modules/checkout/components/review`
-- `@modules/checkout/components/shipping`
+The component checks for a specific cookie to determine if the user is in onboarding mode:
 
-## Best Practices
-
-1. Validate cart existence before processing
-2. Ensure all required methods are available
-3. Handle loading and error states appropriately
-4. Maintain proper order of checkout steps
-5. Provide clear feedback for each step
-6. Implement proper type checking
-
-## Data Flow
-
-```mermaid
-graph TD
-    A[CheckoutForm] --> B[Fetch Shipping Methods]
-    A --> C[Configure Payment Methods]
-    B --> D[Render Components]
-    C --> D
-    D --> E[Addresses]
-    D --> F[Shipping]
-    D --> G[Payment]
-    D --> H[Review]
+```javascript copy
+const cookies = await nextCookies()
+const isOnboarding = cookies.get("_medusa_onboarding")?.value === "true"
 ```
 
-## Technical Considerations
+## Child Components
 
-### Server Component
-- Uses the `async` keyword for server-side rendering
-- Handles data fetching before component render
-- Provides data to client-side sub-components
+### Required Components
+- `OnboardingCta`: Displayed during merchant onboarding
+- `OrderDetails`: Shows order ID, email, and dates
+- `Items`: Displays line items in the order
+- `CartTotals`: Shows price breakdown
+- `ShippingDetails`: Displays shipping address and method
+- `PaymentDetails`: Shows payment method and transaction information
+- `Help`: Provides customer support information
 
-### Performance
-- Minimizes client-side data fetching
-- Loads payment methods configuration statically
-- Implements null checks for efficient rendering
+## Examples
 
-### Type Safety
-- Uses Medusa HTTP types for proper type checking
-- Implements null checks for optional props
-- Ensures type safety in sub-component props
+### Basic Usage
 
-## Testing Considerations
+```jsx copy
+import OrderCompletedTemplate from "./OrderCompletedTemplate"
 
-Key areas to test:
-1. Cart validation
-2. Shipping method availability
-3. Payment method configuration
-4. Component rendering with various prop combinations
-5. Error state handling
-6. Data fetching failures
-7. Sub-component integration
+export default async function OrderConfirmationPage({ params }) {
+  const { id } = params
+  
+  // Fetch order data from API
+  const order = await getOrder(id)
+  
+  return <OrderCompletedTemplate order={order} />
+}
+```
 
-## Customization
+## Conditional Rendering
 
-The component can be customized by:
-1. Modifying the payment methods array
-2. Adjusting the grid layout classes
-3. Enabling/disabling the Review step
-4. Adding additional checkout steps
-5. Modifying the data fetching logic
+The component conditionally renders the `OnboardingCta` component based on cookie value:
+```jsx copy
+{isOnboarding && <OnboardingCta orderId={order.id} />}
+```
 
-## Future Improvements
+## Accessibility
 
-Potential enhancements:
-1. Re-enable Review step with proper integration
-2. Add progress indicator for checkout steps
-3. Implement better error handling and recovery
-4. Add loading states for data fetching
-5. Enhance type safety with stricter types
+- Uses semantic HTML structure with appropriate headings
+- Implements a logical section order for screen readers
+- Uses data-testid attributes for testing purposes
+- Provides clear visual hierarchy through consistent spacing and typography
+- Uses Medusa UI components which follow accessibility best practices
+
+## Browser Support
+
+The component works in modern browsers supporting:
+
+- Next.js server components
+- CSS Flexbox layout
+- CSS calc() function
+- React and Medusa UI components

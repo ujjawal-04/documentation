@@ -1,244 +1,172 @@
-# Discount Code
+# Order Details
 
-The `Discount Code` component is a client-side React component that handles the application and display of promotion codes in a shopping cart. It provides functionality for adding and removing discount codes and displaying active promotions.
+A React component that displays order details, including email, order date, and order number, with an optional order status section.
 
-## Overview
-
-```typescript copy
-"use client"
-
-import { Badge, Heading, Input, Label, Text, Tooltip } from "@medusajs/ui"
-import React, { useActionState } from "react"
-import { applyPromotions, submitPromotionForm } from "@lib/data/cart"
-import { convertToLocale } from "@lib/util/money"
-import { InformationCircleSolid } from "@medusajs/icons"
-import { HttpTypes } from "@medusajs/types"
-import Trash from "@modules/common/icons/trash"
-```
-
-## Props
-
-```typescript copy
-type DiscountCodeProps = {
-  cart: HttpTypes.StoreCart & {
-    promotions: HttpTypes.StorePromotion[]
-  }
-}
-```
-
-### cart
-- Type: `HttpTypes.StoreCart & { promotions: HttpTypes.StorePromotion[] }`
-- Required: Yes
-- Description: Cart object containing items and active promotions.
-
-## State Management
-
-The component uses React's useState and useActionState hooks:
-
-```typescript copy
-const [isOpen, setIsOpen] = React.useState(false)
-const [message, formAction] = useActionState(submitPromotionForm, null)
-```
-
-## Core Functions
-
-### Remove Promotion Code
-```typescript copy
-const removePromotionCode = async (code: string) => {
-  const validPromotions = promotions.filter(
-    (promotion) => promotion.code !== code
-  )
-
-  await applyPromotions(
-    validPromotions.filter((p) => p.code === undefined).map((p) => p.code!)
-  )
-}
-```
-
-### Add Promotion Code
-```typescript copy
-const addPromotionCode = async (formData: FormData) => {
-  const code = formData.get("code")
-  if (!code) {
-    return
-  }
-  const input = document.getElementById("promotion-input") as HTMLInputElement
-  const codes = promotions
-    .filter((p) => p.code === undefined)
-    .map((p) => p.code!)
-  codes.push(code.toString())
-
-  await applyPromotions(codes)
-
-  if (input) {
-    input.value = ""
-  }
-}
-```
-
-## Component Structure
-
-### Discount Input Form
-```typescript copy
-<form action={(a) => addPromotionCode(a)} className="w-full mb-5">
-  <Label className="flex gap-x-1 my-2 items-center">
-    <button
-      onClick={() => setIsOpen(!isOpen)}
-      type="button"
-      className="txt-medium text-ui-fg-interactive hover:text-ui-fg-interactive-hover"
-      data-testid="add-discount-button"
-    >
-      Add gift card or discount code
-    </button>
-  </Label>
-
-  {isOpen && (
-    <>
-      <div className="flex w-full gap-x-2">
-        <Input
-          placeholder="Please enter code"
-          className="size-full"
-          id="promotion-input"
-          name="code"
-          type="text"
-          autoFocus={true}
-          data-testid="discount-input"
-        />
-        <SubmitButton
-          variant="secondary"
-          className="bg-gray-300 rounded-xl font-semibold"
-          data-testid="discount-apply-button"
-        >
-          Apply
-        </SubmitButton>
-      </div>
-      <ErrorMessage
-        error={message}
-        data-testid="discount-error-message"
-      />
-    </>
-  )}
-</form>
-```
-
-### Active Promotions Display
-```typescript copy
-{promotions.length > 0 && (
-  <div className="w-full flex items-center">
-    <div className="flex flex-col w-full">
-      <Heading className="txt-medium mb-2">
-        Promotion(s) applied:
-      </Heading>
-      {promotions.map((promotion) => (
-        <div
-          key={promotion.id}
-          className="flex items-center justify-between w-full max-w-full mb-2"
-          data-testid="discount-row"
-        >
-          {/* Promotion details */}
-        </div>
-      ))}
-    </div>
-  </div>
-)}
-```
-
-## Usage Example
+## Syntax
 
 ```jsx copy
-import DiscountCode from "@modules/checkout/components/discount-code"
+<OrderDetails order={orderData} showStatus={true} />
+```
 
-function CheckoutPage() {
-  const cart = {
-    items: [],
-    promotions: [
-      {
-        id: "promo_1",
-        code: "SUMMER10",
-        is_automatic: false,
-        application_method: {
-          type: "percentage",
-          value: 10,
-          currency_code: "USD"
-        }
-      }
-    ]
+## Description
+
+The `OrderDetails` component provides a summary of an order with key information and an optional status display.
+
+### Features:
+- Displays the email associated with the order confirmation
+- Shows the order date and order number
+- Optionally displays order and payment status
+- Uses Medusa UI components for styling consistency
+
+## Technical Details
+
+### Dependencies
+
+```javascript copy
+import { HttpTypes } from "@medusajs/types"
+import { Text } from "@medusajs/ui"
+```
+
+### Props
+
+| Prop       | Type                      | Description                                |
+|------------|---------------------------|--------------------------------------------|
+| order      | HttpTypes.StoreOrder      | The order object with order details.      |
+| showStatus | boolean (optional)        | Whether to show order status information. |
+
+### Component Structure
+
+```javascript copy
+type OrderDetailsProps = {
+  order: HttpTypes.StoreOrder
+  showStatus?: boolean
+}
+
+const OrderDetails = ({ order, showStatus }: OrderDetailsProps) => {
+  const formatStatus = (str: string) => {
+    const formatted = str.split("_").join(" ")
+    return formatted.slice(0, 1).toUpperCase() + formatted.slice(1)
   }
 
   return (
-    <DiscountCode cart={cart} />
+    <div>
+      <Text>
+        We have sent the order confirmation details to {" "}
+        <span className="text-ui-fg-medium-plus font-semibold" data-testid="order-email">
+          {order.email}
+        </span>
+        .
+      </Text>
+      <Text className="mt-2">
+        Order date: {" "}
+        <span data-testid="order-date">{new Date(order.created_at).toDateString()}</span>
+      </Text>
+      <Text className="mt-2 text-ui-fg-interactive">
+        Order number: <span data-testid="order-id">{order.display_id}</span>
+      </Text>
+
+      <div className="flex items-center text-compact-small gap-x-4 mt-4">
+        {showStatus && (
+          <>
+            <Text>
+              Order status: {" "}
+              <span className="text-ui-fg-subtle" data-testid="order-status">
+                {/* TODO: Check where the statuses should come from */}
+                {/* {formatStatus(order.fulfillment_status)} */}
+              </span>
+            </Text>
+            <Text>
+              Payment status: {" "}
+              <span className="text-ui-fg-subtle" data-testid="order-payment-status">
+                {/* {formatStatus(order.payment_status)} */}
+              </span>
+            </Text>
+          </>
+        )}
+      </div>
+    </div>
   )
 }
+```
+
+## Layout Structure
+
+### Order Details
+```jsx copy
+<Text>
+  We have sent the order confirmation details to {" "}
+  <span className="text-ui-fg-medium-plus font-semibold" data-testid="order-email">
+    {order.email}
+  </span>
+  .
+</Text>
+<Text className="mt-2">
+  Order date: {" "}
+  <span data-testid="order-date">{new Date(order.created_at).toDateString()}</span>
+</Text>
+<Text className="mt-2 text-ui-fg-interactive">
+  Order number: <span data-testid="order-id">{order.display_id}</span>
+</Text>
+```
+
+### Status Display (Optional)
+```jsx copy
+{showStatus && (
+  <>
+    <Text>
+      Order status: {" "}
+      <span className="text-ui-fg-subtle" data-testid="order-status">
+        {/* {formatStatus(order.fulfillment_status)} */}
+      </span>
+    </Text>
+    <Text>
+      Payment status: {" "}
+      <span className="text-ui-fg-subtle" data-testid="order-payment-status">
+        {/* {formatStatus(order.payment_status)} */}
+      </span>
+    </Text>
+  </>
+)}
 ```
 
 ## Styling
 
-The component uses Tailwind CSS for styling:
-- Layout: `w-full`, `flex`, `flex-col`
-- Spacing: `gap-x-1`, `gap-x-2`, `mb-2`, `mb-5`
-- Colors: `bg-white`, `bg-gray-300`
-- Typography: `txt-medium`, `txt-small-plus`
-- Interactions: `hover:text-ui-fg-interactive-hover`
+- **Text Elements:** Styled using Medusa UI's `Text` component.
+- **Order Information:**
+  - Order email highlighted with `text-ui-fg-medium-plus font-semibold`.
+  - Order number styled with `text-ui-fg-interactive`.
+  - Optional status section uses `text-ui-fg-subtle` for subdued styling.
+- **Layout:**
+  - Uses flexbox for status section (`flex items-center text-compact-small gap-x-4 mt-4`).
 
-## Testing
+## Examples
 
-The component includes data-testid attributes for testing:
-```typescript copy
-data-testid="add-discount-button"
-data-testid="discount-input"
-data-testid="discount-apply-button"
-data-testid="discount-error-message"
-data-testid="discount-row"
-data-testid="discount-code"
-data-testid="remove-discount-button"
+### Basic Usage
+
+```jsx copy
+import OrderDetails from "./OrderDetails"
+
+export default function OrderSummary({ order }) {
+  return (
+    <div className="container mx-auto py-8">
+      <h1 className="text-2xl font-bold mb-4">Order Summary</h1>
+      <OrderDetails order={order} showStatus={true} />
+    </div>
+  )
+}
 ```
-
-## Dependencies
-
-- @medusajs/ui: UI components (Badge, Heading, Input, Label, Text, Tooltip)
-- @medusajs/icons: Icon components
-- @medusajs/types: TypeScript types
-- @lib/data/cart: Cart utility functions
-- @lib/util/money: Currency conversion utilities
-- React hooks (useState, useActionState)
-
-## Features
-
-1. Add promotion codes
-2. Remove non-automatic promotion codes
-3. Display active promotions
-4. Show promotion values (percentage or fixed amount)
-5. Handle automatic promotions
-6. Form validation and error handling
-7. Responsive design
-
-## Error Handling
-
-- Form validation for empty codes
-- Error message display through ErrorMessage component
-- Input field clearing after submission
-- Proper error state management
 
 ## Accessibility
 
-- Proper button and input labeling
-- Screen reader support with sr-only text
-- Keyboard navigation support
-- Focus management
-- ARIA attributes through UI components
+- Uses semantic HTML elements (`Text`, `span` for highlighting data).
+- Ensures interactive elements have appropriate data attributes for testing.
+- Readable and clear structure with logical content hierarchy.
 
-## Best Practices
+## Browser Support
 
-1. Clear user feedback for actions
-2. Proper form handling
-3. Type safety with TypeScript
-4. Separation of concerns
-5. Responsive design
-6. Error handling
-7. Accessibility compliance
+The component works in modern browsers supporting:
 
-## See Also
+- ES6+ JavaScript
+- CSS Flexbox
+- Medusa UI components
 
-- [Medusa Documentation](https://docs.medusajs.com)
-- [React Forms Documentation](https://react.dev/reference/react-dom/components/input)
-- [Tailwind CSS Documentation](https://tailwindcss.com/docs)

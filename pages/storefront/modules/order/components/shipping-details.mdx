@@ -1,46 +1,215 @@
-# Address Select
+# Shipping Details
 
-The `Address Select` component creates a dropdown list for selecting shipping addresses. It uses the Headless UI Listbox component to create an accessible address selection interface with a custom design.
+A React component that displays shipping information for an order, including shipping address, contact information, and shipping method.
 
-## Overview
+## Syntax
 
-The `Address Select` component allows users to select from a list of previously saved addresses. It displays address details in a dropdown format and supports keyboard navigation and screen readers.
+```jsx copy
+<ShippingDetails order={orderData} />
+```
 
-## Props
+## Description
 
-The component accepts the following props:
+The `ShippingDetails` component provides a comprehensive overview of delivery information associated with an order, organized into three sections: shipping address, contact details, and shipping method.
 
-### addresses
-- Type: `HttpTypes.StoreCustomerAddress[]`
-- Required: Yes
-- Description: An array of address objects containing customer address information.
+### Features:
+- Displays complete shipping address information
+- Shows customer contact information (phone and email)
+- Presents shipping method name and cost
+- Uses Medusa UI components for consistent styling
+- Organizes information in a three-column layout for easy scanning
 
-### addressInput
-- Type: `HttpTypes.StoreCartAddress | null`
-- Required: Yes
-- Description: The currently selected address in the cart, or null if no address is selected.
+## Technical Details
 
-### onSelect
-- Type: `(address: HttpTypes.StoreCartAddress | undefined, email?: string) => void`
-- Required: Yes
-- Description: Callback function that is called when a new address is selected.
+### Dependencies
 
-## Address Object Structure
+```javascript copy
+import { convertToLocale } from "@lib/util/money"
+import { HttpTypes } from "@medusajs/types"
+import { Heading, Text } from "@medusajs/ui"
+import Divider from "@modules/common/components/divider"
+```
 
-Each address object in the `addresses` array should contain the following properties:
+### Props
 
-```typescript copy
-{
-  id: string
-  first_name: string
-  last_name: string
-  company?: string
-  address_1: string
-  address_2?: string
-  city: string
-  postal_code: string
-  province?: string
-  country_code: string
+| Prop  | Type                  | Description                              |
+|-------|----------------------|------------------------------------------|
+| order | HttpTypes.StoreOrder | The order object with shipping details.   |
+
+### Component Structure
+
+```javascript copy
+type ShippingDetailsProps = {
+  order: HttpTypes.StoreOrder
+}
+
+const ShippingDetails = ({ order }: ShippingDetailsProps) => {
+  return (
+    <div>
+      <Heading level="h2" className="flex flex-row text-3xl-regular my-6">
+        Delivery
+      </Heading>
+      <div className="flex items-start gap-x-8">
+        <div
+          className="flex flex-col w-1/3"
+          data-testid="shipping-address-summary"
+        >
+          <Text className="txt-medium-plus text-ui-fg-base mb-1">
+            Shipping Address
+          </Text>
+          <Text className="txt-medium text-ui-fg-subtle">
+            {order.shipping_address?.first_name}{" "}
+            {order.shipping_address?.last_name}
+          </Text>
+          <Text className="txt-medium text-ui-fg-subtle">
+            {order.shipping_address?.address_1}{" "}
+            {order.shipping_address?.address_2}
+          </Text>
+          <Text className="txt-medium text-ui-fg-subtle">
+            {order.shipping_address?.postal_code},{" "}
+            {order.shipping_address?.city}
+          </Text>
+          <Text className="txt-medium text-ui-fg-subtle">
+            {order.shipping_address?.country_code?.toUpperCase()}
+          </Text>
+        </div>
+        
+        <div
+          className="flex flex-col w-1/3 "
+          data-testid="shipping-contact-summary"
+        >
+          <Text className="txt-medium-plus text-ui-fg-base mb-1">Contact</Text>
+          <Text className="txt-medium text-ui-fg-subtle">
+            {order.shipping_address?.phone}
+          </Text>
+          <Text className="txt-medium text-ui-fg-subtle">{order.email}</Text>
+        </div>
+        
+        <div
+          className="flex flex-col w-1/3"
+          data-testid="shipping-method-summary"
+        >
+          <Text className="txt-medium-plus text-ui-fg-base mb-1">Method</Text>
+          <Text className="txt-medium text-ui-fg-subtle">
+            {(order as any).shipping_methods[0]?.name} (
+            {convertToLocale({
+              amount: order.shipping_methods?.[0].total ?? 0,
+              currency_code: order.currency_code,
+            })
+              .replace(/,/g, "")
+              .replace(/\./g, ",")}
+            )
+          </Text>
+        </div>
+      </div>
+      <Divider className="mt-8" />
+    </div>
+  )
+}
+```
+
+## Layout Structure
+
+### Section Header
+```jsx copy
+<Heading level="h2" className="flex flex-row text-3xl-regular my-6">
+  Delivery
+</Heading>
+```
+
+### Shipping Address Column
+```jsx copy
+<div
+  className="flex flex-col w-1/3"
+  data-testid="shipping-address-summary"
+>
+  <Text className="txt-medium-plus text-ui-fg-base mb-1">
+    Shipping Address
+  </Text>
+  <Text className="txt-medium text-ui-fg-subtle">
+    {order.shipping_address?.first_name}{" "}
+    {order.shipping_address?.last_name}
+  </Text>
+  <Text className="txt-medium text-ui-fg-subtle">
+    {order.shipping_address?.address_1}{" "}
+    {order.shipping_address?.address_2}
+  </Text>
+  <Text className="txt-medium text-ui-fg-subtle">
+    {order.shipping_address?.postal_code},{" "}
+    {order.shipping_address?.city}
+  </Text>
+  <Text className="txt-medium text-ui-fg-subtle">
+    {order.shipping_address?.country_code?.toUpperCase()}
+  </Text>
+</div>
+```
+
+### Contact Information Column
+```jsx copy
+<div
+  className="flex flex-col w-1/3 "
+  data-testid="shipping-contact-summary"
+>
+  <Text className="txt-medium-plus text-ui-fg-base mb-1">Contact</Text>
+  <Text className="txt-medium text-ui-fg-subtle">
+    {order.shipping_address?.phone}
+  </Text>
+  <Text className="txt-medium text-ui-fg-subtle">{order.email}</Text>
+</div>
+```
+
+### Shipping Method Column
+```jsx copy
+<div
+  className="flex flex-col w-1/3"
+  data-testid="shipping-method-summary"
+>
+  <Text className="txt-medium-plus text-ui-fg-base mb-1">Method</Text>
+  <Text className="txt-medium text-ui-fg-subtle">
+    {(order as any).shipping_methods[0]?.name} (
+    {convertToLocale({
+      amount: order.shipping_methods?.[0].total ?? 0,
+      currency_code: order.currency_code,
+    })
+      .replace(/,/g, "")
+      .replace(/\./g, ",")}
+    )
+  </Text>
+</div>
+```
+
+### Divider
+```jsx copy
+<Divider className="mt-8" />
+```
+
+## Styling
+
+- **Section Header:** Uses Medusa UI's `Heading` component with `text-3xl-regular my-6` for consistent heading styles.
+- **Layout:**
+  - Three-column layout with `flex items-start gap-x-8`.
+  - Each column takes equal width (1/3) with `w-1/3`.
+  - Uses vertical stacking within columns with `flex flex-col`.
+- **Text Styling:**
+  - Section titles use `txt-medium-plus text-ui-fg-base mb-1`.
+  - Content text uses `txt-medium text-ui-fg-subtle`.
+- **Divider:** Adds space with `mt-8` margin top.
+
+## Formatting
+
+- **Shipping Address:** Formats address components with appropriate spacing and line breaks.
+- **Country Code:** Converts country code to uppercase for standard display.
+- **Shipping Cost:** 
+  - Uses `convertToLocale` utility to format the shipping cost.
+  - Custom formatting to replace commas and periods for specific locale standards.
+
+## Utilities
+
+### Currency Formatting
+```javascript copy
+// @lib/util/money
+export const convertToLocale = ({ amount, currency_code }) => {
+  // Formats currency amount according to locale and currency code
 }
 ```
 
@@ -49,84 +218,44 @@ Each address object in the `addresses` array should contain the following proper
 ### Basic Usage
 
 ```jsx copy
-import AddressSelect from "@modules/common/components/address-select"
+import ShippingDetails from "./ShippingDetails"
 
-function ShippingForm() {
-  const addresses = [
-    {
-      id: "addr_1",
-      first_name: "John",
-      last_name: "Doe",
-      address_1: "123 Main St",
-      city: "Boston",
-      postal_code: "02101",
-      country_code: "US"
-    }
-  ]
-
-  const handleAddressSelect = (address) => {
-    // Handle address selection
-    console.log("Selected address:", address)
-  }
-
+export default function OrderConfirmation({ order }) {
   return (
-    <AddressSelect
-      addresses={addresses}
-      addressInput={null}
-      onSelect={handleAddressSelect}
-    />
+    <div className="container mx-auto py-8">
+      <h1 className="text-2xl font-bold mb-4">Order Confirmation</h1>
+      <OrderDetails order={order} showStatus={true} />
+      <ShippingDetails order={order} />
+      <PaymentDetails order={order} />
+      <OrderSummary order={order} />
+    </div>
   )
 }
 ```
 
-## Features
+## Type Casting
 
-- Accessible dropdown menu using Headless UI
-- Keyboard navigation support
-- Visual feedback for selected address
-- Optional company name display
-- Formatted address display including:
-  - Full name
-  - Street address (with optional second line)
-  - City and postal code
-  - Province (if provided)
-  - Country code
+The component uses TypeScript type casting to handle shipping methods access:
+```typescript
+(order as any).shipping_methods[0]?.name
+```
 
-## Styling
-
-The component uses Tailwind CSS classes for styling and includes:
-
-- Hover states for address options
-- Focus states for keyboard navigation
-- Custom radio button indicators
-- Transition animations for dropdown
-
-## Dependencies
-
-- @headlessui/react: For accessible dropdown functionality
-- @medusajs/icons: For chevron icons
-- @medusajs/ui: For utility functions
-- @medusajs/types: For TypeScript types
+This is used to access shipping methods when the type definition might not fully match the runtime structure.
 
 ## Accessibility
 
-The component implements several accessibility features:
-
-- ARIA attributes via Headless UI
-- Keyboard navigation support
-- Focus management
-- Screen reader announcements for selection changes
+- Uses semantic HTML structure with appropriate headings
+- Implements data-testid attributes for testing purposes
+- Uses Medusa UI components which follow accessibility best practices
+- Maintains text contrast ratios through UI token system
+- Creates a logical reading order for screen readers
+- Groups related information together for better cognitive accessibility
 
 ## Browser Support
 
-This component relies on modern JavaScript features and React. It should work in all modern browsers that support:
+The component works in modern browsers supporting:
 
-- CSS Grid
-- CSS Flexbox
-- CSS Transitions
-- Modern JavaScript (ES6+)
-
-## See Also
-
-- [Headless UI Listbox Documentation](https://headlessui.dev/react/listbox)
-- [Medusa UI Documentation](https://docs.medusajs.com/ui)
+- ES6+ JavaScript features (optional chaining)
+- CSS Flexbox layout
+- React and Medusa UI components
+- String manipulation methods

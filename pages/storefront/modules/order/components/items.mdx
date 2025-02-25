@@ -1,270 +1,194 @@
-# Billing Address
+# Items
 
-The `Billing Address` component is a React component that renders a form for collecting billing address information. It provides a comprehensive set of input fields for address details with proper validation and state management.
+A React component that renders a table of order line items with loading states, sorting, and consistent styling.
 
-## Overview
-
-```typescript copy
-import { HttpTypes } from "@medusajs/types"
-import Input from "@modules/common/components/input"
-import React, { useState } from "react"
-import CountrySelect from "../country-select"
-import Checkbox from "@modules/common/components/checkbox"
-
-const BillingAddress = ({ cart }: { cart: HttpTypes.StoreCart | null }) => {
-  // Component implementation
-}
-```
-
-## Props
-
-```typescript copy
-type BillingAddressProps = {
-  cart: HttpTypes.StoreCart | null
-}
-```
-
-### cart
-- Type: `HttpTypes.StoreCart | null`
-- Required: Yes
-- Description: The current cart object containing existing billing address information, if any.
-
-## State Management
-
-The component uses React's useState hook to manage form data:
-
-```typescript copy
-const [formData, setFormData] = useState<any>({
-  "billing_address.first_name": cart?.billing_address?.first_name || "",
-  "billing_address.last_name": cart?.billing_address?.last_name || "",
-  "billing_address.address_1": cart?.billing_address?.address_1 || "",
-  "billing_address.company": cart?.billing_address?.company || "",
-  "billing_address.postal_code": cart?.billing_address?.postal_code || "",
-  "billing_address.city": cart?.billing_address?.city || "",
-  "billing_address.country_code": cart?.billing_address?.country_code || "US",
-  "billing_address.province": cart?.billing_address?.province || "",
-  "billing_address.phone": cart?.billing_address?.phone || "",
-})
-```
-
-## Event Handlers
-
-```typescript copy
-const handleChange = (
-  e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
-) => {
-  setFormData({
-    ...formData,
-    [e.target.name]: e.target.value,
-  })
-}
-```
-
-## Form Structure
-
-The component renders a form with the following fields:
-
-### Country Selection
-```typescript copy
-<CountrySelect
-  aria-label="Country"
-  name="billing_address.country_code"
-  autoComplete="country"
-  region={cart?.region}
-  value={formData["billing_address.country_code"]}
-  onChange={handleChange}
-  required
-  data-testid="billing-country-select"
-/>
-```
-
-### Personal Information
-```typescript copy
-<div className="grid grid-cols-2 gap-4">
-  <div>
-    <Input
-      label="First name"
-      type="text"
-      name="billing_address.first_name"
-      value={formData["billing_address.first_name"]}
-      onChange={handleChange}
-      required
-      data-testid="billing-first-name-input"
-    />
-  </div>
-  <div>
-    <Input
-      label="Last name"
-      type="text"
-      name="billing_address.last_name"
-      value={formData["billing_address.last_name"]}
-      onChange={handleChange}
-      required
-      data-testid="billing-last-name-input"
-    />
-  </div>
-</div>
-```
-
-### Company Information
-```typescript copy
-<Input
-  label="Company"
-  type="text"
-  name="billing_address.company"
-  value={formData["billing_address.company"]}
-  onChange={handleChange}
-  data-testid="billing-company-input"
-/>
-```
-
-### Address Details
-```typescript copy
-<Input
-  label="Address"
-  type="text"
-  name="billing_address.address_1"
-  value={formData["billing_address.address_1"]}
-  onChange={handleChange}
-  required
-  data-testid="billing-address-input"
-/>
-
-<Input
-  label="Apartment, suite, etc."
-  type="text"
-  name="billing_address.address_2"
-  value={formData["billing_address.address_2"]}
-  onChange={handleChange}
-/>
-```
-
-### Location Information
-```typescript copy
-<div className="grid md:grid-cols-3 grid-cols-2 gap-4">
-  <div className="col-span-2 md:col-span-1">
-    <Input
-      label="City"
-      type="text"
-      name="billing_address.city"
-      value={formData["billing_address.city"]}
-      onChange={handleChange}
-      required
-      data-testid="billing-city-input"
-    />
-  </div>
-  <div>
-    <Input
-      label="State / Province"
-      type="text"
-      name="billing_address.province"
-      value={formData["billing_address.province"]}
-      onChange={handleChange}
-      required
-      data-testid="billing-province-input"
-    />
-  </div>
-  <div>
-    <Input
-      label="Postal Code"
-      type="text"
-      name="billing_address.postal_code"
-      value={formData["billing_address.postal_code"]}
-      onChange={handleChange}
-      required
-      data-testid="billing-postal-input"
-    />
-  </div>
-</div>
-```
-
-### Contact Information
-```typescript copy
-<Input
-  label="Phone"
-  type="tel"
-  name="billing_address.phone"
-  value={formData["billing_address.phone"]}
-  onChange={handleChange}
-  data-testid="billing-phone-input"
-/>
-```
-
-## Usage Example
+## Syntax
 
 ```jsx copy
-import BillingAddress from "@modules/checkout/components/billing-address"
+<Items order={order} />
+```
 
-function CheckoutPage() {
-  const cart = {
-    billing_address: {
-      first_name: "John",
-      last_name: "Doe",
-      address_1: "123 Main St",
-      city: "Boston",
-      postal_code: "02101",
-      country_code: "US",
-      province: "MA",
-      phone: "+1234567890"
-    }
-  }
+## Description
 
+The Items component creates a structured table display that:
+- Shows all line items from an order
+- Sorts items by creation date (newest first)
+- Provides loading skeleton states when items are not yet available
+- Maintains consistent styling with the application design system
+- Wraps individual Item components in a table structure
+
+## Technical Details
+
+### Dependencies
+
+```javascript copy
+import repeat from "@lib/util/repeat"
+import { HttpTypes } from "@medusajs/types"
+import { Table } from "@medusajs/ui"
+import Divider from "@modules/common/components/divider"
+import Item from "@modules/order/components/item"
+import SkeletonLineItem from "@modules/skeletons/components/skeleton-line-item"
+```
+
+### Props
+
+The component accepts a single required prop:
+
+```typescript copy
+type ItemsProps = {
+  order: HttpTypes.StoreOrder
+}
+```
+
+### Component Structure
+
+```javascript copy
+const Items = ({ order }: ItemsProps) => {
+  const items = order.items
+  
   return (
-    <BillingAddress cart={cart} />
+    <div className="flex flex-col">
+      <Divider className="!mb-0" />
+      <Table>
+        <Table.Body data-testid="products-table">
+          {/* Items rendering logic */}
+        </Table.Body>
+      </Table>
+    </div>
   )
 }
 ```
 
-## Styling
+### Sorting Logic
 
-The component uses Tailwind CSS for styling:
-- Layout: `max-w-[800px]`, `mx-auto`, `space-y-4`
-- Grid system: `grid`, `grid-cols-2`, `grid-cols-3`
-- Responsive design: `md:grid-cols-3`, `md:col-span-1`
-- Spacing: `gap-4`
+The component sorts items by creation date, with newest items first:
 
-## Testing
-
-The component includes data-testid attributes for testing:
-```typescript copy
-data-testid="billing-country-select"
-data-testid="billing-first-name-input"
-data-testid="billing-last-name-input"
-data-testid="billing-company-input"
-data-testid="billing-address-input"
-data-testid="billing-city-input"
-data-testid="billing-province-input"
-data-testid="billing-postal-input"
-data-testid="billing-phone-input"
+```javascript copy
+items
+  .sort((a, b) => {
+    return (a.created_at ?? "") > (b.created_at ?? "") ? -1 : 1
+  })
 ```
 
-## Dependencies
+### Loading States
 
-- @medusajs/types: TypeScript types for cart and address data
-- Input: Custom input component
-- CountrySelect: Custom country selection component
-- Checkbox: Custom checkbox component
-- React hooks (useState)
+The component uses skeleton loading states when items are not available:
+
+```javascript copy
+{items?.length
+  ? items.sort(/*...*/).map(/*...*/)
+  : repeat(5).map((i) => {
+      return <SkeletonLineItem key={i} />
+    })}
+```
+
+## Layout Structure
+
+### Container
+```jsx copy
+<div className="flex flex-col">
+  <Divider className="!mb-0" />
+  <Table>
+    <Table.Body data-testid="products-table">
+      {/* Items or skeletons */}
+    </Table.Body>
+  </Table>
+</div>
+```
+
+### Items Rendering
+```jsx copy
+{items?.length
+  ? items
+      .sort((a, b) => {
+        return (a.created_at ?? "") > (b.created_at ?? "") ? -1 : 1
+      })
+      .map((item) => {
+        return (
+          <Item
+            key={item.id}
+            item={item}
+            currencyCode={order.currency_code}
+          />
+        )
+      })
+  : repeat(5).map((i) => {
+      return <SkeletonLineItem key={i} />
+    })}
+```
+
+## Styling
+
+The component uses Tailwind CSS and Medusa UI components for styling with the following key features:
+
+### Container
+- Column flex layout (`flex flex-col`)
+- Divider with margin bottom removed (`!mb-0`)
+
+### Table Structure
+- Uses Medusa UI Table component for consistent styling
+- Includes data-testid for testing purposes
+
+## Examples
+
+### Basic Usage in Order Details
+```jsx copy
+import Items from "./Items"
+
+export default function OrderDetails({ order }) {
+  return (
+    <div className="my-8">
+      <h2 className="text-xl font-semibold mb-4">Order Items</h2>
+      <Items order={order} />
+    </div>
+  )
+}
+```
+
+### With Order Summary
+```jsx copy
+import Items from "./Items"
+import OrderSummary from "./OrderSummary"
+
+export default function OrderConfirmation({ order }) {
+  return (
+    <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+      <div className="lg:col-span-2">
+        <h2 className="text-xl font-semibold mb-4">Your Items</h2>
+        <Items order={order} />
+      </div>
+      <div>
+        <OrderSummary order={order} />
+      </div>
+    </div>
+  )
+}
+```
+
+## Technical Considerations
+
+- Acts as a container for individual Item components
+- Handles sorting of items by creation date
+- Provides loading states when items are not yet available
+- Uses the utility function `repeat` to generate skeleton items
+- Handles null or undefined creation dates with fallback empty string
+- Requires an order with complete information including items and currency code
+- Includes data-testid attributes for automated testing
 
 ## Accessibility
 
-- Required field indication
-- Proper input labels
-- ARIA labels for country select
-- Semantic HTML structure
-- Proper input types (text, tel)
-- Form autocomplete support
+- Uses semantic Table component for proper structure
+- Maintains logical content hierarchy
+- Provides loading states with skeleton items
+- Preserves consistent layout during loading and after data arrives
+- Uses appropriate test IDs for automated accessibility testing
 
-## Responsive Design
+## Browser Support
 
-The component implements responsive design through Tailwind CSS:
-- Default grid layout for mobile (2 columns)
-- Enhanced grid layout for medium screens and up (3 columns)
-- Flexible width constraints
-- Responsive spacing
-
-## See Also
-
-- [Medusa Documentation](https://docs.medusajs.com)
-- [React Forms Documentation](https://react.dev/reference/react-dom/components/input)
-- [Tailwind CSS Grid](https://tailwindcss.com/docs/grid-template-columns)
+Requires browsers with support for:
+- Modern JavaScript (ES6+)
+- Array sorting and mapping
+- Optional chaining (`?.`)
+- Nullish coalescing operator (`??`)
+- CSS Flexbox
+- Depends on Medusa UI components and related Item components
