@@ -1,0 +1,64 @@
+---
+title: "Skeleton"
+description: "A skeleton loading grid for product previews."
+---
+
+# Skeleton
+
+`SkeletonProductGrid` is a React component that renders a grid of skeleton loaders for product previews. It is used to provide a placeholder while product data is being fetched.
+
+## Props
+
+| Prop Name | Type | Default | Description |
+|-----------|------|---------|-------------|
+| `numberOfProducts` | `number` | `8` | The number of skeleton product previews to render. |
+
+## Usage
+
+```tsx copy
+import { SkeletonProductGrid } from "@modules/skeletons/components/skeleton-product-grid"
+
+const LoadingProducts = () => {
+  return <SkeletonProductGrid numberOfProducts={10} />
+}
+
+export default LoadingProducts
+```
+
+## Example
+
+{/* In an actual MDX document, you would render the component here */}
+{/* <SkeletonProductGrid numberOfProducts={6} /> */}
+
+## Additional Information
+
+### Styling
+The component uses Tailwind CSS utility classes for layout and spacing:
+- `grid grid-cols-2 small:grid-cols-3 medium:grid-cols-4`: Defines responsive grid layout.
+- `gap-x-6 gap-y-8`: Adds spacing between items.
+- `flex-1`: Ensures flexible sizing within its parent container.
+
+### Dependencies
+`SkeletonProductGrid` depends on:
+- `@lib/util/repeat` for generating an array of numbers to map over.
+- `SkeletonProductPreview` for rendering individual skeleton placeholders.
+
+### Customization
+You can customize the styling by overriding Tailwind classes or wrapping it in additional layout components:
+
+```tsx copy
+const CustomSkeletonGrid = () => {
+  return (
+    <div className="bg-gray-100 p-4 rounded-lg">
+      <SkeletonProductGrid numberOfProducts={12} />
+    </div>
+  )
+}
+```
+
+## Related Components
+- `SkeletonProductPreview` - Individual product skeleton loader.
+- `ProductGrid` - The actual product grid with fetched data.
+
+## Accessibility
+The skeleton loader does not convey meaningful content but provides a visual cue. Consider adding `aria-busy` attributes to parent containers to enhance accessibility support.

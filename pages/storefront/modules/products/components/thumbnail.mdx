@@ -1,0 +1,274 @@
+---
+title: "Reset Password"
+description: "Documentation for the Reset Password component, which allows users to reset their password using an email token"
+---
+
+# Reset Password
+
+The `ResetPassword` component implements the password reset flow, enabling users to securely change their password using a token received via email.
+
+## Installation
+
+```tsx copy
+import ResetPassword from "../path-to-component"
+```
+
+## Props
+
+This component is self-contained and does not accept any props. It retrieves necessary data from URL query parameters.
+
+## Usage
+
+Basic implementation of the component:
+
+```tsx copy
+import ResetPassword from "../path-to-component"
+
+export default function PasswordResetPage() {
+  return <ResetPassword />
+}
+```
+
+## Component Implementation
+
+Here's the complete implementation of the Reset Password component:
+
+```tsx copy
+"use client"
+
+import { useState } from "react"
+import { useSearchParams, useRouter } from "next/navigation"
+import LocalizedClientLink from "@modules/common/components/localized-client-link"
+
+export default function ResetPassword() {
+  const [loading, setLoading] = useState(false)
+  const [password, setPassword] = useState("")
+  const [confirmPassword, setConfirmPassword] = useState("")
+  const searchParams = useSearchParams()
+  const router = useRouter()
+
+  const BACKEND_URL = process.env.MEDUSA_BACKEND_URL || "http://localhost:9000"
+  const token = searchParams.get("token")
+  const email = searchParams.get("email")
+
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault()
+
+    if (!password || !confirmPassword) {
+      alert("Both password fields are required")
+      return
+    }
+
+    if (password !== confirmPassword) {
+      alert("Passwords do not match")
+      return
+    }
+
+    setLoading(true)
+
+    try {
+      const response = await fetch(
+        `${BACKEND_URL}/auth/customer/emailpass/update?token=${token}`,
+        {
+          credentials: "include",
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ email, password }),
+        }
+      )
+
+      const data = await response.json()
+
+      if (data.success) {
+        alert("Password reset successfully!")
+        router.push("/account")
+      } else {
+        alert("Couldn't reset password. Try again.")
+      }
+    } catch (error) {
+      alert("An error occurred. Please try again.")
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  return (
+    <div className="flex justify-center items-center min-h-screen bg-gray-100">
+      <form onSubmit={handleSubmit} className="bg-white p-6 rounded-lg shadow-md w-96">
+        <h2 className="text-xl font-semibold text-center mb-4">
+          Forgot Password?
+        </h2>
+        <label className="block text-sm font-medium text-gray-700">
+          New Password
+        </label>
+        <input
+          type="password"
+          placeholder="Enter new password"
+          value={password}
+          onChange={(e) => setPassword(e.target.value)}
+          className="w-full mt-1 p-2 border rounded-md focus:ring focus:ring-blue-300"
+          required
+        />
+        <label className="block text-sm font-medium text-gray-700 mt-3">
+          Confirm Password
+        </label>
+        <input
+          type="password"
+          placeholder="Confirm new password"
+          value={confirmPassword}
+          onChange={(e) => setConfirmPassword(e.target.value)}
+          className="w-full mt-1 p-2 border rounded-md focus:ring focus:ring-blue-300"
+          required
+        />
+        <button
+          type="submit"
+          disabled={loading}
+          className="w-full mt-4 bg-blue-600 text-white py-2 rounded-md hover:bg-blue-700 disabled:bg-gray-400"
+        >
+          {loading ? "Resetting..." : "Reset Password"}
+        </button>
+        <p className="mt-4 text-center text-sm">
+          <LocalizedClientLink 
+            href="/account" 
+            className="text-blue-600 hover:underline"
+          >
+            Back to Account
+          </LocalizedClientLink>
+        </p>
+      </form>
+    </div>
+  )
+}
+```
+
+## Features
+
+### Password Reset Flow
+- Token-based password reset
+- Password confirmation
+- Form validation
+- Loading state management
+- Success/error handling
+
+### Form Validation
+- Required field checking
+- Password matching validation
+- Empty field validation
+- Token verification
+
+### User Experience
+- Loading indicators
+- Error messages
+- Success feedback
+- Navigation options
+- Clean interface
+
+## Query Parameters
+
+The component expects two URL parameters:
+
+1. `token`: The password reset token
+2. `email`: The user's email address
+
+Example URL:
+```
+/reset-password?token=abc123&email=user@example.com
+```
+
+## API Integration
+
+The component integrates with the Medusa.js backend:
+
+- Endpoint: `/auth/customer/emailpass/update`
+- Method: POST
+- Headers: Content-Type: application/json
+- Body: `{ email: string, password: string }`
+- Credentials: include
+
+## Error Handling
+
+The component handles several error scenarios:
+
+1. Missing password fields
+2. Password mismatch
+3. Failed API requests
+4. Invalid tokens
+5. Network errors
+
+## Best Practices
+
+1. Secure token handling
+2. Password validation
+3. Clear error messaging
+4. Loading state feedback
+5. User navigation
+6. Form accessibility
+7. Responsive design
+
+## Dependencies
+
+- React (useState)
+- Next.js Navigation
+- LocalizedClientLink
+- Environment variables
+
+## Testing
+
+Example test cases:
+
+```tsx copy
+describe('ResetPassword', () => {
+  it('validates password fields', async () => {
+    render(<ResetPassword />)
+    
+    const submitButton = screen.getByRole('button', { name: /reset password/i })
+    await userEvent.click(submitButton)
+    
+    expect(screen.getByText('Both password fields are required')).toBeInTheDocument()
+  })
+
+  it('handles successful password reset', async () => {
+    const mockRouter = { push: jest.fn() }
+    render(<ResetPassword />, { router: mockRouter })
+    
+    await userEvent.type(screen.getByPlaceholderText(/enter new password/i), 'newpass123')
+    await userEvent.type(screen.getByPlaceholderText(/confirm new password/i), 'newpass123')
+    await userEvent.click(screen.getByRole('button', { name: /reset password/i }))
+    
+    expect(mockRouter.push).toHaveBeenCalledWith('/account')
+  })
+})
+```
+
+## Future Enhancements
+
+1. Password strength requirements
+2. Better error messages
+3. Password requirements display
+4. Token expiration handling
+5. Progressive form validation
+6. Improved loading states
+7. Password history check
+
+## Security Considerations
+
+1. Token validation
+2. Secure communication
+3. Password encryption
+4. CSRF protection
+5. Rate limiting
+6. Input sanitization
+7. Error obfuscation
+
+## Related Components
+
+- LoginForm
+- ForgotPassword
+- AccountSettings
+- PasswordInput
+
+---
+
+This component provides a secure and user-friendly way for customers to reset their passwords within a Medusa.js-powered store.
