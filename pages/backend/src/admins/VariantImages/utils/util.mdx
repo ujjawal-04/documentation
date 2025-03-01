@@ -1,0 +1,82 @@
+---
+title: Variant Utilities
+excerpt: Utility functions for handling product variants and pagination in Medusa v2.
+---
+
+## Variant Utilities
+
+The utility functions in this module assist in sorting, paginating, and fetching product variants within Medusa v2.
+
+### Sorting Functions
+
+#### `sortByCreatedAt`
+
+```ts
+const sortByCreatedAt = (a: any, b: any) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime();
+```
+
+Sorts variants by creation date in ascending order.
+
+#### `sortByTitle`
+
+```ts
+const sortByTitle = (a: any, b: any) => a.title.localeCompare(b.title);
+```
+
+Sorts variants alphabetically by title.
+
+### Pagination
+
+#### `paginationInformation`
+
+```ts
+const paginationInformation = (variants: AdminProductVariant[] | null) => PaginationObject;
+```
+
+Handles pagination for product variants, returning the current page, page count, and navigation functions.
+
+### Fetching Data
+
+#### `fetchBackend`
+
+```ts
+const fetchBackend = async (url: string, options: OptionArgs = {}): Promise<any>;
+```
+
+Fetches data from the backend with authentication and optional file support.
+
+### Example Usage
+
+```tsx
+import { paginationInformation, fetchBackend } from "../utils/variants";
+
+const { currentVariants, nextPage, previousPage } = paginationInformation(variants);
+
+const fetchData = async () => {
+  const data = await fetchBackend("/admin/products");
+  console.log("Fetched Data:", data);
+};
+```
+
+### Features
+
+- Sorting by creation date and title.
+- Pagination for handling large sets of product variants.
+- Secure fetching with JSON and file support.
+
+### References
+
+- [React useState Hook](https://react.dev/reference/react/useState)
+- [React useMemo Hook](https://react.dev/reference/react/useMemo)
+- [Fetch API Documentation](https://developer.mozilla.org/en-US/docs/Web/API/Fetch_API)
+
+### File Structure
+
+```
+admin/
+  VariantImages/
+    utils/
+      variants.ts
+```
+
+This utility module is designed for use in Medusa v2, aiding in product variant management and pagination.
