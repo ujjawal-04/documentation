@@ -1,0 +1,238 @@
+---
+title: Variants Images Widget
+description: A Medusa admin widget for managing variant-specific images and thumbnails
+author: Reedrinc
+---
+
+import { Tabs, TabItem } from "@medusajs/docs"
+import Thumbnail from "@site/src/components/Thumbnail"
+import WidgetDemoVideo from "@site/src/components/WidgetDemoVideo"
+
+# Variants Images Widget by Reedrinc
+
+The Variants Images Widget, developed by Reedrinc, is a custom widget for the Medusa admin panel that enables managing variant-specific images and thumbnails for products.
+
+<Thumbnail
+  src="/img/widgets/variants-images-widget.png"
+  alt="Variants Images Widget Screenshot"
+/>
+
+## Overview
+
+Managing product variants with unique images can be challenging in e-commerce platforms. This widget solves this problem by providing a dedicated interface for assigning specific images to each product variant, enhancing your store's visual merchandising capabilities.
+
+<WidgetDemoVideo
+  src="/videos/variants-images-widget-demo.mp4"
+  alt="Variants Images Widget Demo"
+/>
+
+## Features
+
+- View and manage variant-specific images and thumbnails
+- Automatic refresh of product data with configurable timer
+- Custom settings for base option upload
+- Grid view display of variant images with thumbnail indicators
+- Pagination for products with many variants
+- Consistent UI integrated with Medusa admin design
+
+## Prerequisites
+
+This widget requires:
+- Medusa server (v1.8.0 or higher)
+- Medusa admin (v1.4.0 or higher)
+
+## Installation
+
+<Tabs groupId="package-manager">
+  <TabItem value="npm" label="npm" default>
+
+```bash
+npm install medusa-admin-variants-images-widget
+```
+
+  </TabItem>
+  <TabItem value="yarn" label="Yarn">
+
+```bash
+yarn add medusa-admin-variants-images-widget
+```
+
+  </TabItem>
+  <TabItem value="pnpm" label="pnpm">
+
+```bash
+pnpm add medusa-admin-variants-images-widget
+```
+
+  </TabItem>
+</Tabs>
+
+### Backend Configuration
+
+In your `medusa-config.js`:
+
+```js
+module.exports = {
+  // ...other config
+  plugins: [
+    // ...other plugins
+    {
+      resolve: "medusa-admin-variants-images-widget",
+      options: {
+        // Optional: Configure default settings
+        defaultBaseOptionEnabled: false
+      }
+    }
+  ]
+}
+```
+
+## Usage
+
+Once installed, the widget will appear automatically in the product details page after the main product information section.
+
+### Widget Sections
+
+The widget interface consists of:
+
+1. **Header Section**
+   - Widget title
+   - Refresh button with countdown timer for auto-refresh
+   - Settings button for widget configuration
+
+2. **Variants Grid**
+   - Each variant displayed as a card
+   - Thumbnail image (if set)
+   - Up to 3 additional images with "view more" option
+   - Context menu for editing media and thumbnails
+
+3. **Pagination Controls**
+   - Navigate through variants when a product has many options
+
+### Managing Variant Images
+
+To manage images for a specific variant:
+
+1. Locate the variant card in the grid
+2. Click the ellipsis (three dots) menu
+3. Select an option:
+   - **Edit Thumbnail** - Set a dedicated thumbnail image for the variant
+   - **Edit Media** - Manage additional variant-specific images
+
+### Widget Settings
+
+The settings modal allows you to configure:
+
+- **Base Option Upload** - Enable automatic image application based on a specific product option
+  - When enabled, uploading images to a variant will also apply to all variants that share the same selected option value
+
+## Technical Details
+
+### Component Architecture
+
+```
+VariantsImagesWidget (Main component)
+├── WidgetSettingsModal
+├── VariantsImagesModal
+└── ViewImagesModal
+```
+
+### Props and Types
+
+```typescript
+// Main widget props
+type DetailWidgetProps<AdminProduct> = {
+  data: AdminProduct;
+};
+
+// Widget settings
+export type WidgetSettings = {
+  baseOptionUpload: {
+    enabled?: boolean;
+    option?: string;
+  };
+};
+
+// Variant image type
+export type VariantImage = {
+  url: string | undefined;
+};
+```
+
+### Backend Integration
+
+The widget interacts with these endpoints:
+
+- `GET /admin/products/:id/variants` - Retrieve product variants
+- `GET /admin/products/:id/options` - Get product options
+- `GET /admin/products/:id` - Get product details
+- `GET /admin/variant-images-settings/:id` - Retrieve widget settings for a product
+- `POST /admin/variant-images/upload` - Upload variant images
+- `DELETE /admin/variant-images/:id` - Delete variant images
+
+## Customization
+
+### Styling
+
+The widget uses Medusa UI components and custom CSS for styling. You can customize the appearance by:
+
+```css
+/* Override widget card styles */
+.variants-images-widget .widget-card {
+  /* Your custom styles */
+}
+
+/* Custom variant card styling */
+.variants-images-widget .variant-card {
+  /* Your custom styles */
+}
+```
+
+### Advanced Configuration
+
+For advanced use cases, you can extend the widget functionality:
+
+```js
+// Example: Adding custom validation before image upload
+import { VariantsImagesWidget, extendUploadHandler } from 'medusa-admin-variants-images-widget'
+
+const customUploadHandler = extendUploadHandler((files, variant) => {
+  // Custom validation logic
+  if (files.length > 10) {
+    throw new Error("Maximum 10 images allowed per variant")
+  }
+  
+  return files // Continue with upload
+})
+
+// Use in your admin extension
+```
+
+## Support
+
+For issues, feature requests, or general inquiries:
+- GitHub: [reedrinc/medusa-admin-variants-images-widget](https://github.com/reedrinc/medusa-admin-variants-images-widget)
+- Email: support@reedrinc.com
+
+## License
+
+This project is licensed under the MIT License - see the LICENSE file for details.
+
+---
+
+## FAQ
+
+<details>
+  <summary>Will this widget affect my existing product images?</summary>
+  <p>No, this widget manages variant-specific images separately from your main product images. Your existing product images will remain unchanged.</p>
+</details>
+
+<details>
+  <summary>Can I use this widget with custom product options?</summary>
+  <p>Yes, the widget works with any product options defined in your Medusa store, including custom options.</p>
+</details>
+
+<details>
+  <summary>Does this require changes to my storefront?</summary>
+  <p>This widget only affects the admin interface. To display variant-specific images in your storefront, you'll need to modify your storefront code to retrieve and display these images.</p>
+</details>
