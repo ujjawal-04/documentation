@@ -1,0 +1,73 @@
+---
+title: Image Utilities
+excerpt: Utility functions for handling image uploads in Medusa v2.
+---
+
+import { prepareImages } from "../../../src/admin/VariantImages/utils/images";
+
+## Image Utilities
+
+The `images.ts` utility provides functions to manage image uploads, separating new uploads from existing images and sending them to the backend.
+
+### Types
+
+#### `FormImage`
+
+```ts
+type FormImage = {
+  url: string;
+  name?: string;
+  size?: number;
+  nativeFile?: File;
+};
+```
+
+Represents an image, either uploaded or already existing.
+
+### Functions
+
+#### `splitImages`
+
+```ts
+const splitImages = (images: FormImage[]): { uploadImages: FormImage[]; existingImages: FormImage[] };
+```
+
+Splits a list of images into two groups:
+- `uploadImages`: Images that need to be uploaded.
+- `existingImages`: Images that are already hosted.
+
+#### `prepareImages`
+
+```ts
+const prepareImages = async (images: FormImage[]): Promise<FormImage[]>;
+```
+
+Uploads new images to the backend and returns a merged list of existing and newly uploaded images.
+
+### Usage Example
+
+```tsx
+import { prepareImages } from "../utils/images";
+
+const handleImageUpload = async (images: FormImage[]) => {
+  const processedImages = await prepareImages(images);
+  console.log("Uploaded Images:", processedImages);
+};
+```
+
+### Features
+
+- Separates new images from existing ones.
+- Uses `fetchBackend` to upload images.
+- Returns a unified list of processed images.
+
+### File Structure
+
+```
+admin/
+  VariantImages/
+    utils/
+      images.ts
+```
+
+This utility is designed for use within the Medusa v2 admin panel to streamline image uploads and management.
