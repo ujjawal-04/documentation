@@ -1,0 +1,70 @@
+---
+title: useTimer Hook
+excerpt: A custom timer hook for managing countdowns in Medusa v2.
+---
+
+import { useTimer } from "../../../src/admin/VariantImages/hooks/useTimer";
+
+## useTimer Hook
+
+The `useTimer` hook provides a customizable countdown timer that can be used for various timing-related functionalities in Medusa v2.
+
+### Parameters
+
+| Parameter    | Type         | Default | Description |
+|-------------|-------------|---------|-------------|
+| `every`     | `number`    | `1000`  | Interval at which the timer updates (in milliseconds). |
+| `length`    | `number`    | `300000` | Total duration of the timer (in milliseconds). |
+| `onComplete` | `() => void` | `() => null` | Callback function triggered when the timer reaches zero. |
+| `recursive` | `boolean`   | `false`  | If `true`, the timer will restart after completion. |
+
+### Return Values
+
+| Return Value  | Type         | Description |
+|--------------|-------------|-------------|
+| `timeLeft`   | `number`    | Remaining time in seconds. |
+| `fetching`   | `boolean`   | Indicates whether the timer is running. |
+| `restart`    | `() => void` | Function to restart the timer. |
+
+### Usage Example
+
+```tsx
+import { useTimer } from "../hooks/useTimer";
+
+const TimerComponent = () => {
+  const { timeLeft, fetching, restart } = useTimer({
+    length: 60000, // 1 minute
+    every: 1000, // Update every second
+    onComplete: () => alert("Time's up!"),
+    recursive: false,
+  });
+
+  return (
+    <div>
+      <p>Time Left: {timeLeft} seconds</p>
+      {fetching && <p>Timer is running...</p>}
+      <button onClick={restart}>Restart Timer</button>
+    </div>
+  );
+};
+
+export default TimerComponent;
+```
+
+### Features
+
+- Configurable countdown interval and duration.
+- Executes a callback function when the timer completes.
+- Supports optional recursive behavior to restart automatically.
+- Provides a function to restart the timer manually.
+
+### File Structure
+
+```
+admin/
+  VariantImages/
+    hooks/
+      useTimer.ts
+```
+
+This hook is designed to integrate seamlessly within the Medusa v2 admin panel. It is useful for countdowns, delays, and auto-retry functionalities.
