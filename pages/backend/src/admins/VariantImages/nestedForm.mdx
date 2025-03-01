@@ -1,0 +1,94 @@
+---
+title: Nested Form Utility
+excerpt: A utility function to create nested forms using React Hook Form in Medusa v2.
+---
+
+import { nestedForm } from "../../../src/admin/VariantImages/utils/nestedForm";
+
+## Nested Form Utility
+
+The `nestedForm` utility simplifies handling nested forms with `react-hook-form`. It is useful for managing reusable form components within a parent form.
+
+### Types
+
+#### `NestedForm<TValues>`
+
+```ts
+type NestedForm<TValues extends FieldValues> = UseFormReturn<{
+  __nested__: TValues;
+}> & {
+  path(this: void): `__nested__`;
+  path<TPath extends FieldPath<TValues>>(this: void, p?: TPath): `__nested__.${TPath}`;
+  get<TObj>(this: void, obj: TObj): Get<TObj, `__nested__`>;
+  get<TPath extends FieldPath<TValues>, TObj>(this: void, obj: TObj, p?: TPath): Get<TObj, `__nested__.${TPath}`>;
+};
+```
+
+Defines the structure of a nested form, providing helper methods to manage nested field paths.
+
+### Functions
+
+#### `nestedForm`
+
+```ts
+function nestedForm<TValues extends FieldValues>(form: UseFormReturn<TValues> | NestedForm<TValues>): NestedForm<TValues>;
+function nestedForm<TValues extends FieldValues, TPath extends FieldPath<TValues>>(
+  form: UseFormReturn<TValues> | NestedForm<TValues>,
+  path: TPath
+): NestedForm<Get<TValues, TPath>>;
+```
+
+Creates a nested form, enabling path-based registration of fields.
+
+### Usage Example
+
+```tsx
+import { useForm } from "react-hook-form";
+import { nestedForm } from "../utils/nestedForm";
+
+const MyForm = () => {
+  const form = useForm<{ email: string, shipping_address: AddressPayload, billing_address: AddressPayload }>();
+
+  return (
+    <div>
+      <input {...form.register("email")} placeholder="Email" />
+      <AddressForm form={nestedForm(form, "shipping_address")} />
+      <AddressForm form={nestedForm(form, "billing_address")} />
+    </div>
+  );
+};
+
+const AddressForm = ({ form }: { form: NestedForm<AddressPayload> }) => {
+  const { register, path } = form;
+
+  return (
+    <div>
+      <input {...register(path("city"))} placeholder="City" />
+      <input {...register(path("postal_code"))} placeholder="Postal Code" />
+    </div>
+  );
+};
+```
+
+### Features
+
+- Helps structure reusable form components within a parent form.
+- Resolves field paths dynamically for nested forms.
+- Simplifies form handling with `react-hook-form`.
+
+### References
+
+- [React Hook Form - UseForm](https://react-hook-form.com/docs/useform)
+- [Type-fest - Get Utility Type](https://github.com/sindresorhus/type-fest#readme)
+- [Lodash - get](https://lodash.com/docs/4.17.15#get)
+
+### File Structure
+
+```
+admin/
+  VariantImages/
+    utils/
+      nestedForm.ts
+```
+
+This utility is designed for use within Medusa v2 to manage complex form structures efficiently.
