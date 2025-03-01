@@ -1,26 +1,30 @@
 
-
+```
 import { Tabs, TabItem } from "@medusajs/docs"
 import Thumbnail from "@site/src/components/Thumbnail"
 import WidgetDemoVideo from "@site/src/components/WidgetDemoVideo"
+```
 
 # Variants Images Widget 
 
-The Variants Images Widget, developed by , is a custom widget for the Medusa admin panel that enables managing variant-specific images and thumbnails for products.
+## The Variants Images Widget, developed by , is a custom widget for the Medusa admin panel that enables managing variant-specific images and thumbnails for products.
 
+```
 <Thumbnail
   src="/img/widgets/variants-images-widget.png"
   alt="Variants Images Widget Screenshot"
 />
+```
 
 ## Overview
 
-Managing product variants with unique images can be challenging in e-commerce platforms. This widget solves this problem by providing a dedicated interface for assigning specific images to each product variant, enhancing your store's visual merchandising capabilities.
-
+## Managing product variants with unique images can be challenging in e-commerce platforms. This widget solves this problem by providing a dedicated interface for assigning specific images to each product variant, enhancing your store's visual merchandising capabilities.
+```
 <WidgetDemoVideo
   src="/videos/variants-images-widget-demo.mp4"
   alt="Variants Images Widget Demo"
 />
+```
 
 ## Features
 
@@ -38,20 +42,21 @@ This widget requires:
 - Medusa admin (v1.4.0 or higher)
 
 ## Installation
-
+```
 <Tabs groupId="package-manager">
   <TabItem value="npm" label="npm" default>
-
+```
 ```bash
 npm install medusa-admin-variants-images-widget
 ```
-
+```
   </TabItem>
   <TabItem value="yarn" label="Yarn">
-
+```
 ```bash
 yarn add medusa-admin-variants-images-widget
 ```
+
 
   </TabItem>
   <TabItem value="pnpm" label="pnpm">
@@ -85,9 +90,11 @@ module.exports = {
 
 ## Usage
 
-Once installed, the widget will appear automatically in the product details page after the main product information section.
+## Once installed, the widget will appear automatically in the product details page after the main product information section.
 
 ### Widget Sections
+
+```
 
 The widget interface consists of:
 
@@ -232,3 +239,5 @@ This project is licensed under the MIT License - see the LICENSE file for detail
   <summary>Does this require changes to my storefront?</summary>
   <p>This widget only affects the admin interface. To display variant-specific images in your storefront, you'll need to modify your storefront code to retrieve and display these images.</p>
 </details>
+
+```

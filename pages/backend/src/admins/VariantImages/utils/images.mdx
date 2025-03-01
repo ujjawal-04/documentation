@@ -3,11 +3,14 @@ title: Image Utilities
 excerpt: Utility functions for handling image uploads in Medusa v2.
 ---
 
+
+```tsx copy
 import { prepareImages } from "../../../src/admin/VariantImages/utils/images";
+```
 
 ## Image Utilities
 
-The `images.ts` utility provides functions to manage image uploads, separating new uploads from existing images and sending them to the backend.
+### The `images.ts` utility provides functions to manage image uploads, separating new uploads from existing images and sending them to the backend.
 
 ### Types
 
@@ -22,7 +25,7 @@ type FormImage = {
 };
 ```
 
-Represents an image, either uploaded or already existing.
+## Represents an image, either uploaded or already existing.
 
 ### Functions
 
@@ -70,4 +73,4 @@ admin/
       images.ts
 ```
 
-This utility is designed for use within the Medusa v2 admin panel to streamline image uploads and management.
+## This utility is designed for use within the Medusa v2 admin panel to streamline image uploads and management.
