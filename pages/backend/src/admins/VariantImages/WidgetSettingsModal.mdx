@@ -1,0 +1,139 @@
+---
+title: "WidgetSettingsModal Documentation"
+description: "Detailed documentation for the WidgetSettingsModal component in MedusaJS."
+---
+
+import { Button, Drawer, Heading, Select, Switch } from '@medusajs/ui';
+import { EllipsisHorizontal } from '@medusajs/icons';
+
+## WidgetSettingsModal Component
+
+### Overview
+`WidgetSettingsModal` is a **React component** used to configure settings for variant images in MedusaJS. It allows users to enable or disable base option uploads and select an option that applies changes to multiple variants simultaneously.
+
+### Features
+- Toggle **Upload by Option** feature.
+- Select a **base option** for uploading images to multiple variants.
+- Fetch and update settings via API requests.
+- Uses `Drawer` from `@medusajs/ui` for UI interactions.
+
+## Props
+
+| Prop       | Type                                        | Description |
+|------------|--------------------------------|--------------------------------------------------------|
+| `settings` | `WidgetSettings`               | Current settings for variant images. |
+| `setSettings` | `React.Dispatch<React.SetStateAction<WidgetSettings>>` | Function to update settings. |
+| `product` | `AdminProduct`               | The product associated with the settings. |
+| `options?` | `AdminProductOption[]`         | List of available options for selection. |
+
+## Code Implementation
+
+```tsx
+export default function WidgetSettingsModal({
+  settings,
+  setSettings,
+  product,
+  options,
+}: {
+  settings: WidgetSettings;
+  setSettings: React.Dispatch<React.SetStateAction<WidgetSettings>>;
+  product: AdminProduct;
+  options?: AdminProductOption[];
+}) {
+  const {
+    baseOptionUpload: { enabled, option },
+  } = settings;
+
+  const handleCheckedChange = async (checked: boolean) => {
+    await fetch(`/admin/variant-images-settings/${product.id}`, {
+      method: 'POST',
+      credentials: 'include',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ base_option_enabled: checked }),
+    });
+    setSettings((_curr) => ({
+      ..._curr,
+      baseOptionUpload: { ..._curr.baseOptionUpload, enabled: checked },
+    }));
+  };
+
+  const handleOptionChange = async (option_id: string) => {
+    await fetch(`/admin/variant-images-settings/${product.id}`, {
+      method: 'POST',
+      credentials: 'include',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ base_option_enabled: true, base_option_id: option_id }),
+    });
+    setSettings((_curr) => ({
+      ..._curr,
+      baseOptionUpload: { ..._curr.baseOptionUpload, enabled: true, option: option_id },
+    }));
+  };
+
+  return (
+    <Drawer>
+      <Drawer.Trigger asChild>
+        <Button variant='transparent' className='h-7 w-7 p-1 text-ui-fg-subtle'>
+          <EllipsisHorizontal />
+        </Button>
+      </Drawer.Trigger>
+      <Drawer.Content>
+        <Drawer.Header>
+          <Drawer.Title>Variant Images Settings</Drawer.Title>
+        </Drawer.Header>
+        <Drawer.Body>
+          <div>
+            <Heading level='h3'>Upload by Option</Heading>
+            <Switch id='enable-option-setting' checked={enabled} onCheckedChange={handleCheckedChange} />
+            <p>Select an option:</p>
+            <Select onValueChange={handleOptionChange} value={option}>
+              <Select.Trigger>
+                <Select.Value placeholder='Select Option' />
+              </Select.Trigger>
+              <Select.Content>
+                {options?.map((item) => (
+                  <Select.Item key={item.id} value={item.id}>{item.title}</Select.Item>
+                ))}
+              </Select.Content>
+            </Select>
+          </div>
+        </Drawer.Body>
+        <Drawer.Footer>
+          <Drawer.Close asChild>
+            <Button>Okay</Button>
+          </Drawer.Close>
+        </Drawer.Footer>
+      </Drawer.Content>
+    </Drawer>
+  );
+}
+```
+
+## API Requests
+
+### Enable/Disable Upload by Option
+```ts
+fetch(`/admin/variant-images-settings/${product.id}`, {
+  method: 'POST',
+  credentials: 'include',
+  headers: { 'Content-Type': 'application/json' },
+  body: JSON.stringify({ base_option_enabled: checked }),
+});
+```
+
+### Change Base Option
+```ts
+fetch(`/admin/variant-images-settings/${product.id}`, {
+  method: 'POST',
+  credentials: 'include',
+  headers: { 'Content-Type': 'application/json' },
+  body: JSON.stringify({ base_option_enabled: true, base_option_id: option_id }),
+});
+```
+
+## Related Links
+- [MedusaJS UI Documentation](https://docs.medusajs.com/ui/)
+- [MedusaJS Admin API](https://docs.medusajs.com/api/admin/)
+
+---
+**Author:** MedusaJS Developer Team
