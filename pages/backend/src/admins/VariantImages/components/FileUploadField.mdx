@@ -1,0 +1,65 @@
+---
+title: FileUploadField Component
+excerpt: A reusable file upload field component for Medusa v2.
+---
+
+import FileUploadField from "../../../src/admin/VariantImages/components/FileUploadField";
+
+## FileUploadField
+
+The `FileUploadField` component is a reusable file upload field that allows users to upload image files via drag-and-drop or file selection.
+
+### Props
+
+| Prop Name     | Type                         | Description |
+|--------------|------------------------------|-------------|
+| `onFileChosen` | `(files: File[]) => void`   | Callback function triggered when files are chosen. |
+| `filetypes`   | `string[]`                   | Array of allowed file types. |
+| `errorMessage` | `string` (optional)         | Custom error message if invalid files are uploaded. |
+| `placeholder` | `React.ReactElement \| string` (optional) | Placeholder text or element. |
+| `className`   | `string` (optional)         | Additional CSS classes. |
+| `multiple`    | `boolean` (optional)        | Whether multiple file uploads are allowed. Defaults to `false`. |
+| `text`        | `React.ReactElement \| string` (optional) | Text or element to display in the drop zone. Defaults to an upload icon with "Upload Images". |
+
+### Usage Example
+
+```tsx
+import FileUploadField from "../components/FileUploadField";
+
+const MyComponent = () => {
+  const handleFiles = (files: File[]) => {
+    console.log("Files uploaded:", files);
+  };
+
+  return (
+    <FileUploadField 
+      onFileChosen={handleFiles} 
+      filetypes={["image/png", "image/jpeg"]} 
+      errorMessage="Only PNG and JPEG files are allowed" 
+      placeholder="Drag and drop images here or click to select" 
+      multiple
+    />
+  );
+};
+
+export default MyComponent;
+```
+
+### Features
+
+- Supports drag-and-drop file uploads.
+- Allows multiple file selection (if enabled).
+- Displays an error message for unsupported file types.
+- Customizable placeholder and upload text.
+- Styled using Medusa UI components.
+
+### File Structure
+
+```
+admin/
+  VariantImages/
+    components/
+      FileUploadField.tsx
+```
+
+This component is designed to integrate seamlessly within the Medusa v2 admin panel. Ensure you have Medusa UI installed to use `clx` for styling.
