@@ -1,0 +1,249 @@
+---
+title: Order Placed Subscriber
+description: Documentation for the order.placed event subscriber in Medusa
+---
+
+import { Tabs, TabItem } from "@medusajs/docs"
+import CodeBlock from "@theme/CodeBlock"
+
+# Order Placed Subscriber
+
+The Order Placed Subscriber listens for the `order.placed` event in your Medusa application and triggers a workflow to send an order confirmation email when an order is completed.
+
+## Overview
+
+When a customer completes an order in a Medusa store, the core commerce modules emit an `order.placed` event. This subscriber captures that event and executes a workflow that sends an order confirmation email to the customer.
+
+## Implementation
+
+<CodeBlock className="language-typescript" title="src/subscribers/order-placed.ts">
+{`import type {
+  SubscriberArgs,
+  SubscriberConfig,
+} from "@medusajs/framework"
+import { sendOrderConfirmationWorkflow } from "../workflows/send-order-confirmation"
+
+export default async function orderPlacedHandler({
+  event: { data },
+  container,
+}: SubscriberArgs<{ id: string }>) {
+  await sendOrderConfirmationWorkflow(container)
+    .run({
+      input: {
+        id: data.id
+      }
+    })
+}
+
+export const config: SubscriberConfig = {
+  event: "order.placed",
+}`}
+</CodeBlock>
+
+## How It Works
+
+### Event Subscription
+
+The subscriber is configured to listen for the `order.placed` event through the exported `config` object:
+
+```typescript
+export const config: SubscriberConfig = {
+  event: "order.placed",
+}
+```
+
+This tells Medusa to execute the default exported function whenever an order is placed.
+
+### Handler Function
+
+The default exported function `orderPlacedHandler` is the event handler that will be called when the `order.placed` event is emitted:
+
+```typescript
+export default async function orderPlacedHandler({
+  event: { data },
+  container,
+}: SubscriberArgs<{ id: string }>) {
+  // Handler implementation
+}
+```
+
+The function receives two important parameters:
+- `event.data`: Contains the data payload emitted with the event, which includes the order's ID
+- `container`: The Medusa container, which provides access to services and utilities
+
+### Workflow Execution
+
+When the event is received, the handler executes the `sendOrderConfirmationWorkflow`:
+
+```typescript
+await sendOrderConfirmationWorkflow(container)
+  .run({
+    input: {
+      id: data.id
+    }
+  })
+```
+
+The workflow is passed:
+- The Medusa `container` to access services and modules
+- An input object containing the order ID that was placed
+
+## Workflow Integration
+
+This subscriber relies on the `sendOrderConfirmationWorkflow`, which should be defined in `src/workflows/send-order-confirmation.ts`. The workflow is responsible for:
+
+1. Retrieving the order details using the order ID
+2. Formatting the data for the email template
+3. Sending the email notification through a configured notification provider (like Resend)
+
+## Configuration
+
+### Automatic Registration
+
+Subscribers in Medusa are automatically registered when they are placed in the `src/subscribers` directory. No additional configuration is needed to enable this subscriber.
+
+### Dependency
+
+Ensure that the `sendOrderConfirmationWorkflow` is properly implemented and that a notification provider is configured in your Medusa application.
+
+## Example Usage
+
+### Setting Up Prerequisite Components
+
+To use this subscriber effectively, you need:
+
+1. A notification provider (like Resend) configured in your `medusa-config.js`:
+
+<Tabs groupId="notification-provider">
+  <TabItem value="resend" label="Resend" default>
+
+```javascript
+module.exports = defineConfig({
+  modules: [
+    {
+      resolve: "@medusajs/medusa/notification",
+      options: {
+        providers: [
+          {
+            resolve: "./src/modules/resend",
+            id: "resend",
+            options: {
+              channels: ["email"],
+              api_key: process.env.RESEND_API_KEY,
+              from: process.env.RESEND_FROM_EMAIL,
+            },
+          },
+        ],
+      },
+    },
+  ],
+})
+```
+
+  </TabItem>
+</Tabs>
+
+2. The `sendOrderConfirmationWorkflow` implementation:
+
+<CodeBlock className="language-typescript" title="src/workflows/send-order-confirmation.ts">
+{`import { 
+  createWorkflow, 
+  WorkflowResponse,
+} from "@medusajs/framework/workflows-sdk"
+import { useQueryGraphStep } from "@medusajs/medusa/core-flows"
+import { sendNotificationStep } from "./steps/send-notification"
+
+type WorkflowInput = {
+  id: string
+}
+
+export const sendOrderConfirmationWorkflow = createWorkflow(
+  "send-order-confirmation",
+  ({ id }: WorkflowInput) => {
+    // Retrieve order data
+    const { data: orders } = useQueryGraphStep({
+      entity: "order",
+      fields: [
+        "id",
+        "email",
+        "currency_code",
+        "total",
+        "items.*",
+      ],
+      filters: {
+        id,
+      },
+    })
+    
+    // Send notification
+    const notification = sendNotificationStep([{
+      to: orders[0].email,
+      channel: "email",
+      template: "order-placed",
+      data: {
+        order: orders[0],
+      },
+    }])
+
+    return new WorkflowResponse(notification)
+  }
+)`}
+</CodeBlock>
+
+## Testing
+
+To test the subscriber:
+
+1. Place an order in your Medusa storefront
+2. Check the server logs for a message indicating the `order.placed` event was processed
+3. Verify that the customer receives an order confirmation email
+
+## Error Handling
+
+The subscriber doesn't include explicit error handling. For production implementations, consider adding try/catch blocks:
+
+<CodeBlock className="language-typescript" title="Enhanced Error Handling">
+{`export default async function orderPlacedHandler({
+  event: { data },
+  container,
+}: SubscriberArgs<{ id: string }>) {
+  try {
+    await sendOrderConfirmationWorkflow(container)
+      .run({
+        input: {
+          id: data.id
+        },
+        throwOnError: false, // Don't throw errors
+        logOnError: true,    // Log errors for debugging
+      })
+  } catch (error) {
+    const logger = container.resolve("logger")
+    logger.error(
+      \`Failed to send order confirmation email for order \${data.id}\`,
+      error
+    )
+  }
+}`}
+</CodeBlock>
+
+## Related Events
+
+Other order-related events you might want to subscribe to:
+
+- `order.canceled` - When an order is canceled
+- `order.completed` - When an order is marked as completed
+- `order.shipment_created` - When a shipment is created for an order
+- `order.return_requested` - When a return is requested for an order
+
+## Best Practices
+
+- Keep subscriber functions focused on a single responsibility
+- Move complex logic to workflows or services
+- Add error handling to prevent subscriber failures from affecting core operations
+- Use Medusa's logger for debugging and monitoring
+
+## Resources
+
+- [Medusa Events Reference](https://docs.medusajs.com/api/admin/events-list)
+- [Medusa Subscriber Documentation](https://docs.medusajs.com/learn/fundamentals/subscribers)
+- [Medusa Workflow Documentation](https://docs.medusajs.com/learn/fundamentals/workflows)
