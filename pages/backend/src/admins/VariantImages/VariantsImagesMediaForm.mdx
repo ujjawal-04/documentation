@@ -1,0 +1,76 @@
+---
+title: Variants Images Media Form
+excerpt: A reusable media upload form for managing variant images in Medusa v2.
+---
+
+import { VariantsImagesMediaForm } from "../components/VariantsImagesMediaForm";
+
+## Variants Images Media Form
+
+The `VariantsImagesMediaForm` component allows users to upload and manage product variant images with single and multiple selection modes.
+
+### Types
+
+#### `ImageType`
+```ts
+type ImageType = {
+  info: { selectedNumber: number; selected: boolean };
+} & FormImage;
+```
+Represents an image with selection metadata.
+
+#### `MediaFormType`
+```ts
+type MediaFormType = {
+  images: ImageType[];
+};
+```
+Defines the structure of the media form.
+
+### Props
+
+| Prop         | Type                                  | Description                                     |
+|-------------|--------------------------------------|------------------------------------------------|
+| `form`      | `NestedForm<MediaFormType>`          | The form instance for handling images.         |
+| `type`      | `'thumbnail' | 'media'`              | Defines the mode: single (`thumbnail`) or multiple (`media`). |
+| `setImageArr` | `React.Dispatch<React.SetStateAction<ImageType[]>>` | State setter for the selected images. |
+| `imageArr`  | `ImageType[]`                        | Array of selected images.                      |
+
+### Functions
+
+#### `handleFilesChosen`
+```ts
+const handleFilesChosen = (files: File[]): void;
+```
+Adds selected files to the form by generating object URLs.
+
+#### `handleImageSelected`
+```ts
+const handleImageSelected = (index: number): void;
+```
+Handles selection of an image, updating its selection state.
+
+### Usage Example
+
+```tsx
+import VariantsImagesMediaForm from "../components/VariantsImagesMediaForm";
+
+const MyComponent = () => {
+  const form = useForm<MediaFormType>();
+  const [imageArr, setImageArr] = useState<ImageType[]>([]);
+
+  return <VariantsImagesMediaForm form={form} type="media" setImageArr={setImageArr} imageArr={imageArr} />;
+};
+```
+
+### Features
+
+- Supports single (`thumbnail`) and multiple (`media`) selection modes.
+- Integrates with `react-hook-form` for form state management.
+- Provides image previews with selection indicators.
+- Uses `FileUploadField` for drag-and-drop image uploads.
+
+### References
+- [`react-hook-form` Documentation](https://react-hook-form.com/)
+- [`MedusaJS` Documentation](https://docs.medusajs.com/)
+- [`File API`](https://developer.mozilla.org/en-US/docs/Web/API/File)
