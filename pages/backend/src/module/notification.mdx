@@ -1,0 +1,503 @@
+---
+title: Resend Notification Module
+description: A Medusa notification module for sending emails using Resend
+---
+
+import { Tabs, TabItem } from "@medusajs/docs"
+import CodeBlock from "@theme/CodeBlock"
+
+# Resend Notification Module
+
+The Resend Notification Module enables your Medusa application to send email notifications through Resend's API. This module supports React-based email templates for a modern approach to email design and delivery.
+
+## Overview
+
+[Resend](https://resend.com) is an email API service designed for developers that makes sending beautiful emails simple. This notification module integrates Resend with Medusa's notification system, allowing you to:
+
+- Send email notifications for various commerce events
+- Create and customize React-based email templates
+- Track email delivery and performance
+
+## Installation
+
+<Tabs groupId="package-manager">
+  <TabItem value="npm" label="npm" default>
+
+```bash
+npm install resend @react-email/components
+```
+
+  </TabItem>
+  <TabItem value="yarn" label="yarn">
+
+```bash
+yarn add resend @react-email/components
+```
+
+  </TabItem>
+  <TabItem value="pnpm" label="pnpm">
+
+```bash
+pnpm add resend @react-email/components
+```
+
+  </TabItem>
+</Tabs>
+
+## Implementation
+
+### Module Structure
+
+```
+src/modules/resend/
+├── emails/
+│   ├── order-placed.tsx
+│   └── reset-password.tsx
+├── index.ts
+└── service.ts
+```
+
+### Module Definition
+
+<CodeBlock className="language-typescript" title="src/modules/resend/index.ts">
+{`import { 
+  ModuleProvider, 
+  Modules
+} from "@medusajs/framework/utils"
+import ResendNotificationProviderService from "./service"
+
+export default ModuleProvider(Modules.NOTIFICATION, {
+  services: [ResendNotificationProviderService],
+})`}
+</CodeBlock>
+
+### Service Implementation
+
+<CodeBlock className="language-typescript" title="src/modules/resend/service.ts">
+{`import { 
+  AbstractNotificationProviderService, 
+  MedusaError
+} from "@medusajs/framework/utils"
+import { 
+  ProviderSendNotificationDTO, 
+  ProviderSendNotificationResultsDTO,
+  Logger
+} from "@medusajs/framework/types";
+import { 
+  CreateEmailOptions, 
+  Resend
+} from "resend";
+import { orderPlacedEmail } from "./emails/order-placed";
+import { resetPasswordEmail } from "./emails/reset-password"
+
+enum Templates {
+  ORDER_PLACED = "order-placed",
+  RESET_PASSWORD = "reset-password-template", 
+}
+
+const templates: {[key in Templates]?: (props: unknown) => React.ReactNode} = {
+  [Templates.ORDER_PLACED]: orderPlacedEmail,
+  [Templates.RESET_PASSWORD]: resetPasswordEmail
+}
+
+type ResendOptions = {
+  api_key: string
+  from: string
+  html_templates?: Record<string, {
+    subject?: string
+    content: string
+  }>
+}
+
+type InjectedDependencies = {
+  logger: Logger
+}
+
+class ResendNotificationProviderService extends AbstractNotificationProviderService {
+  static identifier = "notification-resend"
+  private resendClient: Resend
+  private options: ResendOptions
+  private logger: Logger
+
+  constructor(
+    { logger }: InjectedDependencies, 
+    options: ResendOptions
+  ) {
+    super()
+    this.resendClient = new Resend(options.api_key)
+    this.options = options
+    this.logger = logger
+  }
+
+  static validateOptions(options: Record<any, any>) {
+    if (!options.api_key) {
+      throw new MedusaError(
+        MedusaError.Types.INVALID_DATA,
+        "Option \`api_key\` is required in the provider's options."
+      )
+    }
+    if (!options.from) {
+      throw new MedusaError(
+        MedusaError.Types.INVALID_DATA,
+        "Option \`from\` is required in the provider's options."
+      )
+    }
+  }
+
+  getTemplate(template: Templates) {
+    if (this.options.html_templates?.[template]) {
+      return this.options.html_templates[template].content
+    }
+    const allowedTemplates = Object.keys(templates)
+    if (!allowedTemplates.includes(template)) {
+      return null
+    }
+    return templates[template]
+  }
+
+  getTemplateSubject(template: Templates) {
+    if (this.options.html_templates?.[template]?.subject) {
+      return this.options.html_templates[template].subject
+    }
+    switch(template) {
+      case Templates.ORDER_PLACED:
+        return "Order Confirmation"
+      case Templates.RESET_PASSWORD:
+        return "Reset Your Password"
+      default:
+        return "New Email"
+    }
+  }
+
+  async send(
+    notification: ProviderSendNotificationDTO
+  ): Promise<ProviderSendNotificationResultsDTO> {
+    const template = this.getTemplate(notification.template as Templates)
+    if (!template) {
+      this.logger.error(\`Couldn't find an email template for \${notification.template}. The valid options are \${Object.values(Templates)}\`)
+      return {}
+    }
+    const emailOptions: CreateEmailOptions = {
+      from: this.options.from,
+      to: [notification.to],
+      subject: this.getTemplateSubject(notification.template as Templates),
+      html: ""
+    }
+    if (typeof template === "string") {
+      emailOptions.html = template
+    } else {
+      emailOptions.react = template(notification.data)
+      // @ts-ignore
+      delete emailOptions.html
+    }
+    const { data, error } = await this.resendClient.emails.send(emailOptions)
+    if (error) {
+      this.logger.error(\`Failed to send email\`, error)
+      return {}
+    }
+    // @ts-ignore
+    return { id: data.id }
+  }
+}
+
+export default ResendNotificationProviderService`}
+</CodeBlock>
+
+## Email Templates
+
+### Order Placed Email
+
+<CodeBlock className="language-typescript" title="src/modules/resend/emails/order-placed.tsx">
+{`import { Text, Column, Container, Heading, Html, Img, Row, Section } from "@react-email/components"
+import { BigNumberValue, OrderDTO } from "@medusajs/framework/types"
+
+type OrderPlacedEmailProps = {
+  order: OrderDTO
+}
+
+function OrderPlacedEmailComponent({ order }: OrderPlacedEmailProps) {
+  const formatter = new Intl.NumberFormat([], {
+    style: "currency",
+    currencyDisplay: "narrowSymbol",
+    currency: order.currency_code,
+  })
+
+  const formatPrice = (price: BigNumberValue) => {
+    if (typeof price === "number") {
+      return formatter.format(price)
+    }
+    if (typeof price === "string") {
+      return formatter.format(parseFloat(price))
+    }
+    return price?.toString() || ""
+  }
+
+  return (
+    <Html>
+      <Heading>Thank you for your order</Heading>
+      {order.email}'s Items
+      <Container>
+        {order.items?.map(item => {
+          return (
+            <Section
+              key={item.id}
+              style={{ paddingTop: "40px", paddingBottom: "40px" }}
+            >
+              <Row>
+                <Column>
+                  <Img
+                    // @ts-ignore
+                    src={item.thumbnail}
+                    // @ts-ignore
+                    alt={item.product_title}
+                    style={{ float: "left" }}
+                    width="260px"
+                  />
+                </Column>
+                <Column style={{ verticalAlign: "top", paddingLeft: "12px" }}>
+                  <Text style={{ fontWeight: "500" }}>
+                    {item.product_title}
+                  </Text>
+                  <Text>{item.variant_title}</Text>
+                  <Text>{formatPrice(item.total)}</Text>
+                </Column>
+              </Row>
+            </Section>
+          )
+        })}
+      </Container>
+    </Html>
+  )
+}
+
+export const orderPlacedEmail = (props: OrderPlacedEmailProps) => (
+  <OrderPlacedEmailComponent {...props} />
+)`}
+</CodeBlock>
+
+### Reset Password Email
+
+<CodeBlock className="language-typescript" title="src/modules/resend/emails/reset-password.tsx">
+{`import { 
+  Text, 
+  Column, 
+  Container, 
+  Heading, 
+  Html, 
+  Button,
+  Section 
+} from "@react-email/components"
+
+type ResetPasswordEmailProps = {
+  url: string
+}
+
+function ResetPasswordEmailComponent({ url }: ResetPasswordEmailProps) {
+  return (
+    <Html>
+      <Heading>Reset Your Password</Heading>
+      <Container>
+        <Section style={{ paddingTop: "40px", paddingBottom: "40px" }}>
+          <Text>
+            We received a request to reset your password. Click the button below to choose a new password:
+          </Text>
+          <Button 
+            href={url}
+            style={{
+              backgroundColor: "#000000",
+              borderRadius: "4px",
+              color: "#ffffff",
+              padding: "12px 24px",
+              textDecoration: "none",
+              textAlign: "center",
+              display: "inline-block",
+              marginTop: "16px",
+              marginBottom: "16px"
+            }}
+          >
+            Reset Password
+          </Button>
+          <Text style={{ fontSize: "14px", color: "#666666" }}>
+            If you didn't request a password reset, you can safely ignore this email.
+            The link will expire in 24 hours.
+          </Text>
+          <Text style={{ fontSize: "14px", color: "#666666" }}>
+            For security reasons, we recommend changing your password periodically 
+            and not reusing passwords across different services.
+          </Text>
+        </Section>
+      </Container>
+    </Html>
+  )
+}
+
+export const resetPasswordEmail = (props: ResetPasswordEmailProps) => (
+  <ResetPasswordEmailComponent {...props} />
+)`}
+</CodeBlock>
+
+## Configuration
+
+Add the Resend notification module to your Medusa configuration:
+
+<CodeBlock className="language-javascript" title="medusa-config.js">
+{`module.exports = defineConfig({
+  // ...other configuration
+  modules: [
+    {
+      resolve: "@medusajs/medusa/notification",
+      options: {
+        providers: [
+          {
+            resolve: "./src/modules/resend",
+            id: "resend",
+            options: {
+              channels: ["email"],
+              api_key: process.env.RESEND_API_KEY,
+              from: process.env.RESEND_FROM_EMAIL,
+            },
+          },
+        ],
+      },
+    },
+    // ...other modules
+  ],
+})`}
+</CodeBlock>
+
+### Environment Variables
+
+Add the following to your `.env` file:
+
+```bash
+RESEND_API_KEY=re_xxxxxxxxxxxx
+RESEND_FROM_EMAIL=noreply@yourdomain.com
+```
+
+For development, you can use `onboarding@resend.dev` as the `RESEND_FROM_EMAIL`, but you'll only be able to send emails to the email address associated with your Resend account.
+
+## Usage
+
+### Creating a Workflow to Send Notifications
+
+<CodeBlock className="language-typescript" title="src/workflows/send-reset-password.ts">
+{`import { 
+  createWorkflow, 
+  WorkflowResponse,
+} from "@medusajs/framework/workflows-sdk"
+import { sendNotificationStep } from "./steps/send-notification"
+
+type WorkflowInput = {
+  email: string
+  resetUrl: string
+}
+
+export const sendPasswordResetWorkflow = createWorkflow(
+  "send-password-reset",
+  ({ email, resetUrl }: WorkflowInput) => {
+    const notification = sendNotificationStep([{
+      to: email,
+      channel: "email",
+      template: "reset-password-template",
+      data: {
+        url: resetUrl,
+      },
+    }])
+
+    return new WorkflowResponse(notification)
+  }
+)`}
+</CodeBlock>
+
+### Creating the Send Notification Step
+
+<CodeBlock className="language-typescript" title="src/workflows/steps/send-notification.ts">
+{`import { Modules } from "@medusajs/framework/utils"
+import { createStep, StepResponse } from "@medusajs/framework/workflows-sdk"
+import { CreateNotificationDTO } from "@medusajs/framework/types"
+
+export const sendNotificationStep = createStep(
+  "send-notification",
+  async (data: CreateNotificationDTO[], { container }) => {
+    const notificationModuleService = container.resolve(
+      Modules.NOTIFICATION
+    )
+    const notification = await notificationModuleService.createNotifications(data)
+    return new StepResponse(notification)
+  }
+)`}
+</CodeBlock>
+
+### Triggering the Workflow
+
+<CodeBlock className="language-typescript" title="src/api/routes/reset-password/route.ts">
+{`import { MedusaRequest, MedusaResponse } from "@medusajs/medusa"
+import { sendPasswordResetWorkflow } from "../../../workflows/send-reset-password"
+
+export const POST = async (req: MedusaRequest, res: MedusaResponse) => {
+  const { email } = req.body
+  
+  // Generate reset URL (replace with your actual logic)
+  const resetToken = generateResetToken() // Your token generation function
+  const resetUrl = \`https://yourstore.com/reset-password?token=\${resetToken}\`
+  
+  await sendPasswordResetWorkflow(req.scope)
+    .run({
+      input: {
+        email,
+        resetUrl,
+      },
+    })
+  
+  res.status(200).json({
+    success: true,
+    message: "Password reset instructions sent to your email",
+  })
+}`}
+</CodeBlock>
+
+## Advanced Usage
+
+### Adding More Email Templates
+
+1. Create a new template file in `src/modules/resend/emails/`
+2. Add the template to the `Templates` enum and `templates` object in `service.ts`
+3. Update the `getTemplateSubject` method to include a subject for your new template
+
+### Customizing Email Styling
+
+Email templates use React Email components which provide a consistent way to style email content across different email clients. To modify the styling:
+
+1. Use inline styles for maximum compatibility
+2. Utilize the style properties of React Email components
+3. Test your emails across different email clients
+
+## Troubleshooting
+
+### Emails Not Sending
+
+1. Verify your Resend API key is correct
+2. Check that your `from` email address is properly set up in Resend
+3. If using a custom domain, ensure DNS records are properly configured
+4. Look for error logs in your application console
+
+### Template Errors
+
+1. Ensure all React components are properly imported
+2. Check that the template is correctly registered in the `templates` object
+3. Verify the template is receiving the expected data structure
+
+## Resources
+
+- [Medusa Notification API Documentation](https://docs.medusajs.com/api/admin#notification)
+- [Resend API Documentation](https://resend.com/docs/api-reference/introduction)
+- [React Email Documentation](https://react.email/docs/introduction)
+- [Medusa Integration Guide for Resend](https://docs.medusajs.com/resources/integrations/guides/resend)
+
+## Support
+
+If you encounter issues with this module, you can:
+
+- Check the [Medusa Discord Community](https://discord.gg/medusajs)
+- Open an issue on [GitHub](https://github.com/medusajs/medusa)
+- Contact [Resend Support](https://resend.com/support)
