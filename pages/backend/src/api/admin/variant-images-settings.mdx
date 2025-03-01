@@ -1,0 +1,263 @@
+---
+title: Variant Images Settings API
+description: API route for managing variant images settings
+---
+
+import Tabs from '@theme/Tabs';
+import TabItem from '@theme/TabItem';
+
+# Variant Images Settings API
+
+This API route allows you to retrieve and update settings for variant images. The settings control how images are handled for product variants, including options for base variant image handling.
+
+## Overview
+
+- **Route**: `/admin/variant-images-settings/:id`
+- **Methods**: GET, POST
+- **Authentication**: Required (Admin)
+
+## Implementation
+
+```ts
+import { MedusaRequest, MedusaResponse } from '@medusajs/framework';
+import { retrieveVariantImagesSettingsWorkflow } from '../../../../workflows/retrieve-variant-image-settings';
+import { updateVariantImagesSettingsWorkflow } from '../../../../workflows/update-variant-image-settings';
+
+type UpdateVariantImagesSettingsRequest = {
+  base_option_enabled?: boolean;
+  base_option_id?: string;
+};
+
+export const POST = async (req: MedusaRequest<UpdateVariantImagesSettingsRequest>, res: MedusaResponse) => {
+  const product_id = req.params.id;
+  const { result } = await updateVariantImagesSettingsWorkflow(req.scope).run({
+    input: { product_id, ...req.body },
+    throwOnError: false,
+    logOnError: true,
+  });
+  res.json(result);
+};
+
+export const GET = async (req: MedusaRequest, res: MedusaResponse) => {
+  const product_id = req.params.id;
+  const { result } = await retrieveVariantImagesSettingsWorkflow(req.scope).run({
+    input: { product_id },
+    throwOnError: false,
+    logOnError: true,
+  });
+  res.json(result);
+};
+```
+
+## Request Parameters
+
+### URL Parameters
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `id` | `string` | The ID of the product to retrieve or update variant images settings for |
+
+### Request Body (POST)
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `base_option_enabled` | `boolean` | (Optional) Whether to enable base option handling for variant images |
+| `base_option_id` | `string` | (Optional) The ID of the product option to use as base for variant images |
+
+## Responses
+
+### GET /admin/variant-images-settings/:id
+
+<Tabs>
+  <TabItem value="200" label="200 OK">
+
+```json
+{
+  "base_option_enabled": true,
+  "base_option_id": "opt_01GYD4BQBMC5G9WK1JPT8YN0MR"
+}
+```
+
+  </TabItem>
+  <TabItem value="404" label="404 Not Found">
+
+```json
+{
+  "type": "not_found",
+  "message": "Product with id prod_01GYD4BQBMC5G9WK1JPT8YN0MR was not found"
+}
+```
+
+  </TabItem>
+  <TabItem value="400" label="400 Bad Request">
+
+```json
+{
+  "type": "invalid_data",
+  "message": "Invalid request data"
+}
+```
+
+  </TabItem>
+</Tabs>
+
+### POST /admin/variant-images-settings/:id
+
+<Tabs>
+  <TabItem value="200" label="200 OK">
+
+```json
+{
+  "base_option_enabled": true,
+  "base_option_id": "opt_01GYD4BQBMC5G9WK1JPT8YN0MR"
+}
+```
+
+  </TabItem>
+  <TabItem value="404" label="404 Not Found">
+
+```json
+{
+  "type": "not_found",
+  "message": "Product with id prod_01GYD4BQBMC5G9WK1JPT8YN0MR was not found"
+}
+```
+
+  </TabItem>
+  <TabItem value="400" label="400 Bad Request">
+
+```json
+{
+  "type": "invalid_data",
+  "message": "base_option_id must be provided when base_option_enabled is true"
+}
+```
+
+  </TabItem>
+</Tabs>
+
+## Workflows
+
+The API route uses two workflows:
+
+1. **retrieveVariantImagesSettingsWorkflow**: Retrieves variant images settings for a product
+2. **updateVariantImagesSettingsWorkflow**: Updates variant images settings for a product
+
+These workflows handle the business logic for retrieving and updating the settings.
+
+### Workflow Input
+
+Both workflows take a product ID as input:
+
+```ts
+{
+  product_id: string;
+  // For update workflow, also includes:
+  base_option_enabled?: boolean;
+  base_option_id?: string;
+}
+```
+
+### Workflow Output
+
+Both workflows return a settings object:
+
+```ts
+{
+  base_option_enabled: boolean;
+  base_option_id: string | null;
+}
+```
+
+## Error Handling
+
+The API routes use a non-throwing error handling strategy:
+
+```ts
+await workflow(req.scope).run({
+  input: { /* input data */ },
+  throwOnError: false,  // Do not throw errors
+  logOnError: true,     // Log errors for debugging
+});
+```
+
+This approach logs errors but allows the API to return a consistent response format.
+
+## Usage Example
+
+<Tabs>
+  <TabItem value="js" label="JavaScript">
+
+```javascript
+// Get variant images settings
+const getSettings = async (productId) => {
+  const response = await fetch(`/admin/variant-images-settings/${productId}`, {
+    credentials: 'include',
+  });
+  return await response.json();
+};
+
+// Update variant images settings
+const updateSettings = async (productId, settings) => {
+  const response = await fetch(`/admin/variant-images-settings/${productId}`, {
+    method: 'POST',
+    credentials: 'include',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify(settings),
+  });
+  return await response.json();
+};
+```
+
+  </TabItem>
+  <TabItem value="ts" label="TypeScript">
+
+```typescript
+interface VariantImagesSettings {
+  base_option_enabled: boolean;
+  base_option_id: string | null;
+}
+
+// Get variant images settings
+const getSettings = async (productId: string): Promise<VariantImagesSettings> => {
+  const response = await fetch(`/admin/variant-images-settings/${productId}`, {
+    credentials: 'include',
+  });
+  return await response.json();
+};
+
+// Update variant images settings
+const updateSettings = async (
+  productId: string, 
+  settings: Partial<VariantImagesSettings>
+): Promise<VariantImagesSettings> => {
+  const response = await fetch(`/admin/variant-images-settings/${productId}`, {
+    method: 'POST',
+    credentials: 'include',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify(settings),
+  });
+  return await response.json();
+};
+```
+
+  </TabItem>
+</Tabs>
+
+## Best Practices
+
+When using this API:
+
+1. **Error Handling**: Always check for error responses and handle them appropriately
+2. **Validation**: Validate input data before sending requests
+3. **Authorization**: Ensure proper admin authentication before making requests
+
+## Related Resources
+
+- [Medusa API Response Format](https://docs.medusajs.com/learn/fundamentals/api-routes/responses)
+- [Medusa API Error Handling](https://docs.medusajs.com/learn/fundamentals/api-routes/error-handling)
+- [Medusa Workflows](https://docs.medusajs.com/learn/fundamentals/workflows)
