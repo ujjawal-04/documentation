@@ -1,0 +1,312 @@
+---
+title: Order Widget
+description: A Medusa admin widget for displaying passport/ID information in the order details
+author: The Third Beetle
+---
+
+import { Tabs, TabItem } from "@medusajs/docs"
+import Thumbnail from "@site/src/components/Thumbnail"
+
+# Order Widget
+
+The Order Widget is a simple yet effective custom widget for the Medusa admin panel that displays passport/ID information from order metadata in the order details sidebar.
+
+<Thumbnail
+  src="/img/widgets/order-widget.png"
+  alt="Order Widget Screenshot"
+/>
+
+## Overview
+
+This widget enhances the order management experience by making important customer identification information readily visible in the order details page. It extracts and displays passport or ID information stored in the order's shipping address metadata.
+
+## Widget Implementation
+
+Implementing this widget follows the standard Medusa admin widget pattern:
+
+### 1. Initialize the Admin JS SDK
+
+First, you need to initialize the Admin JS SDK to create a custom widget:
+
+```bash
+npx @medusajs/medusa-cli@latest admin --create OrderWidget
+```
+
+This command creates a new admin extension project with the following structure:
+
+```
+OrderWidget/
+  ├── src/
+  │   ├── components/
+  │   ├── App.tsx
+  │   └── index.ts
+  ├── package.json
+  ├── tsconfig.json
+  └── medusa-config.js
+```
+
+### 2. Create the Widget Component
+
+In your project, create or modify the widget component file:
+
+```tsx
+// src/components/OrderWidget.tsx
+import { defineWidgetConfig } from "@medusajs/admin-sdk";
+import { Container } from "@medusajs/ui";
+import { DetailWidgetProps, AdminOrder } from "@medusajs/framework/types";
+
+// The widget
+const OrderWidget = ({ data }: DetailWidgetProps<AdminOrder>) => {
+  return (
+    <Container className="divide-y p-0">
+      <div className="flex items-center gap-1 px-6 py-4">
+        <small className="font-medium">Passport/ID : </small>{" "}
+        {/* @ts-ignore  */}
+        <small>{data?.shipping_address?.metadata?.title}</small>
+      </div>
+    </Container>
+  );
+};
+
+// The widget's configurations
+export const config = defineWidgetConfig({
+  zone: "order.details.side.before",
+});
+
+export default OrderWidget;
+```
+
+### 3. Configure the Widget
+
+The widget configuration is defined using `defineWidgetConfig`:
+
+```tsx
+export const config = defineWidgetConfig({
+  zone: "order.details.side.before",
+});
+```
+
+This places the widget in the order details sidebar, above the default sidebar content. The `zone` property specifies where the widget will be displayed in the admin interface.
+
+### 4. Available Widget Zones
+
+Medusa provides several zones where widgets can be placed. For the Order Widget, we're using the `order.details.side.before` zone. Other available zones include:
+
+- `order.details.before`
+- `order.details.after`
+- `order.details.side.before`
+- `order.details.side.after`
+- `product.details.before`
+- `product.details.after`
+- `product.details.side.before`
+- `product.details.side.after`
+
+### 5. Export the Widget
+
+Make sure to export your widget in the `src/index.ts` file:
+
+```tsx
+// src/index.ts
+import OrderWidget from "./components/OrderWidget";
+
+export default OrderWidget;
+```
+
+## Installation & Deployment
+
+<Tabs groupId="package-manager">
+  <TabItem value="npm" label="npm" default>
+
+```bash
+# Install dependencies
+npm install
+
+# Build the widget
+npm run build
+
+# Build for development with hot reloading
+npm run dev
+```
+
+  </TabItem>
+  <TabItem value="yarn" label="Yarn">
+
+```bash
+# Install dependencies
+yarn
+
+# Build the widget
+yarn build
+
+# Build for development with hot reloading
+yarn dev
+```
+
+  </TabItem>
+  <TabItem value="pnpm" label="pnpm">
+
+```bash
+# Install dependencies
+pnpm install
+
+# Build the widget
+pnpm build
+
+# Build for development with hot reloading
+pnpm dev
+```
+
+  </TabItem>
+</Tabs>
+
+### Publishing the Widget
+
+Once your widget is ready, you can publish it to NPM:
+
+```bash
+npm publish
+```
+
+### Using the Widget in a Medusa Project
+
+To use the widget in a Medusa project:
+
+1. Install the widget package:
+
+```bash
+npm install your-order-widget-package
+```
+
+2. Register the widget in your Medusa configuration:
+
+```js
+// medusa-config.js
+module.exports = {
+  // ...other config
+  admin_widgets: {
+    resolve: "your-order-widget-package",
+    options: {
+      // Any configuration options for the widget
+    }
+  }
+}
+```
+
+## Widget Data and Props
+
+The widget receives the order data via the `data` prop, which contains the `AdminOrder` object from Medusa:
+
+```typescript
+type DetailWidgetProps<AdminOrder> = {
+  data: AdminOrder;
+}
+```
+
+### Accessing Order Data
+
+The widget accesses the passport/ID information from the shipping address metadata:
+
+```tsx
+data?.shipping_address?.metadata?.title
+```
+
+This path must match how you store the passport/ID information in your orders. If you use a different field name, adjust the path accordingly.
+
+## Customization Examples
+
+### Display Multiple Metadata Fields
+
+```tsx
+const OrderWidget = ({ data }: DetailWidgetProps<AdminOrder>) => {
+  return (
+    <Container className="divide-y p-0">
+      <div className="flex flex-col gap-2 px-6 py-4">
+        <div className="flex items-center gap-1">
+          <small className="font-medium">Passport/ID : </small>
+          <small>{data?.shipping_address?.metadata?.title}</small>
+        </div>
+        <div className="flex items-center gap-1">
+          <small className="font-medium">ID Type : </small>
+          <small>{data?.shipping_address?.metadata?.id_type}</small>
+        </div>
+      </div>
+    </Container>
+  );
+};
+```
+
+### Add Conditional Display Logic
+
+```tsx
+const OrderWidget = ({ data }: DetailWidgetProps<AdminOrder>) => {
+  const hasPassportInfo = data?.shipping_address?.metadata?.title;
+  
+  if (!hasPassportInfo) {
+    return (
+      <Container className="divide-y p-0">
+        <div className="flex items-center gap-1 px-6 py-4">
+          <small className="text-ui-fg-subtle">No ID information available</small>
+        </div>
+      </Container>
+    );
+  }
+  
+  return (
+    <Container className="divide-y p-0">
+      <div className="flex items-center gap-1 px-6 py-4">
+        <small className="font-medium">Passport/ID : </small>
+        <small>{data?.shipping_address?.metadata?.title}</small>
+      </div>
+    </Container>
+  );
+};
+```
+
+## UI Components
+
+The widget uses Medusa UI components:
+
+- `Container` - A layout component that provides consistent padding and styling
+
+You can use other Medusa UI components to enhance your widget:
+
+- `Button` - For actionable elements
+- `Heading` - For section titles
+- `Text` - For various text styles
+- `Badge` - For status indicators
+- `Card` - For content grouping
+
+
+## License
+
+This project is licensed under the MIT License - see the LICENSE file for details.
+
+## Resources
+
+- [Medusa Admin Widgets Documentation](https://docs.medusajs.com/learn/fundamentals/admin/widgets)
+- [Customize Admin with Widgets](https://docs.medusajs.com/learn/customization/customize-admin/widget)
+- [Medusa UI Components](https://docs.medusajs.com/ui/components/overview)
+
+---
+
+## FAQ
+
+<details>
+  <summary>Where is the passport/ID information stored?</summary>
+  <p>The widget looks for this information in the order's shipping address metadata, specifically in the "title" field.</p>
+</details>
+
+<details>
+  <summary>Can I customize which metadata field is displayed?</summary>
+  <p>Yes, you can modify the widget code to reference any field in the shipping address metadata or other order data.</p>
+</details>
+
+<details>
+  <summary>How do I add this widget to multiple admin instances?</summary>
+  <p>Publish your widget to NPM and then install it as a dependency in each Medusa admin project where you want to use it.</p>
+</details>
+
+<details>
+  <summary>Can I use this widget alongside other custom widgets?</summary>
+  <p>Yes, you can use multiple widgets in the same admin interface. Each widget will be displayed in its specified zone.</p>
+</details>
