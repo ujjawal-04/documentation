@@ -4,17 +4,21 @@ description: A Medusa admin widget for displaying passport/ID information in the
 author: 
 ---
 
+```tsx copy
 import { Tabs, TabItem } from "@medusajs/docs"
 import Thumbnail from "@site/src/components/Thumbnail"
+```
 
 # Order Widget by 
 
 The Order Widget is a simple yet effective custom widget for the Medusa admin panel that displays passport/ID information from order metadata in the order details sidebar.
 
+```tsx copy
 <Thumbnail
   src="/img/widgets/order-widget.png"
   alt="Order Widget Screenshot"
 />
+```
 
 ## Overview
 
@@ -49,7 +53,7 @@ OrderWidget/
 
 In your project, create or modify the widget component file:
 
-```tsx
+```tsx copy
 // src/components/OrderWidget.tsx
 import { defineWidgetConfig } from "@medusajs/admin-sdk";
 import { Container } from "@medusajs/ui";
@@ -80,7 +84,7 @@ export default OrderWidget;
 
 The widget configuration is defined using `defineWidgetConfig`:
 
-```tsx
+```tsx copy
 export const config = defineWidgetConfig({
   zone: "order.details.side.before",
 });
@@ -105,7 +109,7 @@ Medusa provides several zones where widgets can be placed. For the Order Widget,
 
 Make sure to export your widget in the `src/index.ts` file:
 
-```tsx
+```tsx copy
 // src/index.ts
 import OrderWidget from "./components/OrderWidget";
 
@@ -114,8 +118,10 @@ export default OrderWidget;
 
 ## Installation & Deployment
 
+```tsx copy
 <Tabs groupId="package-manager">
   <TabItem value="npm" label="npm" default>
+```
 
 ```bash
 # Install dependencies
@@ -127,9 +133,10 @@ npm run build
 # Build for development with hot reloading
 npm run dev
 ```
-
+```tsx copy
   </TabItem>
   <TabItem value="yarn" label="Yarn">
+```  
 
 ```bash
 # Install dependencies
@@ -142,8 +149,11 @@ yarn build
 yarn dev
 ```
 
+```tsx copy
   </TabItem>
   <TabItem value="pnpm" label="pnpm">
+```  
+
 
 ```bash
 # Install dependencies
@@ -155,9 +165,10 @@ pnpm build
 # Build for development with hot reloading
 pnpm dev
 ```
-
+```tsx copy
   </TabItem>
 </Tabs>
+```
 
 ### Publishing the Widget
 
@@ -216,7 +227,7 @@ This path must match how you store the passport/ID information in your orders. I
 
 ### Display Multiple Metadata Fields
 
-```tsx
+```tsx copy
 const OrderWidget = ({ data }: DetailWidgetProps<AdminOrder>) => {
   return (
     <Container className="divide-y p-0">
@@ -237,7 +248,7 @@ const OrderWidget = ({ data }: DetailWidgetProps<AdminOrder>) => {
 
 ### Add Conditional Display Logic
 
-```tsx
+```tsx copy
 const OrderWidget = ({ data }: DetailWidgetProps<AdminOrder>) => {
   const hasPassportInfo = data?.shipping_address?.metadata?.title;
   

@@ -3,8 +3,10 @@ title: Understanding Medusa Workflows
 description: A comprehensive guide to creating and using workflows in Medusa
 ---
 
+```tsx copy
 import { Tabs, TabItem } from "@medusajs/docs"
 import CodeBlock from "@theme/CodeBlock"
+```
 
 # Understanding Medusa Workflows
 
@@ -31,6 +33,7 @@ Steps are individual operations that make up a workflow. Each step:
 
 Here's an example of a step that retrieves variant images settings:
 
+```tsx copy
 <CodeBlock className="language-typescript" title="src/workflows/steps/retrieve-settings-step.ts">
 {`import { createStep, StepResponse } from '@medusajs/framework/workflows-sdk';
 import { GetVariantImagesSettingsInput } from '..';
@@ -46,6 +49,7 @@ export const retrieveSettingsStep = createStep(
   }
 );`}
 </CodeBlock>
+```
 
 ### 2. Workflows
 
@@ -57,6 +61,7 @@ Workflows combine multiple steps to complete a larger task. A workflow:
 
 Here's an example of a workflow that retrieves variant images settings:
 
+```tsx copy
 <CodeBlock className="language-typescript" title="src/workflows/retrieve-variant-images-settings.ts">
 {`import { createWorkflow, WorkflowResponse } from '@medusajs/framework/workflows-sdk';
 import { retrieveSettingsStep } from './steps/retrieve-settings-step';
@@ -73,6 +78,7 @@ export const retrieveVariantImagesSettingsWorkflow = createWorkflow(
   }
 );`}
 </CodeBlock>
+```
 
 ## Creating Workflow Steps
 
@@ -102,6 +108,7 @@ return new StepResponse(outputData);
 
 ### Example: Send Notification Step
 
+```tsx copy
 <CodeBlock className="language-typescript" title="src/workflows/steps/send-notification.ts">
 {`import { Modules } from "@medusajs/framework/utils"
 import { createStep, StepResponse } from "@medusajs/framework/workflows-sdk"
@@ -118,9 +125,11 @@ export const sendNotificationStep = createStep(
   }
 )`}
 </CodeBlock>
+```
 
 ### Example: Update Settings Step
 
+```tsx copy
 <CodeBlock className="language-typescript" title="src/workflows/steps/update-settings-step.ts">
 {`import { createStep, StepResponse } from '@medusajs/framework/workflows-sdk';
 import { UpdateVariantImagesSettingsInput } from '..';
@@ -141,6 +150,7 @@ export const updateSettingsStep = createStep(
   }
 );`}
 </CodeBlock>
+```
 
 ## Creating Workflows
 
@@ -162,6 +172,7 @@ The constructor function:
 
 ### Example: Update Variant Images Settings Workflow
 
+```tsx copy
 <CodeBlock className="language-typescript" title="src/workflows/update-variant-images-settings.ts">
 {`import {
   createWorkflow,
@@ -183,9 +194,11 @@ export const updateVariantImagesSettingsWorkflow = createWorkflow(
   }
 );`}
 </CodeBlock>
+```
 
 ### Example: Send Order Confirmation Workflow
 
+```tsx copy
 <CodeBlock className="language-typescript" title="src/workflows/send-order-confirmation.ts">
 {`import { createWorkflow, WorkflowResponse } from "@medusajs/framework/workflows-sdk";
 import { useQueryGraphStep } from "@medusajs/medusa/core-flows";
@@ -226,6 +239,7 @@ export const sendOrderConfirmationWorkflow = createWorkflow(
   }
 )`}
 </CodeBlock>
+```
 
 ## Using Built-in Steps
 
@@ -266,6 +280,7 @@ await myWorkflow(container).run({
 
 ### Example: Running a Workflow from a Subscriber
 
+```tsx copy
 <CodeBlock className="language-typescript" title="src/subscribers/order-placed.ts">
 {`import type {
   SubscriberArgs,
@@ -289,6 +304,7 @@ export const config: SubscriberConfig = {
   event: "order.placed",
 }`}
 </CodeBlock>
+```
 
 ## Workflow Execution Options
 

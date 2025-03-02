@@ -1,5 +1,5 @@
 
-```
+```tsx copy
 import { Tabs, TabItem } from "@medusajs/docs"
 import Thumbnail from "@site/src/components/Thumbnail"
 import WidgetDemoVideo from "@site/src/components/WidgetDemoVideo"
@@ -9,7 +9,7 @@ import WidgetDemoVideo from "@site/src/components/WidgetDemoVideo"
 
 ## The Variants Images Widget, developed by , is a custom widget for the Medusa admin panel that enables managing variant-specific images and thumbnails for products.
 
-```
+```tsx copy
 <Thumbnail
   src="/img/widgets/variants-images-widget.png"
   alt="Variants Images Widget Screenshot"
@@ -19,7 +19,7 @@ import WidgetDemoVideo from "@site/src/components/WidgetDemoVideo"
 ## Overview
 
 ## Managing product variants with unique images can be challenging in e-commerce platforms. This widget solves this problem by providing a dedicated interface for assigning specific images to each product variant, enhancing your store's visual merchandising capabilities.
-```
+```tsx copy
 <WidgetDemoVideo
   src="/videos/variants-images-widget-demo.mp4"
   alt="Variants Images Widget Demo"
@@ -42,14 +42,15 @@ This widget requires:
 - Medusa admin (v1.4.0 or higher)
 
 ## Installation
-```
+```tsx copy
 <Tabs groupId="package-manager">
   <TabItem value="npm" label="npm" default>
+
 ```
 ```bash
 npm install medusa-admin-variants-images-widget
 ```
-```
+```tsx copy
   </TabItem>
   <TabItem value="yarn" label="Yarn">
 ```
@@ -57,16 +58,19 @@ npm install medusa-admin-variants-images-widget
 yarn add medusa-admin-variants-images-widget
 ```
 
-
+```tsx copy
   </TabItem>
   <TabItem value="pnpm" label="pnpm">
+```
 
 ```bash
 pnpm add medusa-admin-variants-images-widget
 ```
-
-  </TabItem>
+```tsx copy
+    </TabItem>
 </Tabs>
+```
+
 
 ### Backend Configuration
 

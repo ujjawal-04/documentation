@@ -3,8 +3,10 @@ title: Order Placed Subscriber
 description: Documentation for the order.placed event subscriber in Medusa
 ---
 
+```tsx copy
 import { Tabs, TabItem } from "@medusajs/docs"
 import CodeBlock from "@theme/CodeBlock"
+```
 
 # Order Placed Subscriber
 
@@ -16,6 +18,7 @@ When a customer completes an order in a Medusa store, the core commerce modules 
 
 ## Implementation
 
+```tsx copy
 <CodeBlock className="language-typescript" title="src/subscribers/order-placed.ts">
 {`import type {
   SubscriberArgs,
@@ -39,6 +42,7 @@ export const config: SubscriberConfig = {
   event: "order.placed",
 }`}
 </CodeBlock>
+```
 
 ## How It Works
 
@@ -110,12 +114,15 @@ Ensure that the `sendOrderConfirmationWorkflow` is properly implemented and that
 
 ### Setting Up Prerequisite Components
 
-To use this subscriber effectively, you need:
+#To use this subscriber effectively, you need:
 
 1. A notification provider (like Resend) configured in your `medusa-config.js`:
 
+```tsx copy
 <Tabs groupId="notification-provider">
   <TabItem value="resend" label="Resend" default>
+
+```
 
 ```javascript
 module.exports = defineConfig({
@@ -140,11 +147,16 @@ module.exports = defineConfig({
 })
 ```
 
-  </TabItem>
+```tsx copy
+    </TabItem>
 </Tabs>
+```
+
+
 
 2. The `sendOrderConfirmationWorkflow` implementation:
 
+```tsx copy
 <CodeBlock className="language-typescript" title="src/workflows/send-order-confirmation.ts">
 {`import { 
   createWorkflow, 
@@ -189,6 +201,7 @@ export const sendOrderConfirmationWorkflow = createWorkflow(
   }
 )`}
 </CodeBlock>
+```
 
 ## Testing
 
@@ -202,6 +215,7 @@ To test the subscriber:
 
 The subscriber doesn't include explicit error handling. For production implementations, consider adding try/catch blocks:
 
+```tsx copy
 <CodeBlock className="language-typescript" title="Enhanced Error Handling">
 {`export default async function orderPlacedHandler({
   event: { data },
@@ -225,6 +239,7 @@ The subscriber doesn't include explicit error handling. For production implement
   }
 }`}
 </CodeBlock>
+```
 
 ## Related Events
 

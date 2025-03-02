@@ -3,8 +3,10 @@ title: Resend Notification Module
 description: A Medusa notification module for sending emails using Resend
 ---
 
+```tsx copy
 import { Tabs, TabItem } from "@medusajs/docs"
 import CodeBlock from "@theme/CodeBlock"
+```
 
 # Resend Notification Module
 
@@ -20,29 +22,38 @@ The Resend Notification Module enables your Medusa application to send email not
 
 ## Installation
 
+```tsx copy
 <Tabs groupId="package-manager">
   <TabItem value="npm" label="npm" default>
+```  
 
 ```bash
 npm install resend @react-email/components
 ```
 
+```tsx copy
   </TabItem>
   <TabItem value="yarn" label="yarn">
+```  
 
 ```bash
 yarn add resend @react-email/components
 ```
 
+```tsx copy
   </TabItem>
   <TabItem value="pnpm" label="pnpm">
+```  
 
 ```bash
 pnpm add resend @react-email/components
 ```
 
+```tsx copy
   </TabItem>
 </Tabs>
+```
+
 
 ## Implementation
 
@@ -59,6 +70,7 @@ src/modules/resend/
 
 ### Module Definition
 
+```tsx copy
 <CodeBlock className="language-typescript" title="src/modules/resend/index.ts">
 {`import { 
   ModuleProvider, 
@@ -70,9 +82,12 @@ export default ModuleProvider(Modules.NOTIFICATION, {
   services: [ResendNotificationProviderService],
 })`}
 </CodeBlock>
+```
+
 
 ### Service Implementation
 
+```tsx copy
 <CodeBlock className="language-typescript" title="src/modules/resend/service.ts">
 {`import { 
   AbstractNotificationProviderService, 
@@ -202,11 +217,13 @@ class ResendNotificationProviderService extends AbstractNotificationProviderServ
 
 export default ResendNotificationProviderService`}
 </CodeBlock>
+```
 
 ## Email Templates
 
 ### Order Placed Email
 
+```tsx copy
 <CodeBlock className="language-typescript" title="src/modules/resend/emails/order-placed.tsx">
 {`import { Text, Column, Container, Heading, Html, Img, Row, Section } from "@react-email/components"
 import { BigNumberValue, OrderDTO } from "@medusajs/framework/types"
@@ -274,9 +291,11 @@ export const orderPlacedEmail = (props: OrderPlacedEmailProps) => (
   <OrderPlacedEmailComponent {...props} />
 )`}
 </CodeBlock>
+```
 
 ### Reset Password Email
 
+```tsx copy
 <CodeBlock className="language-typescript" title="src/modules/resend/emails/reset-password.tsx">
 {`import { 
   Text, 
@@ -335,11 +354,13 @@ export const resetPasswordEmail = (props: ResetPasswordEmailProps) => (
   <ResetPasswordEmailComponent {...props} />
 )`}
 </CodeBlock>
+```
 
 ## Configuration
 
 Add the Resend notification module to your Medusa configuration:
 
+```tsx copy
 <CodeBlock className="language-javascript" title="medusa-config.js">
 {`module.exports = defineConfig({
   // ...other configuration
@@ -364,6 +385,7 @@ Add the Resend notification module to your Medusa configuration:
   ],
 })`}
 </CodeBlock>
+```
 
 ### Environment Variables
 
@@ -380,6 +402,7 @@ For development, you can use `onboarding@resend.dev` as the `RESEND_FROM_EMAIL`,
 
 ### Creating a Workflow to Send Notifications
 
+```tsx copy
 <CodeBlock className="language-typescript" title="src/workflows/send-reset-password.ts">
 {`import { 
   createWorkflow, 
@@ -408,9 +431,11 @@ export const sendPasswordResetWorkflow = createWorkflow(
   }
 )`}
 </CodeBlock>
+```
 
 ### Creating the Send Notification Step
 
+```tsx copy
 <CodeBlock className="language-typescript" title="src/workflows/steps/send-notification.ts">
 {`import { Modules } from "@medusajs/framework/utils"
 import { createStep, StepResponse } from "@medusajs/framework/workflows-sdk"
@@ -427,9 +452,11 @@ export const sendNotificationStep = createStep(
   }
 )`}
 </CodeBlock>
+```
 
 ### Triggering the Workflow
 
+```tsx copy
 <CodeBlock className="language-typescript" title="src/api/routes/reset-password/route.ts">
 {`import { MedusaRequest, MedusaResponse } from "@medusajs/medusa"
 import { sendPasswordResetWorkflow } from "../../../workflows/send-reset-password"
@@ -455,6 +482,7 @@ export const POST = async (req: MedusaRequest, res: MedusaResponse) => {
   })
 }`}
 </CodeBlock>
+```
 
 ## Advanced Usage
 

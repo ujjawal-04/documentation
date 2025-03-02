@@ -3,8 +3,10 @@ title: "ViewImagesModal Component"
 description: "A modal component for viewing variant images and thumbnails."
 ---
 
+```tsx copy
 import { Button, Drawer, Heading } from '@medusajs/ui';
 import { Image, VariantImage } from '../widgets/VariantsImagesWidget';
+```
 
 ## ViewImagesModal Component
 
@@ -31,7 +33,7 @@ The `ViewImagesModal` component provides a modal (drawer) interface for displayi
 
 ### Implementation
 
-```tsx
+```tsx copy
 export default function ViewImagesModal({ variantThumbnail, variantImages }: { variantThumbnail: string | undefined; variantImages: VariantImage[] }) {
   return (
     <Drawer>
@@ -77,3 +79,4 @@ export default function ViewImagesModal({ variantThumbnail, variantImages }: { v
     </Drawer>
   );
 }
+```

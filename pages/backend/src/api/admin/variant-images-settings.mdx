@@ -3,8 +3,10 @@ title: Variant Images Settings API
 description: API route for managing variant images settings
 ---
 
+```tsx copy
 import Tabs from '@theme/Tabs';
 import TabItem from '@theme/TabItem';
+```
 
 # Variant Images Settings API
 
@@ -68,8 +70,10 @@ export const GET = async (req: MedusaRequest, res: MedusaResponse) => {
 
 ### GET /admin/variant-images-settings/:id
 
+```tsx copy
 <Tabs>
   <TabItem value="200" label="200 OK">
+```
 
 ```json
 {
@@ -77,9 +81,11 @@ export const GET = async (req: MedusaRequest, res: MedusaResponse) => {
   "base_option_id": "opt_01GYD4BQBMC5G9WK1JPT8YN0MR"
 }
 ```
-
+```tsx copy
   </TabItem>
   <TabItem value="404" label="404 Not Found">
+```  
+
 
 ```json
 {
@@ -88,8 +94,10 @@ export const GET = async (req: MedusaRequest, res: MedusaResponse) => {
 }
 ```
 
+```tsx copy
   </TabItem>
   <TabItem value="400" label="400 Bad Request">
+```
 
 ```json
 {
@@ -98,13 +106,17 @@ export const GET = async (req: MedusaRequest, res: MedusaResponse) => {
 }
 ```
 
+```tsx copy
   </TabItem>
 </Tabs>
+```
 
 ### POST /admin/variant-images-settings/:id
 
+```tsx copy
 <Tabs>
   <TabItem value="200" label="200 OK">
+```  
 
 ```json
 {
@@ -113,8 +125,10 @@ export const GET = async (req: MedusaRequest, res: MedusaResponse) => {
 }
 ```
 
+```tsx copy
   </TabItem>
   <TabItem value="404" label="404 Not Found">
+```  
 
 ```json
 {
@@ -122,9 +136,10 @@ export const GET = async (req: MedusaRequest, res: MedusaResponse) => {
   "message": "Product with id prod_01GYD4BQBMC5G9WK1JPT8YN0MR was not found"
 }
 ```
-
+```tsx copy
   </TabItem>
   <TabItem value="400" label="400 Bad Request">
+```  
 
 ```json
 {
@@ -133,8 +148,10 @@ export const GET = async (req: MedusaRequest, res: MedusaResponse) => {
 }
 ```
 
+```tsx copy
   </TabItem>
 </Tabs>
+```
 
 ## Workflows
 
@@ -185,8 +202,10 @@ This approach logs errors but allows the API to return a consistent response for
 
 ## Usage Example
 
+```tsx copy
 <Tabs>
   <TabItem value="js" label="JavaScript">
+```  
 
 ```javascript
 // Get variant images settings
@@ -211,8 +230,10 @@ const updateSettings = async (productId, settings) => {
 };
 ```
 
+```tsx copy
   </TabItem>
   <TabItem value="ts" label="TypeScript">
+```  
 
 ```typescript
 interface VariantImagesSettings {
@@ -245,8 +266,11 @@ const updateSettings = async (
 };
 ```
 
+```tsx copy
   </TabItem>
 </Tabs>
+```
+
 
 ## Best Practices
 
