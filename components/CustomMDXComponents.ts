@@ -11,6 +11,9 @@ module.exports = withNextra({
     return config;
   },
 });
+
+export {}; 
+
 function withNextra(arg0: { reactStrictMode: boolean; webpack: (config: any) => any; }): any {
     throw new Error("Function not implemented.");
 }
