@@ -1,0 +1,173 @@
+# Sign In Prompt
+
+A component that displays a prompt encouraging users to sign in to their account, featuring a heading, descriptive text, and a sign-in button.
+
+## Overview
+
+The `Sign In Prompt` component creates a horizontal banner with text content and a call-to-action button for user authentication.
+
+## Technical Details
+
+### Import
+
+```javascript copy
+import { Button, Heading, Text } from "@medusajs/ui"
+import LocalizedClientLink from "@modules/common/components/localized-client-link"
+```
+
+### Component Structure
+
+```jsx copy
+const SignInPrompt = () => {
+  return (
+    <div className="flex items-center justify-between bg-white">
+      <ContentSection />
+      <ButtonSection />
+    </div>
+  )
+}
+```
+
+## Features
+
+### Content Display
+- Heading with "Already have an account?"
+- Descriptive text for better user experience
+- Secondary button style for sign-in action
+- Localized navigation link
+
+## Styling
+
+### Container
+```javascript copy
+"flex items-center justify-between bg-white"
+```
+
+### Button Styling
+```javascript copy
+"z-0 group relative inline-flex items-center justify-center box-border appearance-none select-none whitespace-nowrap font-normal subpixel-antialiased overflow-hidden tap-highlight-transparent data-[pressed=true]:scale-[0.97] outline-none data-[focus-visible=true]:z-10 data-[focus-visible=true]:outline-2 data-[focus-visible=true]:outline-focus data-[focus-visible=true]:outline-offset-2 px-4 min-w-20 text-small gap-2 rounded-medium [&>svg]:max-w-[theme(spacing.8)] transition-transform-colors-opacity motion-reduce:transition-none text-default-foreground data-[hover=true]:opacity-hover h-10 bg-default-100 hover:bg-default-200"
+```
+
+### Text Styling
+- Heading: `"txt-xlarge font-sans font-medium"`
+- Description: `"txt-medium font-sans font-normal text-ui-fg-subtle"`
+
+## Component Elements
+
+### Heading
+```jsx copy
+<Heading level="h2" className="txt-xlarge font-sans font-medium">
+  Already have an account?
+</Heading>
+```
+
+### Description Text
+```jsx copy
+<Text className="txt-medium font-sans font-normal text-ui-fg-subtle">
+  Sign in for a better experience.
+</Text>
+```
+
+### Sign In Button
+```jsx copy
+<Button 
+  variant="secondary" 
+  className="..." 
+  data-testid="sign-in-button"
+>
+  Sign in
+</Button>
+```
+
+## Interactive Features
+
+### Button States
+- Default state
+- Hover state: Background color change
+- Pressed state: Scale transform
+- Focus visible state: Outline styling
+
+### Navigation
+- Links to "/account" route
+- Uses LocalizedClientLink for internationalization support
+
+## Accessibility
+
+### Semantic Structure
+- Uses semantic `<Heading>` component
+- Proper heading level (h2)
+- Descriptive text content
+- Accessible button states
+
+### Focus Management
+- Visible focus indicators
+- Proper tab order
+- Focus outline styling
+
+### Interactive Elements
+- Button press animation
+- Hover state feedback
+- Focus visible indicators
+
+## Testing
+
+```javascript copy
+data-testid="sign-in-button"  // Test ID for sign-in button
+```
+
+## Dependencies
+
+### Components
+- `Button` from @medusajs/ui
+- `Heading` from @medusajs/ui
+- `Text` from @medusajs/ui
+- `LocalizedClientLink` from common components
+
+### Styling
+- Tailwind CSS
+- Medusa UI theming
+
+## Best Practices
+
+1. Component Organization
+   - Clear separation of content and interactive elements
+   - Semantic HTML structure
+   - Consistent spacing
+
+2. Accessibility
+   - Semantic heading structure
+   - Clear call to action
+   - Focus management
+
+3. Styling
+   - Responsive layout
+   - Interactive states
+   - Consistent typography
+
+## Usage Example
+
+```jsx copy
+import SignInPrompt from "@modules/account/components/sign-in-prompt"
+
+const AccountPage = () => {
+  return (
+    <div className="account-container">
+      <SignInPrompt />
+      {/* Other account-related content */}
+    </div>
+  )
+}
+```
+
+## Browser Compatibility
+
+- Modern browsers supported
+- Flexbox layout required
+- CSS transitions support
+- JavaScript enabled
+
+## See Also
+
+- [Medusa UI Documentation](https://docs.medusajs.com/ui)
+- [React Component Best Practices](https://react.dev/learn/thinking-in-react)
+- [Accessibility Guidelines](https://www.w3.org/WAI/ARIA/apg/)

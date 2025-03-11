@@ -1,0 +1,178 @@
+# Error Message 
+
+The `Error Message` component is a simple React component that renders error messages in a consistent style. It conditionally renders an error message with predefined styling for error states.
+
+## Overview
+
+```typescript copy
+const ErrorMessage = ({ 
+  error, 
+  'data-testid': dataTestid 
+}: { 
+  error?: string | null, 
+  'data-testid'?: string 
+}) => {
+  // Component implementation
+}
+```
+
+## Props
+
+### error
+- Type: `string | null | undefined`
+- Required: No
+- Description: The error message to display. If not provided or null, the component returns null.
+
+### data-testid
+- Type: `string`
+- Required: No
+- Description: Test identifier for automated testing purposes.
+
+## Implementation
+
+```typescript copy
+const ErrorMessage = ({ error, 'data-testid': dataTestid }: { error?: string | null, 'data-testid'?: string }) => {
+  if (!error) {
+    return null
+  }
+
+  return (
+    <div className="pt-2 text-rose-500 text-small-regular" data-testid={dataTestid}>
+      <span>{error}</span>
+    </div>
+  )
+}
+
+export default ErrorMessage
+```
+
+## Usage Examples
+
+### Basic Usage
+```jsx copy
+import ErrorMessage from "@modules/common/components/error-message"
+
+function Form() {
+  return (
+    <ErrorMessage error="Invalid email address" />
+  )
+}
+```
+
+### With Test ID
+```jsx copy
+import ErrorMessage from "@modules/common/components/error-message"
+
+function Form() {
+  return (
+    <ErrorMessage 
+      error="Invalid input" 
+      data-testid="form-error" 
+    />
+  )
+}
+```
+
+### Conditional Error
+```jsx copy
+import ErrorMessage from "@modules/common/components/error-message"
+
+function Form() {
+  const [error, setError] = useState(null)
+
+  return (
+    <div>
+      <input 
+        type="email" 
+        onChange={(e) => {
+          if (!e.target.value.includes('@')) {
+            setError('Invalid email format')
+          } else {
+            setError(null)
+          }
+        }} 
+      />
+      <ErrorMessage error={error} />
+    </div>
+  )
+}
+```
+
+## Styling
+
+The component uses Tailwind CSS classes for consistent styling:
+- `pt-2`: Adds padding to the top of the error message
+- `text-rose-500`: Sets the text color to a rose/red shade
+- `text-small-regular`: Applies font sizing and weight
+
+## Testing
+
+The component supports testing through:
+- Optional `data-testid` prop for test selection
+- Conditional rendering based on error prop
+- Consistent DOM structure for reliable testing
+
+Example test:
+```javascript copy
+describe('ErrorMessage', () => {
+  it('renders error message when error is provided', () => {
+    render(<ErrorMessage error="Test error" data-testid="test-error" />)
+    expect(screen.getByTestId('test-error')).toHaveTextContent('Test error')
+  })
+
+  it('does not render when error is null', () => {
+    render(<ErrorMessage error={null} data-testid="test-error" />)
+    expect(screen.queryByTestId('test-error')).toBeNull()
+  })
+})
+```
+
+## Best Practices
+
+1. **Conditional Rendering**
+   - Component returns null when no error is present
+   - Prevents unnecessary DOM elements when no error exists
+
+2. **Accessibility**
+   - Uses semantic HTML structure
+   - Provides clear error feedback
+   - Maintains readable color contrast
+
+3. **Reusability**
+   - Consistent error styling across application
+   - Flexible error message support
+   - Optional test ID support
+
+## Performance
+
+The component is optimized for performance:
+- Simple conditional rendering
+- No unnecessary re-renders
+- Minimal DOM structure
+- No external dependencies
+
+## Design Considerations
+
+1. **Color Choice**
+   - Uses rose-500 for error state visibility
+   - Maintains adequate contrast for readability
+   - Follows common error color conventions
+
+2. **Layout**
+   - Top padding for spacing from previous elements
+   - Inline text display for natural text flow
+   - Consistent text sizing
+
+## Common Use Cases
+
+1. Form validation errors
+2. API error messages
+3. Input field errors
+4. Submit action failures
+5. Validation feedback
+
+## See Also
+
+- [React Conditional Rendering](https://react.dev/learn/conditional-rendering)
+- [Tailwind CSS Colors](https://tailwindcss.com/docs/customizing-colors)
+- [Accessibility in React](https://react.dev/learn/accessibility)

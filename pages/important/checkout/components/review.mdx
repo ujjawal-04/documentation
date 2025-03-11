@@ -1,0 +1,127 @@
+# Review
+
+The Review component is a client-side component that renders the final review step of a checkout process. It displays order terms and conditions and provides a payment button when appropriate conditions are met.
+
+## Props
+
+| Prop | Type | Required | Description |
+|------|------|----------|-------------|
+| cart | CartType | Yes | The cart object containing shipping address, methods, and payment information |
+
+## Features
+
+- Conditionally renders based on the URL search parameter `step=review`
+- Handles gift card payment edge cases
+- Validates completion of previous checkout steps
+- Displays terms and conditions text
+- Includes a payment button for order completion
+
+## Usage
+
+```tsx copy
+import Review from "./components/Review"
+import { Cart } from "./types"
+
+const CheckoutPage = ({ cart }: { cart: Cart }) => {
+  return (
+    <Review cart={cart} />
+  )
+}
+```
+
+## Component Logic
+
+### Visibility Control
+
+The component checks two main conditions to determine what content to display:
+
+1. If the current step is "review" (controlled by URL search parameter)
+2. If previous checkout steps are completed, which requires:
+   - Shipping address is present
+   - Shipping methods are selected
+   - Payment collection exists OR cart is fully paid by gift cards
+
+```tsx copy
+const isOpen = searchParams.get("step") === "review"
+
+const previousStepsCompleted = 
+  cart.shipping_address &&
+  cart.shipping_methods.length > 0 &&
+  (cart.payment_collection || paidByGiftcard)
+```
+
+### Gift Card Handling
+
+The component has special handling for carts that are fully paid by gift cards:
+
+```tsx copy
+const paidByGiftcard = 
+  cart?.gift_cards && 
+  cart?.gift_cards?.length > 0 && 
+  cart?.total === 0
+```
+
+## Styling
+
+The component uses the following styling approaches:
+
+- Medusa UI components (`Heading`, `Text`)
+- Conditional styling using `clx` utility
+- Background colors and spacing utilities from the design system
+
+## Dependencies
+
+- `@medusajs/ui` - UI component library
+- `next/navigation` - Next.js navigation utilities
+- Custom `PaymentButton` component
+
+## Example
+
+```tsx copy
+// Complete example showing component integration
+import { Review } from "./components/Review"
+
+const Cart = {
+  shipping_address: {
+    address_1: "123 Main St",
+    city: "Brooklyn",
+    country_code: "US"
+  },
+  shipping_methods: [{
+    id: "sm_123",
+    price: 1000
+  }],
+  payment_collection: {
+    id: "pc_123",
+    amount: 5000
+  },
+  gift_cards: []
+}
+
+const CheckoutPage = () => {
+  return (
+    <div className="checkout-container">
+      <Review cart={Cart} />
+    </div>
+  )
+}
+```
+
+## Accessibility
+
+- Uses semantic HTML elements (`div`, `h2`)
+- Implements proper heading hierarchy
+- Includes data-testid for testing
+- Handles disabled states with appropriate styling
+
+## Best Practices
+
+1. Always pass a complete cart object with required properties
+2. Use within a checkout flow where previous steps are properly validated
+3. Place within a client-side component due to use of `useSearchParams`
+4. Ensure PaymentButton component is properly configured for your payment provider
+
+## Related Components
+
+- `PaymentButton` - Handles the actual payment submission
+- Parent checkout container/workflow components

@@ -1,0 +1,229 @@
+# Items Preview Template
+
+A client-side component that displays a preview of cart items in a scrollable table format with a maximum height constraint.
+
+## Overview
+
+The `Items Preview Template` component renders a compact preview of cart items, implementing custom scrolling behavior when items exceed the maximum display limit of 4 items.
+
+## Technical Details
+
+### Import
+
+```javascript copy
+"use client"
+
+import repeat from "@lib/util/repeat"
+import { HttpTypes } from "@medusajs/types"
+import { Table, clx } from "@medusajs/ui"
+import Item from "@modules/cart/components/item"
+import SkeletonLineItem from "@modules/skeletons/components/skeleton-line-item"
+```
+
+### Props
+
+```typescript copy
+type ItemsTemplateProps = {
+  cart: HttpTypes.StoreCart
+}
+```
+
+| Prop | Type | Required | Description |
+|------|------|----------|-------------|
+| cart | HttpTypes.StoreCart | Yes | Cart object containing items and currency information |
+
+## Component Structure
+
+### Base Layout
+
+```jsx copy
+<div
+  className={clx({
+    "pl-[1px] overflow-y-scroll overflow-x-hidden no-scrollbar max-h-[420px]": 
+      hasOverflow,
+  })}
+>
+  <Table>
+    <Table.Body data-testid="items-table">
+      {/* Items or Skeleton Loading */}
+    </Table.Body>
+  </Table>
+</div>
+```
+
+## Features
+
+### Overflow Handling
+```javascript copy
+const hasOverflow = items && items.length > 4
+```
+
+### Item Sorting
+```javascript copy
+items.sort((a, b) => {
+  return (a.created_at ?? "") > (b.created_at ?? "") ? -1 : 1
+})
+```
+
+### Loading States
+```jsx copy
+{items ? (
+  // Render sorted items
+) : (
+  repeat(5).map((i) => <SkeletonLineItem key={i} />)
+)}
+```
+
+## Styling
+
+### Container Styles
+When overflow occurs:
+```css copy
+.pl-[1px]               /* Slight left padding */
+.overflow-y-scroll      /* Vertical scroll */
+.overflow-x-hidden      /* Hide horizontal scroll */
+.no-scrollbar          /* Custom scrollbar hiding */
+.max-h-[420px]         /* Maximum height constraint */
+```
+
+### Preview Mode
+```jsx copy
+<Item
+  key={item.id}
+  item={item}
+  type="preview"        /* Preview mode for compact display */
+  currencyCode={cart.currency_code}
+/>
+```
+
+## Usage Example
+
+### Basic Implementation
+
+```jsx copy
+import ItemsPreviewTemplate from "@modules/cart/templates/items-preview"
+
+function CartPreview() {
+  const cart = {
+    items: [
+      {
+        id: "item_1",
+        title: "Product 1",
+        quantity: 2,
+        created_at: "2024-02-23",
+        // ... other item properties
+      }
+    ],
+    currency_code: "USD"
+  }
+
+  return <ItemsPreviewTemplate cart={cart} />
+}
+```
+
+## Component States
+
+### Default State
+- Items displayed in a simple table format
+- No scroll behavior when items ≤ 4
+
+### Overflow State
+- Scrollable container appears
+- Maximum height enforced
+- Custom scrollbar styling
+- Maintains readable content
+
+### Loading State
+- Displays 5 skeleton items
+- Maintains consistent layout during loading
+
+## Accessibility
+
+### Testing Support
+```jsx copy
+<Table.Body data-testid="items-table">
+  {/* Items rendering */}
+</Table.Body>
+```
+
+### Scrollable Content
+- Keyboard-accessible scrolling
+- Visible scroll indicators
+- Maintains content readability
+
+## Best Practices
+
+1. Performance
+   - Efficient sorting implementation
+   - Conditional class application
+   - Optimized scroll handling
+
+2. User Experience
+   - Smooth scrolling behavior
+   - Clear visual indicators for overflow
+   - Consistent item display
+
+3. Implementation
+   ```javascript copy
+   // Correct usage of preview mode
+   <Item
+     type="preview"
+     currencyCode={cart.currency_code}
+   />
+   
+   // Proper overflow checking
+   const hasOverflow = items && items.length > 4
+   ```
+
+## Dependencies
+
+### Required Components
+- `Table` from @medusajs/ui
+- `Item` component for individual items
+- `SkeletonLineItem` for loading states
+
+### Utilities
+- `repeat` utility for skeleton loading
+- `clx` for conditional class names
+- Medusa types for cart data
+
+## Testing
+
+### Component Testing
+```javascript copy
+describe('ItemsPreviewTemplate', () => {
+  it('shows scroll container when items > 4', () => {
+    const cart = {
+      items: [/* 5 items */],
+      currency_code: 'USD'
+    }
+    render(<ItemsPreviewTemplate cart={cart} />)
+    expect(screen.getByTestId('items-table')).toHaveClass('overflow-y-scroll')
+  })
+})
+```
+
+## Browser Compatibility
+
+- Modern browsers supported
+- CSS scroll behavior required
+- JavaScript enabled
+- Flexbox/Grid support needed
+
+## Performance Considerations
+
+1. Scroll Optimization
+   - Uses CSS-based scrolling
+   - Implements virtual scrolling for large lists
+   - Efficient overflow checking
+
+2. Render Optimization
+   - Conditional class application
+   - Efficient sorting
+   - Skeleton loading for performance perception
+
+## See Also
+
+- [Medusa UI Table Documentation](https://docs.medusajs.com/ui/components/table)
+- [React Performance Optimization](https://react.dev/learn/render-and-commit)
+- [CSS Scrolling Best Practices](https://developer.mozilla.org/en-US/docs/Web/CSS/overflow)

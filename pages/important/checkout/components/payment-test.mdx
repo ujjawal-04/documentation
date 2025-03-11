@@ -1,0 +1,126 @@
+# Payment Test
+
+The `Payment Test` component is a simple React component that displays a warning badge for test payment environments. It uses the Medusa UI Badge component to create a consistent, visually distinct notification.
+
+## Overview
+
+```typescript copy
+import { Badge } from "@medusajs/ui"
+
+const PaymentTest = ({ className }: { className?: string }) => {
+  return (
+    <Badge color="orange" className={className}>
+      <span className="font-semibold">Attention:</span> For testing purposes
+      only.
+    </Badge>
+  )
+}
+
+export default PaymentTest
+```
+
+## Props
+
+### className
+- Type: `string`
+- Required: No
+- Description: Optional CSS class name to be applied to the Badge component for custom styling.
+
+## Usage Examples
+
+### Basic Usage
+```jsx copy
+import PaymentTest from "@modules/checkout/components/payment-test"
+
+function CheckoutPage() {
+  return (
+    <div>
+      <h2>Payment Methods</h2>
+      <PaymentTest />
+    </div>
+  )
+}
+```
+
+### With Custom Styling
+```jsx copy
+import PaymentTest from "@modules/checkout/components/payment-test"
+
+function CheckoutPage() {
+  return (
+    <div>
+      <h2>Payment Methods</h2>
+      <PaymentTest className="mt-4 mb-2" />
+    </div>
+  )
+}
+```
+
+### In Payment Form
+```jsx copy
+import PaymentTest from "@modules/checkout/components/payment-test"
+
+function PaymentForm() {
+  return (
+    <form>
+      <PaymentTest className="mb-4" />
+      <div className="payment-fields">
+        {/* Payment form fields */}
+      </div>
+    </form>
+  )
+}
+```
+
+## Styling
+
+The component uses:
+- Medusa UI Badge component with orange color scheme
+- Tailwind CSS for font weight (`font-semibold`)
+- Optional custom className for additional styling
+
+## Features
+
+1. Visual warning indicator
+2. Consistent styling through Medusa UI
+3. Customizable through className prop
+4. Clear attention-grabbing message
+5. Semantic HTML structure
+
+## Dependencies
+
+- @medusajs/ui: Badge component
+
+## Best Practices
+
+1. **Placement**
+   - Place near payment-related elements
+   - Position where it's immediately visible
+   - Don't hide or obscure important form elements
+
+2. **Usage**
+   - Use in test/development environments
+   - Include in payment method selection areas
+   - Display before payment processing
+
+3. **Styling**
+   - Maintain the orange warning color
+   - Ensure text remains readable
+   - Keep adequate spacing around the badge
+
+## Accessibility
+
+- Uses semantic HTML
+- Maintains color contrast for readability
+- Clear, concise warning message
+
+## Related Components
+
+- Badge from @medusajs/ui
+- Payment form components
+- Error message components
+
+## See Also
+
+- [Medusa UI Badge Documentation](https://docs.medusajs.com/ui/components/badge)
+- [Medusa Payment Testing Guide](https://docs.medusajs.com/modules/carts-and-checkout/payment)

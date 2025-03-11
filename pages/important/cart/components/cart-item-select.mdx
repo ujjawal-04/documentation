@@ -1,0 +1,134 @@
+# Cart Item Select
+
+The `CartItemSelect` component is a customizable select input designed for cart item interactions. It extends the native HTML select element with additional styling and functionality.
+
+## Overview
+
+`Cart Item Select` is a forwarded ref component that wraps the native select element with custom styling and placeholder handling. It uses the Medusa UI library's `IconBadge` component and includes a chevron icon for the dropdown indicator.
+
+## Syntax
+
+```typescript copy
+<CartItemSelect
+  placeholder="Select quantity"
+  className="custom-class"
+  onChange={handleChange}
+  value={selectedValue}
+>
+  <option value="1">1</option>
+  <option value="2">2</option>
+  <option value="3">3</option>
+</CartItemSelect>
+```
+
+## Properties
+
+The component accepts all standard HTML select element props except for "size", plus these additional properties:
+
+### placeholder
+- Type: `string`
+- Default: `"Select..."`
+- Optional: Yes
+- Description: Text displayed when no option is selected
+
+### errors
+- Type: `Record<string, unknown>`
+- Optional: Yes
+- Description: Object containing validation errors
+
+### touched
+- Type: `Record<string, unknown>`
+- Optional: Yes
+- Description: Object tracking field interaction status
+
+### className
+- Type: `string`
+- Optional: Yes
+- Description: Additional CSS classes to apply to the component
+
+## Technical Details
+
+### Import
+
+```typescript copy 
+import CartItemSelect from "@path/to/CartItemSelect"
+```
+
+### Type Definition
+ 
+```typescript copy
+type NativeSelectProps = {
+  placeholder?: string
+  errors?: Record<string, unknown>
+  touched?: Record<string, unknown>
+} & Omit<SelectHTMLAttributes<HTMLSelectElement>, "size">
+```
+
+### Implementation Details
+
+The component uses several React hooks:
+
+- `useRef`: Maintains a reference to the inner select element
+- `useState`: Tracks placeholder visibility state
+- `useEffect`: Updates placeholder state based on select value
+- `useImperativeHandle`: Forwards the inner ref to parent components
+
+### Styling
+
+The component uses the following key style features:
+
+- Base styling through Medusa UI's `IconBadge`
+- Tailwind CSS classes for layout and appearance
+- Custom placeholder styling
+- Animated chevron on hover
+- Focus state handling
+
+## Examples
+
+### Basic Usage
+
+```typescript copy 
+<CartItemSelect placeholder="Select quantity">
+  <option value="1">1</option>
+  <option value="2">2</option>
+  <option value="3">3</option>
+</CartItemSelect>
+```
+
+### With Custom Styling
+
+```typescript copy
+<CartItemSelect 
+  placeholder="Choose amount"
+  className="custom-select-style"
+  onChange={(e) => console.log(e.target.value)}
+>
+  <option value="1">1</option>
+  <option value="2">2</option>
+</CartItemSelect>
+```
+
+### With Form Integration
+
+```typescript copy 
+<CartItemSelect
+  placeholder="Select quantity"
+  errors={formErrors}
+  touched={formTouched}
+  name="quantity"
+  value={formValues.quantity}
+  onChange={handleFormChange}
+>
+  {[1,2,3,4,5].map(num => (
+    <option key={num} value={num}>{num}</option>
+  ))}
+</CartItemSelect>
+```
+
+## Browser Compatibility
+
+This component uses modern React features and requires:
+
+- React 16.8 or higher (for hooks support)
+- Modern browsers that support CSS Grid and Flexbox
+- Client-side JavaScript (marked with "use client")

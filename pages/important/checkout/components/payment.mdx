@@ -1,0 +1,268 @@
+# Payment
+
+The `Payment` component is a client-side React component that handles payment method selection and processing in a checkout flow. It supports multiple payment providers, including Stripe and gift cards.
+
+## Overview
+
+```typescript copy
+"use client"
+
+import { RadioGroup } from "@headlessui/react"
+import { isStripe as isStripeFunc, paymentInfoMap } from "@lib/constants"
+import { initiatePaymentSession } from "@lib/data/cart"
+import { CheckCircleSolid, CreditCard } from "@medusajs/icons"
+import { Button, Container, Heading, Text, clx } from "@medusajs/ui"
+```
+
+## Props
+
+```typescript copy
+type PaymentProps = {
+  cart: any  // Cart object containing payment sessions and methods
+  availablePaymentMethods: any[]  // Array of available payment methods
+}
+```
+
+## State Management
+
+The component manages several pieces of state:
+
+```typescript copy
+const [isLoading, setIsLoading] = useState(false)
+const [error, setError] = useState<string | null>(null)
+const [cardBrand, setCardBrand] = useState<string | null>(null)
+const [cardComplete, setCardComplete] = useState(false)
+const [selectedPaymentMethod, setSelectedPaymentMethod] = useState(
+  activeSession?.provider_id ?? ""
+)
+```
+
+## Core Functions
+
+### Set Payment Method
+```typescript copy
+const setPaymentMethod = async (method: string) => {
+  setIsLoading(true)
+  setError(null)
+  setSelectedPaymentMethod(method)
+  
+  await initiatePaymentSession(cart, {
+    provider_id: method,
+  }).catch((err: any) => {
+    setError(err.message)
+  }).finally(() => {
+    setIsLoading(false)
+  })
+}
+```
+
+### Handle Submit
+```typescript copy
+const handleSubmit = async () => {
+  setIsLoading(true)
+  try {
+    const shouldInputCard =
+      isStripeFunc(selectedPaymentMethod) && !activeSession
+
+    const checkActiveSession =
+      activeSession?.provider_id === selectedPaymentMethod
+
+    if (!checkActiveSession) {
+      await initiatePaymentSession(cart, {
+        provider_id: selectedPaymentMethod,
+      })
+    }
+
+    if (!shouldInputCard) {
+      return router.push(
+        pathname + "?" + createQueryString("step", "review"),
+        {
+          scroll: false,
+        }
+      )
+    }
+  } catch (err: any) {
+    setError(err.message)
+  } finally {
+    setIsLoading(false)
+  }
+}
+```
+
+## UI States
+
+### Payment Selection View
+```typescript copy
+<RadioGroup
+  value={selectedPaymentMethod}
+  onChange={(value: string) => setPaymentMethod(value)}
+>
+  {availablePaymentMethods.map((paymentMethod) => (
+    <div key={paymentMethod.id}>
+      {isStripeFunc(paymentMethod.id) ? (
+        <StripeCardContainer
+          paymentMethods={availablePaymentMethods}
+          loading={isLoading}
+          cart={cart}
+          paymentProviderId={paymentMethod.id}
+          selectedPaymentOptionId={selectedPaymentMethod}
+          paymentInfoMap={paymentInfoMap}
+          setCardBrand={setCardBrand}
+          setError={setError}
+          setCardComplete={setCardComplete}
+        />
+      ) : (
+        <PaymentContainer
+          paymentMethods={availablePaymentMethods}
+          loading={isLoading}
+          cart={cart}
+          paymentInfoMap={paymentInfoMap}
+          paymentProviderId={paymentMethod.id}
+          selectedPaymentOptionId={selectedPaymentMethod}
+        />
+      )}
+    </div>
+  ))}
+</RadioGroup>
+```
+
+### Payment Summary View
+```typescript copy
+<div className="flex items-start gap-x-1 w-full">
+  <div className="flex flex-col w-1/3">
+    <Text className="txt-medium-plus text-ui-fg-base mb-1">
+      Payment method
+    </Text>
+    <Text
+      className="txt-medium text-ui-fg-subtle"
+      data-testid="payment-method-summary"
+    >
+      {paymentInfoMap[activeSession?.provider_id]?.title ||
+        activeSession?.provider_id}
+    </Text>
+  </div>
+  {/* Payment details section */}
+</div>
+```
+
+## Usage Example
+
+```jsx copy
+import Payment from "@modules/checkout/components/payment"
+
+function CheckoutPage() {
+  const cart = {
+    payment_collection: {
+      payment_sessions: [
+        {
+          provider_id: "stripe",
+          status: "pending"
+        }
+      ]
+    },
+    gift_cards: []
+  }
+
+  const availablePaymentMethods = [
+    {
+      id: "stripe",
+      name: "Credit Card"
+    },
+    {
+      id: "paypal",
+      name: "PayPal"
+    }
+  ]
+
+  return (
+    <Payment 
+      cart={cart}
+      availablePaymentMethods={availablePaymentMethods}
+    />
+  )
+}
+```
+
+## Features
+
+1. Multiple payment method support
+2. Stripe integration
+3. Gift card handling
+4. Payment session management
+5. Error handling
+6. Loading states
+7. Edit mode
+8. Responsive design
+
+## Testing
+
+The component includes data-testid attributes for testing:
+```typescript copy
+data-testid="edit-payment-button"
+data-testid="payment-method-summary"
+data-testid="payment-details-summary"
+data-testid="payment-method-error-message"
+```
+
+## Conditional Logic
+
+### Gift Card Handling
+```typescript copy
+const paidByGiftcard =
+  cart?.gift_cards && cart?.gift_cards?.length > 0 && cart?.total === 0
+
+{paidByGiftcard && (
+  <div className="flex flex-col w-1/3">
+    <Text className="txt-medium-plus text-ui-fg-base mb-1">
+      Payment method
+    </Text>
+    <Text
+      className="txt-medium text-ui-fg-subtle"
+      data-testid="payment-method-summary"
+    >
+      Gift card
+    </Text>
+  </div>
+)}
+```
+
+### Payment Ready State
+```typescript copy
+const paymentReady =
+  (activeSession && cart?.shipping_methods.length !== 0) || paidByGiftcard
+```
+
+## Dependencies
+
+- @headlessui/react: UI components
+- @medusajs/icons: Icon components
+- @medusajs/ui: UI components and utilities
+- @lib/constants: Payment method utilities
+- @lib/data/cart: Cart management functions
+- next/navigation: Next.js routing utilities
+- React hooks (useState, useEffect, useCallback)
+
+## Styling
+
+The component uses Tailwind CSS classes:
+- Layout: `flex`, `flex-col`, `w-1/3`
+- Spacing: `gap-x-1`, `gap-x-2`, `mb-6`
+- Colors: `bg-white`
+- Typography: `text-3xl-regular`, `txt-medium-plus`
+- States: `opacity-50`, `pointer-events-none`
+
+## Best Practices
+
+1. Handle loading states
+2. Provide error feedback
+3. Support multiple payment methods
+4. Clear payment flow
+5. Responsive design
+6. Accessibility support
+7. Test coverage
+
+## See Also
+
+- [Medusa Payment Documentation](https://docs.medusajs.com/modules/carts-and-checkout/payment)
+- [Stripe Documentation](https://stripe.com/docs)
+- [Headless UI RadioGroup](https://headlessui.com/react/radio-group)

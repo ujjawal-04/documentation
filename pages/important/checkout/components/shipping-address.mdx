@@ -1,0 +1,199 @@
+# Shipping Address
+
+A client-side component that renders a comprehensive shipping address form with validation, terms acceptance, and billing address linking functionality.
+
+## Props
+
+| Prop | Type | Required | Description |
+|------|------|----------|-------------|
+| customer | HttpTypes.StoreCustomer \| null | Yes | Customer information |
+| cart | HttpTypes.StoreCart \| null | Yes | Current cart data with existing shipping details |
+| checked | boolean | Yes | Controls if billing address is same as shipping |
+| terms | boolean | Yes | Controls terms and conditions acceptance |
+| toggleTerms | () => void | Yes | Handler for toggling terms acceptance |
+| onChange | () => void | Yes | Handler for form field changes |
+
+## Form Fields
+
+The component manages the following address fields:
+
+```typescript copy
+type FormData = {
+  "shipping_address.first_name": string
+  "shipping_address.last_name": string
+  "shipping_address.address_1": string
+  "shipping_address.address_2": string
+  "shipping_address.company": string
+  "shipping_address.postal_code": string
+  "shipping_address.city": string
+  "shipping_address.country_code": string
+  "shipping_address.province": string
+  "shipping_address.phone": string
+  email: string
+}
+```
+
+## Usage
+
+```tsx copy
+import { ShippingAddress } from "./components/ShippingAddress"
+
+const CheckoutPage = () => {
+  const [termsAccepted, setTermsAccepted] = useState(false)
+  const [sameAsBilling, setSameAsBilling] = useState(true)
+
+  return (
+    <ShippingAddress
+      customer={currentCustomer}
+      cart={currentCart}
+      checked={sameAsBilling}
+      terms={termsAccepted}
+      toggleTerms={() => setTermsAccepted(!termsAccepted)}
+      onChange={() => setSameAsBilling(!sameAsBilling)}
+    />
+  )
+}
+```
+
+## State Management
+
+The component uses React's useState hook to manage form data:
+
+```typescript copy
+const [formData, setFormData] = useState({
+  "shipping_address.first_name": cart?.shipping_address?.first_name || "",
+  // ... other fields initialized from cart data
+})
+```
+
+## Event Handlers
+
+### handleChange
+Handles input changes for all form fields:
+
+```typescript copy
+const handleChange = (
+  e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
+) => {
+  setFormData({
+    ...formData,
+    [e.target.name]: e.target.value,
+  })
+}
+```
+
+## Form Layout
+
+The component uses a responsive grid layout with different configurations for various sections:
+
+1. Name Fields (2-column grid):
+```tsx copy
+<div className="grid grid-cols-2 gap-4">
+  <Input label="First name" ... />
+  <Input label="Last name" ... />
+</div>
+```
+
+2. Address Fields (3-column grid for city/state/zip):
+```tsx copy
+<div className="grid md:grid-cols-3 grid-cols-2 gap-4">
+  <div className="col-span-2 md:col-span-1">
+    <Input label="City" ... />
+  </div>
+  {/* State and ZIP inputs */}
+</div>
+```
+
+## Components Used
+
+The component integrates several custom components:
+
+- `CountrySelect`: For country selection with region support
+- `Input`: Reusable input component with labels
+- `Checkbox`: For terms acceptance and billing address linking
+
+## Required Fields
+
+The following fields are marked as required:
+- First name
+- Last name
+- Address line 1
+- City
+- State/Province
+- ZIP/Postal code
+- Email
+- Country
+- Terms acceptance
+
+## Special Features
+
+### Terms and Conditions
+Includes a detailed terms acceptance checkbox with age verification and professional use disclaimer:
+```tsx copy
+<Checkbox
+  checked={terms}
+  onChange={toggleTerms}
+  label={<div>
+    By making this purchase, I confirm I am at least 21 years old...
+  </div>}
+  required
+/>
+```
+
+### Billing Address Link
+Provides option to use shipping address as billing address:
+```tsx copy
+<Checkbox
+  label="Billing address same as shipping address"
+  checked={checked}
+  onChange={onChange}
+/>
+```
+
+## Styling
+
+The component uses Tailwind CSS for styling:
+
+- Responsive grid layouts
+- Spacing utilities
+- Maximum width constraints
+- Flexible gap spacing
+- Custom colors for interactive elements
+
+## Testing
+
+The component includes several data-testid attributes for testing:
+
+- `shipping-country-select`
+- `billing-first-name-input`
+- `billing-last-name-input`
+- `billing-company-input`
+- `billing-address-input`
+- `billing-postal-input`
+- `shipping-phone-Input`
+- `terms-checkbox`
+- `billing-address-checkbox`
+
+## Accessibility
+
+- Uses semantic HTML structure
+- Includes proper label associations
+- Provides appropriate ARIA labels
+- Maintains keyboard navigation support
+- Uses proper input types for different fields
+
+## Best Practices
+
+1. Initialize form data from existing cart data when available
+2. Validate required fields appropriately
+3. Handle phone numbers with tel input type
+4. Use appropriate autocomplete attributes
+5. Implement responsive design for different screen sizes
+6. Maintain clear error states (through parent component)
+
+## Dependencies
+
+- `@medusajs/types`
+- React
+- Custom components from `@modules/common/components`
+- Tailwind CSS for styling

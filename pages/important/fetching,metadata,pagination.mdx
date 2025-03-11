@@ -1,0 +1,226 @@
+---
+title: "Fetching Products, Pagination, and Metadata in Medusa v2"
+description: "Learn how to implement product fetching, pagination, and work with metadata in Medusa v2"
+---
+
+# Fetching Products, Pagination, and Metadata in Medusa v2
+
+This guide explains how to fetch products with pagination in both storefront and admin interfaces, as well as how to work with product metadata in Medusa v2.
+
+## Fetching Products
+
+### Storefront
+
+To fetch products in the storefront, use the Store API's List Products endpoint:
+
+```javascript
+fetch(`http://localhost:9000/store/products`, {
+  credentials: "include",
+  headers: {
+    "x-publishable-api-key": process.env.NEXT_PUBLIC_MEDUSA_PUBLISHABLE_KEY || "temp",
+  },
+})
+.then((res) => res.json())
+.then((data) => {
+  console.log(data.products)
+})
+```
+
+You can also filter products using query parameters, such as searching for products:
+
+```javascript
+const searchParams = new URLSearchParams({
+  q: "Shirt",
+})
+
+fetch(`http://localhost:9000/store/products?${searchParams.toString()}`, {
+  credentials: "include",
+  headers: {
+    "x-publishable-api-key": process.env.NEXT_PUBLIC_MEDUSA_PUBLISHABLE_KEY || "temp",
+  },
+})
+```
+
+### Admin
+
+In the admin, fetching products is typically done using the Medusa JS SDK with Tanstack Query:
+
+```javascript
+const { data } = useQuery({
+  queryFn: () => sdk.admin.product.list({
+    limit,
+    offset,
+    q: search,
+    status: statusFilters,
+    order: sorting ? `${sorting.desc ? "-" : ""}${sorting.id}` : undefined,
+  }),
+  queryKey: [["products", limit, offset, search, statusFilters, sorting?.id, sorting?.desc]],
+})
+```
+
+## Implementing Pagination
+
+### Storefront Pagination
+
+Pagination in the storefront is implemented using limit and offset query parameters:
+
+```javascript
+const limit = 20;
+const currentPage = 1;
+const offset = (currentPage - 1) * limit;
+
+const searchParams = new URLSearchParams({
+  limit: `${limit}`,
+  offset: `${offset}`,
+});
+
+fetch(`http://localhost:9000/store/products?${searchParams.toString()}`, {
+  credentials: "include",
+  headers: {
+    "x-publishable-api-key": process.env.NEXT_PUBLIC_MEDUSA_PUBLISHABLE_KEY || "temp",
+  },
+})
+.then((res) => res.json())
+.then(({ products, count }) => {
+  console.log(products);
+  const hasMorePages = count > limit * currentPage;
+})
+```
+
+### Admin Pagination
+
+In the admin, pagination is handled using the DataTable component from Medusa UI:
+
+#### Setting up pagination state:
+
+```javascript
+const [pagination, setPagination] = useState<DataTablePaginationState>({
+  pageSize: 15,
+  pageIndex: 0,
+});
+```
+
+#### Calculating the offset:
+
+```javascript
+const offset = useMemo(() => {
+  return pagination.pageIndex * pagination.pageSize;
+}, [pagination]);
+```
+
+#### Using pagination values in the query function:
+
+```javascript
+const { data, isLoading } = useQuery({
+  queryFn: () => sdk.admin.product.list({
+    limit: pagination.pageSize,
+    offset,
+  }),
+  queryKey: [["products", pagination.pageSize, offset]],
+});
+```
+
+#### Configuring the DataTable component:
+
+```javascript
+const table = useDataTable({
+  columns,
+  data: data?.products || [],
+  rowCount: data?.count || 0,
+  pagination: {
+    state: pagination,
+    onPaginationChange: setPagination,
+  },
+});
+```
+
+#### Rendering pagination controls:
+
+```javascript
+<DataTable instance={table}>
+  <DataTable.Table />
+  <DataTable.Pagination />
+</DataTable>
+```
+
+For more information, refer to the [Medusa UI DataTable documentation](https://docs.medusajs.com/ui/components/data-table).
+
+## Product Metadata Structure
+
+When fetching products, the response includes metadata. Here is an example of the JSON structure of a product:
+
+```json
+{
+  "id": "string",
+  "title": "string",
+  "handle": "string",
+  "subtitle": "string",
+  "description": "string",
+  "is_giftcard": "boolean",
+  "status": "draft | proposed | published | rejected",
+  "thumbnail": "string",
+  "width": "number",
+  "weight": "number",
+  "length": "number",
+  "height": "number",
+  "origin_country": "string",
+  "hs_code": "string",
+  "mid_code": "string",
+  "material": "string",
+  "collection_id": "string",
+  "type_id": "string",
+  "variants": ["array of product variants"],
+  "options": ["array of product options"],
+  "images": ["array of product images"],
+  "discountable": "boolean",
+  "external_id": "string",
+  "created_at": "string (date-time)",
+  "updated_at": "string (date-time)",
+  "deleted_at": "string (date-time)",
+  "metadata": {
+    "key1": "value1",
+    "key2": "value2"
+  }
+}
+```
+
+The `metadata` field contains additional custom key-value pairs. The exact metadata structure varies depending on the custom fields added to the product.
+
+## Working with Metadata
+
+The metadata object allows you to store additional information about products that isn't captured by the default fields. Here's how you might work with it:
+
+### Accessing Metadata
+
+```javascript
+// Assuming you have a product object
+const product = data.products[0];
+
+// Access specific metadata values
+const customValue = product.metadata?.key1;
+
+// Check if a metadata key exists
+const hasCustomField = product.metadata && "key2" in product.metadata;
+```
+
+### Creating Products with Metadata
+
+When creating products through the Admin API, you can include metadata:
+
+```javascript
+const { product } = await sdk.admin.product.create({
+  title: "New Product",
+  // ... other product fields
+  metadata: {
+    customField: "custom value",
+    origin: "online",
+    featured: true
+  }
+});
+```
+
+## Related Resources
+
+- [Medusa Storefront API Documentation](https://docs.medusajs.com/resources/storefront-development/products/list)
+- [Medusa Admin API Documentation](https://docs.medusajs.com/api/admin#tag/Product)
+- [Using Metadata in Medusa](https://docs.medusajs.com/development/entities/overview#metadata)

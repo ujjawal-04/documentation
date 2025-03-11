@@ -1,0 +1,190 @@
+# Shipping
+
+A client-side component that handles the delivery step in a checkout process, allowing users to select shipping methods and managing the shipping price calculations.
+
+## Props
+
+| Prop | Type | Required | Description |
+|------|------|----------|-------------|
+| cart | HttpTypes.StoreCart | Yes | The current cart object containing shipping methods and address information |
+| availableShippingMethods | HttpTypes.StoreCartShippingOption[] \| null | Yes | Array of available shipping options |
+
+## Features
+
+- Dynamic shipping method selection
+- Handles both flat-rate and calculated shipping prices
+- Real-time price calculations
+- Error handling and loading states
+- Step-based navigation
+- Responsive UI with accessibility features
+
+## State Management
+
+The component manages several pieces of state:
+
+```typescript copy
+const [isLoading, setIsLoading] = useState(false)
+const [isLoadingPrices, setIsLoadingPrices] = useState(true)
+const [calculatedPricesMap, setCalculatedPricesMap] = useState<Record<string, number>>({})
+const [error, setError] = useState<string | null>(null)
+const [shippingMethodId, setShippingMethodId] = useState<string | null>(
+  cart.shipping_methods?.at(-1)?.shipping_option_id || null
+)
+```
+
+## Navigation
+
+The component uses Next.js navigation hooks for managing the checkout flow:
+
+```typescript copy
+const searchParams = useSearchParams()
+const router = useRouter()
+const pathname = usePathname()
+```
+
+## Usage
+
+```tsx copy
+import { Shipping } from "./components/Shipping"
+import { HttpTypes } from "@medusajs/types"
+
+const CheckoutPage = ({
+  cart,
+  shippingMethods
+}: {
+  cart: HttpTypes.StoreCart
+  shippingMethods: HttpTypes.StoreCartShippingOption[]
+}) => {
+  return (
+    <Shipping 
+      cart={cart}
+      availableShippingMethods={shippingMethods}
+    />
+  )
+}
+```
+
+## Component States
+
+### Loading State
+The component handles two types of loading states:
+1. Overall component loading during shipping method updates
+2. Price calculation loading for calculated shipping rates
+
+### Error Handling
+Errors are managed through the error state and displayed using the ErrorMessage component:
+
+```tsx copy
+<ErrorMessage 
+  error={error}
+  data-testid="delivery-option-error-message"
+/>
+```
+
+## UI Components
+
+The component uses several UI components from various libraries:
+
+- `@headlessui/react`: RadioGroup, Radio
+- `@medusajs/ui`: Button, Heading, Text
+- `@medusajs/icons`: CheckCircleSolid, Loader
+- Custom components: ErrorMessage, Divider, MedusaRadio
+
+## Price Handling
+
+The component handles two types of shipping prices:
+
+1. Flat-rate pricing:
+```tsx copy
+convertToLocale({
+  amount: option.amount!,
+  currency_code: cart?.currency_code,
+})
+```
+
+2. Calculated pricing:
+```tsx copy
+convertToLocale({
+  amount: calculatedPricesMap[option.id],
+  currency_code: cart?.currency_code,
+})
+```
+
+## Styling
+
+The component uses Tailwind CSS classes for styling:
+
+- Conditional styling using `clx` utility
+- Interactive states (hover, disabled)
+- Responsive layout
+- Custom color schemes
+
+### Example styling:
+```tsx copy
+className={clx(
+  "flex items-center justify-between text-small-regular cursor-pointer py-4 border rounded-rounded px-8 mb-2 hover:shadow-borders-interactive-with-active",
+  {
+    "border-ui-border-interactive": option.id === shippingMethodId,
+    "hover:shadow-brders-none cursor-not-allowed": isDisabled,
+  }
+)}
+```
+
+## Events
+
+### handleSubmit
+Processes the shipping method selection and advances to the payment step.
+
+### handleSetShippingMethod
+Updates the selected shipping method and clears any existing errors.
+
+### handleEdit
+Allows users to modify their delivery selection when viewing in collapsed state.
+
+## Side Effects
+
+The component uses two main useEffect hooks:
+
+1. Price calculation effect:
+   - Triggers when available shipping methods change
+   - Calculates prices for shipping options
+   - Updates the calculatedPricesMap state
+
+2. Error clearing effect:
+   - Clears errors when the delivery step becomes active
+
+## Testing
+
+The component includes several data-testid attributes for testing:
+
+- `delivery-options-container`
+- `delivery-option-radio`
+- `delivery-option-error-message`
+- `submit-delivery-option-button`
+- `edit-delivery-button`
+
+## Dependencies
+
+- `@headlessui/react`
+- `@medusajs/icons`
+- `@medusajs/types`
+- `@medusajs/ui`
+- `next/navigation`
+- Custom utility functions from `@lib`
+
+## Best Practices
+
+1. Always provide both required props (cart and availableShippingMethods)
+2. Handle both flat-rate and calculated shipping prices
+3. Implement proper error handling
+4. Use within a checkout flow where cart data is available
+5. Ensure proper setup of price calculation endpoints
+6. Handle loading states appropriately
+
+## Accessibility
+
+- Uses semantic HTML
+- Implements ARIA attributes through RadioGroup
+- Provides visual feedback for interactive elements
+- Handles disabled states appropriately
+- Includes proper focus management

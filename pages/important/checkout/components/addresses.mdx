@@ -1,0 +1,228 @@
+# Addresses
+
+The `Addresses` component is a client-side React component that handles shipping and billing address management in a checkout flow. It provides functionality for displaying, editing, and managing both shipping and billing addresses.
+
+## Overview
+
+```typescript copy
+// @ts-nocheck
+"use client"
+
+import { setAddresses } from "@lib/data/cart"
+import compareAddresses from "@lib/util/compare-addresses"
+import { CheckCircleSolid } from "@medusajs/icons"
+import { HttpTypes } from "@medusajs/types"
+import { Heading, Text, useToggleState } from "@medusajs/ui"
+import Divider from "@modules/common/components/divider"
+import Spinner from "@modules/common/icons/spinner"
+import { usePathname, useRouter, useSearchParams } from "next/navigation"
+import { useActionState } from "react"
+import BillingAddress from "../billing_address"
+import ErrorMessage from "../error-message"
+import ShippingAddress from "../shipping-address"
+import { SubmitButton } from "../submit-button"
+```
+
+## Props
+
+The component accepts the following props:
+
+```typescript copy
+type AddressesProps = {
+  cart: HttpTypes.StoreCart | null
+  customer: HttpTypes.StoreCustomer | null
+}
+```
+
+### cart
+- Type: `HttpTypes.StoreCart | null`
+- Required: Yes
+- Description: The current cart object containing shipping and billing address information.
+
+### customer
+- Type: `HttpTypes.StoreCustomer | null`
+- Required: Yes
+- Description: The current customer object containing customer information.
+
+## Component Structure
+
+```typescript copy
+const Addresses = ({
+  cart,
+  customer,
+}: {
+  cart: HttpTypes.StoreCart | null
+  customer: HttpTypes.StoreCustomer | null
+}) => {
+  // Component implementation
+}
+```
+
+## State Management
+
+The component uses several state management hooks:
+
+```typescript copy
+const searchParams = useSearchParams()
+const router = useRouter()
+const pathname = usePathname()
+
+const isOpen = searchParams.get("step") === "address"
+
+const { state: sameAsBilling, toggle: toggleSameAsBilling } = useToggleState(
+  cart?.shipping_address && cart?.billing_address
+    ? compareAddresses(cart?.shipping_address, cart?.billing_address)
+    : true
+)
+
+const { state: termsCheck, toggle: toggleTermsCheck } = useToggleState(false)
+
+const [message, formAction] = useActionState(setAddresses, null)
+```
+
+## Features
+
+### Address Editing
+```typescript copy
+const handleEdit = () => {
+  router.push(pathname + "?step=address")
+}
+```
+
+### Form Structure
+```typescript copy
+<form action={formAction}>
+  <div className="pb-8">
+    <ShippingAddress
+      customer={customer}
+      checked={sameAsBilling}
+      terms={termsCheck}
+      toggleTerms={toggleTermsCheck}
+      onChange={toggleSameAsBilling}
+      cart={cart}
+    />
+    {/* Billing address section */}
+  </div>
+</form>
+```
+
+### Address Display
+When not in edit mode, addresses are displayed in a three-column layout:
+```typescript copy
+<div className="flex items-start gap-x-8">
+  <div className="flex items-start gap-x-1 w-full">
+    <div className="flex flex-col w-1/3" data-testid="shipping-address-summary">
+      {/* Shipping address display */}
+    </div>
+    <div className="flex flex-col w-1/3" data-testid="shipping-contact-summary">
+      {/* Contact information display */}
+    </div>
+    <div className="flex flex-col w-1/3" data-testid="billing-address-summary">
+      {/* Billing address display */}
+    </div>
+  </div>
+</div>
+```
+
+## Usage Example
+
+```jsx copy
+import Addresses from "@modules/checkout/components/addresses"
+
+function CheckoutPage() {
+  const cart = {
+    shipping_address: {
+      first_name: "John",
+      last_name: "Doe",
+      address_1: "123 Main St",
+      city: "Boston",
+      postal_code: "02101",
+      country_code: "US",
+      phone: "+1234567890"
+    },
+    billing_address: {/* ... */},
+    email: "john@example.com"
+  }
+
+  const customer = {
+    // Customer details
+  }
+
+  return (
+    <Addresses 
+      cart={cart}
+      customer={customer}
+    />
+  )
+}
+```
+
+## Styling
+
+The component uses Tailwind CSS for styling with custom classes:
+
+- Background: `bg-white`
+- Button colors: `bg-[#008080]`, `hover:bg-[#3c9696]`
+- Text styles: `text-3xl-regular`, `txt-medium`, `txt-medium-plus`
+- Layout: Flexbox and width utilities (`w-1/3`, `gap-x-8`, etc.)
+
+## Testing
+
+The component includes several data-testid attributes for testing:
+
+```typescript copy
+data-testid="edit-address-button"
+data-testid="submit-address-button"
+data-testid="address-error-message"
+data-testid="shipping-address-summary"
+data-testid="shipping-contact-summary"
+data-testid="billing-address-summary"
+```
+
+## Dependencies
+
+- @medusajs/ui: UI components and hooks
+- @medusajs/icons: Icon components
+- @medusajs/types: TypeScript types
+- next/navigation: Next.js routing utilities
+- React hooks and components
+
+## State and Navigation
+
+The component manages several states:
+- Edit mode through URL parameters (`?step=address`)
+- Same billing/shipping address toggle
+- Terms acceptance
+- Form submission state
+- Error messages
+
+## Accessibility
+
+- Semantic HTML structure
+- ARIA attributes through Medusa UI components
+- Clear error messaging
+- Proper heading hierarchy
+
+## Loading States
+
+The component shows a spinner when cart data is loading:
+```typescript copy
+{!cart && (
+  <div>
+    <Spinner />
+  </div>
+)}
+```
+
+## Error Handling
+
+Errors are displayed using the ErrorMessage component:
+```typescript copy
+<ErrorMessage error={message} data-testid="address-error-message" />
+```
+
+## See Also
+
+- [Medusa Documentation](https://docs.medusajs.com)
+- [Next.js Navigation](https://nextjs.org/docs/app/api-reference/functions/use-router)
+- [Tailwind CSS](https://tailwindcss.com/docs)

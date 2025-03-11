@@ -1,0 +1,179 @@
+# Cart Progress Bars
+
+The `Cart Progress Bars` component displays progress bars that visualize cart thresholds for free shipping and free products based on the current cart amount.
+
+## Overview
+
+This component creates a visual representation of shopping progress with multiple thresholds:
+- Free shipping at €200
+- Free Bac Water rewards at every €400 increment
+
+## Syntax
+
+```jsx copy
+<CartProgressBars currentAmount={250} />
+```
+
+## Properties
+
+### currentAmount
+- Type: `number`
+- Default: `0`
+- Optional: Yes
+- Description: The current cart total amount in euros
+
+## Technical Details
+
+### Import
+
+```jsx copy
+import CartProgressBars from "@components/CartProgressBars"
+```
+
+### Progress Bar Thresholds
+
+1. **First Threshold (€200)**
+   - Appears when currentAmount > 1
+   - Progress calculation: `(currentAmount / 200) * 100`
+   - Unlocks free shipping
+
+2. **Second Threshold (€400)**
+   - Appears when currentAmount > 1
+   - Progress calculation: `(currentAmount / 400) * 100`
+   - Unlocks first free Bac Water
+
+3. **Additional Thresholds**
+   - Appears when currentAmount >= 400
+   - Progress calculation: `((currentAmount % 400) / 400) * 100`
+   - Unlocks additional Bac Water rewards
+
+## Styling
+
+The component uses Tailwind CSS for styling:
+
+### Base Container
+```jsx copy
+<div className="relative flex items-center justify-between gap-2 px-8 text-xs text-black lg:px-10">
+```
+
+### Progress Bar
+```jsx copy
+<div className="h-2 w-full overflow-hidden rounded-lg bg-[#C4C4C4]">
+  <div className="h-full bg-[#008080]" />
+</div>
+```
+
+### Style Features
+- Responsive padding (`px-8 lg:px-10`)
+- Consistent height for progress bars (`h-2`)
+- Rounded corners (`rounded-lg`)
+- Teal color for completed progress (`bg-[#008080]`)
+- Gray background for incomplete progress (`bg-[#C4C4C4]`)
+
+## Examples
+
+### Basic Usage
+
+```jsx copy
+function CartPage() {
+  const cartTotal = 150;
+  
+  return (
+    <div className="cart-container">
+      <CartProgressBars currentAmount={cartTotal} />
+    </div>
+  )
+}
+```
+
+### Multiple Rewards Example
+
+```jsx copy
+// At €850, this will show:
+// - Completed shipping threshold
+// - Two completed Bac Water rewards (at €400 and €800)
+// - Progress towards third Bac Water reward
+<CartProgressBars currentAmount={850} />
+```
+
+## Visual Elements
+
+### Icons
+1. **Shipping Icon**
+```jsx copy
+<svg
+  xmlns="http://www.w3.org/2000/svg"
+  fill="none"
+  viewBox="0 0 24 24"
+  strokeWidth="1.5"
+  stroke="currentColor"
+  className="w-6 h-6"
+>
+  {/* Path data */}
+</svg>
+```
+
+2. **Bac Water Icon**
+```jsx copy
+<svg
+  xmlns="http://www.w3.org/2000/svg"
+  width="20"
+  height="20"
+  viewBox="0 0 512 512"
+>
+  {/* Path data */}
+</svg>
+```
+
+## Behavior
+
+### Progress Calculation
+
+```jsx copy
+// Free Shipping Progress (€200)
+width: `${Math.min((currentAmount / 200) * 100, 100)}%`
+
+// Bac Water Progress (€400 intervals)
+width: `${currentAmount < 400 
+  ? Math.min((currentAmount / 400) * 100, 100)
+  : 100}%`
+```
+
+### Reward Counter
+- Calculates free Bac Water quantities based on cart total
+- Formula: `Math.floor(currentAmount / 400)`
+- Example display: "Bac Water x2" for €850 cart value
+
+## Accessibility
+
+- Uses semantic HTML structure
+- Maintains text contrast ratios
+- Provides visual feedback through colors
+- Includes descriptive labels
+
+## Best Practices
+
+1. Keep currentAmount as a number type
+2. Handle edge cases (zero or negative amounts)
+3. Maintain consistent spacing
+4. Use the component within a cart context
+5. Consider mobile responsiveness
+
+## Dependencies
+
+- React
+- Tailwind CSS
+- SVG icons
+
+## Browser Compatibility
+
+- Supports modern browsers
+- Requires CSS Grid/Flexbox support
+- SVG support required
+- JavaScript enabled
+
+## See Also
+
+- [React Component Documentation](https://react.dev/reference/react/Component)
+- [Tailwind CSS Documentation](https://tailwindcss.com/docs)
+- [SVG MDN Documentation](https://developer.mozilla.org/en-US/docs/Web/SVG)

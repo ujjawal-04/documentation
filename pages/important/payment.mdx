@@ -1,0 +1,761 @@
+---
+title: Medusa Payment Module
+
+---
+
+
+# Medusa Payment Module
+
+## Overview
+
+##The Payment Module is a core component of Medusa's commerce ecosystem, providing comprehensive payment processing capabilities. As a standalone package, it's designed to handle all payment-related operations in your e-commerce application. Medusa's modular architecture separates commerce features into dedicated modules, allowing for flexibility and extensibility when building your application.
+
+##The Payment Module can be used within workflows, which are special functions composed of steps that guarantee data consistency and reliable rollback mechanisms. This approach ensures that payment operations are atomic, consistent, and recoverable in case of failures.
+
+## Key Features
+
+### Authorize, Capture, and Refund Payments
+
+##The Payment Module provides full payment lifecycle management:
+
+- **Authorization**: Verify and reserve funds from a customer's payment method without capturing them
+- **Capture**: Transfer previously authorized funds from the customer to your account
+- **Refund**: Return captured funds to the customer, either partially or in full
+- **Void**: Cancel a previously authorized payment before capture
+
+##Each operation maintains appropriate audit trails and status tracking.
+
+### Payment Collection Management
+
+##Payment collections serve as containers for all payment-related data for a specific resource:
+
+- **Centralized Storage**: Keep all payment data for a cart or order in one place
+- **Status Tracking**: Monitor the state of each payment session and payment
+- **Multiple Payments**: Support for splitting payments across different providers or methods
+- **History Maintenance**: Preserve the complete payment history for auditing and troubleshooting
+
+### Third-Party Payment Provider Integration
+
+##The module offers seamless integration with external payment services:
+
+- **Pre-built Integrations**: Ready-to-use connectors for popular payment gateways like Stripe
+- **Extensible Architecture**: Add custom payment providers with standardized interfaces
+- **Configuration Options**: Customize provider behavior through configuration settings
+- **Webhook Support**: Process asynchronous updates from payment providers
+
+### Saved Payment Methods
+
+Enhance customer experience with secure storage of payment information:
+
+- **Customer Profiles**: Link payment methods to customer accounts
+- **Tokenization**: Store payment references securely with the payment provider
+- **One-Click Payments**: Enable faster checkout for returning customers
+- **Multiple Methods**: Allow customers to save and manage several payment options
+
+### Webhook Event Handling
+
+## Process asynchronous notifications from payment providers:
+
+- **Event Processing**: Handle events like payment confirmations, disputes, or refunds
+- **Automated Updates**: Update payment statuses automatically based on provider webhooks
+- **Error Handling**: Manage failed webhook deliveries with retry mechanisms
+- **Security Verification**: Validate webhook authenticity to prevent fraud
+
+## Core Concepts
+
+### Payment Collection
+
+## A payment collection is the central data structure for managing payments in Medusa. It serves as a container for all payment-related information for a specific resource, such as a cart or order.
+
+#### Structure and Components
+
+Payment collections consist of:
+
+- **Basic Information**: Currency, amount, metadata, and resource linkage
+- **Payment Sessions**: Represent individual payment attempts via specific providers
+- **Payments**: Created when payment sessions are successfully authorized
+- **Status Tracking**: Monitor the overall state of the collection and its components
+
+## Payment collections are represented by the `PaymentCollection` data model, which stores all necessary payment details and relationships.
+
+#### Multiple Payments Support
+
+## One of the key features of payment collections is their ability to handle multiple payment sessions and payments, enabling:
+
+- **Partial Payments**: Accept payments in increments toward a total amount
+- **Split Payments**: Divide a purchase across different payment methods
+- **Payment Method Flexibility**: Allow customers to combine payment types
+- **Fallback Options**: Provide alternatives if a primary payment method fails
+
+## ![Payment Collection Structure with Multiple Payments](/api/placeholder/600/300)
+
+#### Lifecycle of a Payment Collection
+
+1. **Creation**: Initialized with currency and amount information
+2. **Session Creation**: One or more payment sessions are added
+3. **Authorization**: Payment sessions are authorized, creating payments
+4. **Capture/Refund**: Payments are captured or refunded as needed
+5. **Completion**: All required payments are processed successfully
+
+### Integration with Cart Module
+
+## The Cart Module provides cart management features but delegates payment processing to the Payment Module. This separation of concerns allows each module to focus on its specific domain while working together seamlessly.
+
+#### Integration Flow
+
+1. **Cart Creation**: Customer adds items to their cart
+2. **Checkout Initiation**: Customer proceeds to checkout
+3. **Payment Collection Creation**: A payment collection is linked to the cart
+4. **Payment Processing**: The Payment Module handles payment operations
+5. **Order Creation**: Upon successful payment, the cart is converted to an order
+
+![Cart and Payment Module Integration](/api/placeholder/600/300)
+
+#### Data Relationships
+
+- Each cart can be associated with one payment collection
+- The payment collection holds all payment sessions and payments
+- The cart's total amount determines the payment collection amount
+- Payment status affects the cart's ability to be converted to an order
+
+## Implementation Workflows
+
+### Accept Payment Flow
+
+The standard payment flow follows these steps:
+
+#### 1. Create a Payment Collection
+
+## First, create a payment collection linked to the resource that requires payment:
+
+## Using Workflow:
+```javascript
+import { createPaymentCollectionForCartWorkflow } from "@medusajs/medusa/core-flows"
+
+// ...
+
+await createPaymentCollectionForCartWorkflow(req.scope)
+  .run({
+    input: {
+      cart_id: "cart_123",
+    },
+  })
+```
+
+Using Service:
+```javascript
+const paymentModuleService = container.resolve(Modules.PAYMENT)
+
+const paymentCollection = await paymentModuleService.createPaymentCollections({
+  currency_code: "usd",
+  amount: 5000,
+  resource_id: "cart_123",
+  resource_type: "cart",
+})
+```
+
+#### 2. Create Payment Sessions
+
+Next, create payment sessions for each desired payment provider:
+
+Using Workflow:
+```javascript
+import { createPaymentSessionsWorkflow } from "@medusajs/medusa/core-flows"
+
+// ...
+
+const { result: paymentSession } = await createPaymentSessionsWorkflow(req.scope)
+  .run({
+    input: {
+      payment_collection_id: "paycol_123",
+      provider_id: "stripe",
+    },
+  })
+```
+
+Using Service:
+```javascript
+const paymentModuleService = container.resolve(Modules.PAYMENT)
+
+const paymentSessions = await paymentModuleService.createSessions({
+  payment_collection_id: "paycol_123",
+  payment_provider_id: "stripe",
+  context: {
+    amount: 5000,
+    currency_code: "usd",
+  },
+})
+```
+
+#### 3. Authorize Payment Session
+
+Once the customer selects a payment method, authorize the corresponding payment session:
+
+Using Step:
+```javascript
+import { authorizePaymentSessionStep } from "@medusajs/medusa/core-flows"
+
+// ...
+
+authorizePaymentSessionStep({
+  id: "payses_123",
+  context: {},
+})
+```
+
+Using Service:
+```javascript
+const paymentModuleService = container.resolve(Modules.PAYMENT)
+
+try {
+  const payment = await paymentModuleService.authorizePaymentSession(
+    "payses_123",
+    {}
+  )
+} catch (e) {
+  // Handle authorization errors
+  // Check for additional actions required
+}
+```
+
+#### Handling Additional Action
+
+If the payment authorization requires additional actions (like 3D Secure verification):
+
+```javascript
+try {
+  const payment = await paymentModuleService.authorizePaymentSession(
+    paymentSession.id,
+    {}
+  )
+} catch (e) {
+  // retrieve the payment session again
+  const updatedPaymentSession = (
+    await paymentModuleService.listPaymentSessions({
+      id: [paymentSession.id],
+    })
+  )[0]
+
+  if (updatedPaymentSession.status === "requires_more") {
+    // Perform required action
+    // Then authorize payment again
+  }
+}
+```
+
+#### 4. Complete the Payment Flow
+
+After successful authorization, you can:
+
+Capture the payment:
+```javascript
+import { capturePaymentWorkflow } from "@medusajs/medusa/core-flows"
+
+await capturePaymentWorkflow(req.scope)
+  .run({
+    input: {
+      id: "pay_123",
+    },
+  })
+```
+
+Or refund the payment if needed:
+```javascript
+import { refundPaymentWorkflow } from "@medusajs/medusa/core-flows"
+
+await refundPaymentWorkflow(req.scope)
+  .run({
+    input: {
+      id: "pay_123",
+      amount: 1000, // Partial refund of $10
+    },
+  })
+```
+
+## Stripe Integration
+
+### Backend Configuration
+
+#### 1. Install and Configure Stripe Module Provider
+
+The Stripe Module Provider comes pre-installed in a default Medusa application. Configure it in your `medusa-config.ts` file:
+
+```javascript
+module.exports = defineConfig({
+  // ...
+  modules: [
+    {
+      resolve: "@medusajs/medusa/payment",
+      options: {
+        providers: [
+          {
+            resolve: "@medusajs/medusa/payment-stripe",
+            id: "stripe",
+            options: {
+              apiKey: process.env.STRIPE_API_KEY,
+              capture: true, // Set to false if you want to manually capture payments
+              automatic_payment_methods: { enabled: true }, // Enable all available payment methods
+              payment_element_enabled: true, // Use Stripe's Payment Element UI
+            },
+          },
+        ],
+      },
+    },
+  ],
+})
+```
+
+#### 2. Set Environment Variables
+
+Add your Stripe API key to your environment variables:
+
+```
+STRIPE_API_KEY=sk_test_...
+```
+
+#### 3. Enable Stripe in a Region
+
+In the Medusa Admin dashboard:
+1. Go to Settings -> Regions
+2. Select a region
+3. Add Stripe as a payment provider
+4. Save the changes
+
+### Frontend Integration (React/Next.js)
+
+#### 1. Install Required Packages
+
+```bash
+npm install @stripe/react-stripe-js @stripe/stripe-js
+# or
+yarn add @stripe/react-stripe-js @stripe/stripe-js
+# or
+pnpm add @stripe/react-stripe-js @stripe/stripe-js
+```
+
+#### 2. Add Environment Variable
+
+In your Next.js `.env.local` file:
+```
+NEXT_PUBLIC_STRIPE_PK=pk_test_...
+```
+
+#### 3. Create Stripe Payment Component
+
+Create a comprehensive Stripe payment component:
+
+```jsx
+"use client" // include with Next.js 13+
+
+import {
+  CardElement,
+  Elements,
+  useElements,
+  useStripe,
+} from "@stripe/react-stripe-js"
+import { loadStripe } from "@stripe/stripe-js"
+import { useCart } from "../../providers/cart"
+import { useState } from "react"
+
+const stripePromise = loadStripe(
+  process.env.NEXT_PUBLIC_STRIPE_PK || "temp"
+)
+
+export default function StripePayment() {
+  const { cart } = useCart()
+  const clientSecret = cart?.payment_collection?.
+    payment_sessions?.[0].data.client_secret as string
+
+  return (
+    <div>
+      <Elements stripe={stripePromise} options={{
+          clientSecret,
+        }}>
+        <StripeForm clientSecret={clientSecret} />
+      </Elements>
+    </div>
+  )
+}
+
+const StripeForm = ({
+  clientSecret,
+}: {
+  clientSecret: string | undefined
+}) => {
+  const { cart, refreshCart } = useCart()
+  const [loading, setLoading] = useState(false)
+  const [error, setError] = useState<string | null>(null)
+
+  const stripe = useStripe()
+  const elements = useElements()
+
+  async function handlePayment(
+    e: React.MouseEvent<HTMLButtonElement, MouseEvent>
+  ) {
+    e.preventDefault()
+    setError(null)
+    const card = elements?.getElement(CardElement)
+
+    if (
+      !stripe ||
+      !elements ||
+      !card ||
+      !cart ||
+      !clientSecret
+    ) {
+      return
+    }
+
+    setLoading(true)
+    stripe?.confirmCardPayment(clientSecret, {
+      payment_method: {
+        card,
+        billing_details: {
+          name: cart.billing_address?.first_name,
+          email: cart.email,
+          phone: cart.billing_address?.phone,
+          address: {
+            city: cart.billing_address?.city,
+            country: cart.billing_address?.country_code,
+            line1: cart.billing_address?.address_1,
+            line2: cart.billing_address?.address_2,
+            postal_code: cart.billing_address?.postal_code,
+          },
+        },
+      },
+    })
+    .then(({ error, paymentIntent }) => {
+      if (error) {
+        setError(error.message || "An error occurred with your payment")
+        return
+      }
+
+      // Payment successful, complete the cart
+      fetch(
+        `http://localhost:9000/store/carts/${cart.id}/complete`,
+        {
+          credentials: "include",
+          headers: {
+            "Content-Type": "application/json",
+            "x-publishable-api-key": process.env.NEXT_PUBLIC_MEDUSA_PUBLISHABLE_KEY || "temp",
+          },
+          method: "POST",
+        }
+      )
+      .then((res) => res.json())
+      .then(({ type, cart, order, error }) => {
+        if (type === "cart" && cart) {
+          // An error occurred
+          setError(error || "Could not complete your order")
+        } else if (type === "order" && order) {
+          // Order successfully placed
+          // Redirect to order confirmation page
+          window.location.href = `/order/confirmation/${order.id}`
+          refreshCart()
+        }
+      })
+      .catch((err) => {
+        setError("An error occurred while completing your order")
+        console.error(err)
+      })
+    })
+    .finally(() => setLoading(false))
+  }
+
+  return (
+    <div className="payment-form">
+      <h3>Card Details</h3>
+      <form>
+        <div className="card-element-container">
+          <CardElement options={{
+            style: {
+              base: {
+                fontSize: '16px',
+                color: '#424770',
+                '::placeholder': {
+                  color: '#aab7c4',
+                },
+              },
+              invalid: {
+                color: '#9e2146',
+              },
+            },
+          }} />
+        </div>
+       
+        {error && (
+          <div className="error-message">
+            {error}
+          </div>
+        )}
+       
+        <button
+          className="payment-button"
+          onClick={handlePayment}
+          disabled={loading || !stripe}
+        >
+          {loading ? "Processing..." : "Place Order"}
+        </button>
+      </form>
+    </div>
+  )
+}
+```
+
+#### 4. Use the Stripe Component in Checkout Flow
+
+Integrate the Stripe component into your checkout process:
+
+```jsx
+// In your checkout component
+import StripePayment from "./StripePayment"
+
+const CheckoutPage = () => {
+  const { cart } = useCart()
+ 
+  // Get the active payment provider
+  const getPaymentUi = useCallback(() => {
+    const activePaymentSession = cart?.payment_collection?.
+      payment_sessions?.[0]
+     
+    if (!activePaymentSession) {
+      return null
+    }
+
+    // Check if Stripe is the active provider
+    switch(true) {
+      case activePaymentSession.provider_id === "stripe":
+      case activePaymentSession.provider_id.startsWith("pp_stripe_"):
+        return <StripePayment />
+      // Add other payment providers here
+      default:
+        return null
+    }
+  }, [cart])
+ 
+  return (
+    <div className="checkout-container">
+      {/* Other checkout steps */}
+     
+      <div className="payment-section">
+        <h2>Payment</h2>
+        {getPaymentUi()}
+      </div>
+     
+      {/* Order summary, etc. */}
+    </div>
+  )
+}
+```
+
+## Configuration Options
+
+The Payment Module accepts various configuration options to customize its behavior:
+
+### Provider Options
+
+Each payment provider can be configured with specific options:
+
+```javascript
+{
+  resolve: "@medusajs/medusa/payment-stripe",
+  id: "stripe",
+  options: {
+    apiKey: process.env.STRIPE_API_KEY,
+    capture: true, // Automatically capture payments upon authorization
+    automatic_payment_methods: { enabled: true }, // Enable all available payment methods
+    payment_element_enabled: true, // Use Stripe's Payment Element UI
+    webhook_secret: process.env.STRIPE_WEBHOOK_SECRET, // For webhook verification
+  },
+}
+```
+
+### Module-Level Options
+
+Configure the entire Payment Module:
+
+```javascript
+{
+  resolve: "@medusajs/medusa/payment",
+  options: {
+    providers: [...], // Array of payment providers
+    default_provider: "stripe", // Default provider when not specified
+    automatic_payment_methods: true, // Enable automatic payment methods globally
+  },
+}
+```
+
+### Webhook Configuration
+
+Set up webhook handling for asynchronous payment updates:
+
+```javascript
+// Example using Express.js
+app.post("/stripe-webhook", express.raw({ type: "application/json" }), async (req, res) => {
+  const sig = req.headers["stripe-signature"]
+  const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET
+ 
+  try {
+    const event = stripe.webhooks.constructEvent(req.body, sig, webhookSecret)
+   
+    // Forward the event to Medusa's payment module
+    await paymentModuleService.handleProviderEvent({
+      id: "stripe",
+      data: event,
+    })
+   
+    res.status(200).send("Webhook received")
+  } catch (err) {
+    console.error("Webhook error:", err.message)
+    res.status(400).send(`Webhook Error: ${err.message}`)
+  }
+})
+```
+
+## Available Payment Providers
+
+Medusa provides several payment providers out-of-the-box:
+
+### Stripe
+
+A comprehensive payment provider supporting:
+- Credit/debit cards
+- Digital wallets (Apple Pay, Google Pay)
+- Bank transfers
+- Buy now, pay later options
+- Subscription billing
+- International payments
+
+Configuration example shown in previous sections.
+
+### Manual Payments
+
+For offline payment methods like:
+- Cash on delivery
+- Bank transfers
+- Money orders
+- In-store payments
+
+Configuration:
+```javascript
+{
+  resolve: "@medusajs/medusa/payment-manual",
+  id: "manual",
+  options: {
+    // Optional configuration
+  },
+}
+```
+
+### Custom Payment Providers
+
+Create your own payment provider by implementing the required interfaces:
+
+1. Create a provider class:
+```javascript
+import { AbstractPaymentService } from "@medusajs/medusa"
+
+class MyPaymentProvider extends AbstractPaymentService {
+  // Implement required methods:
+  // - getPaymentData
+  // - createPayment
+  // - authorizePayment
+  // - capturePayment
+  // - refundPayment
+  // - cancelPayment
+  // - retrievePayment
+  // - updatePayment
+  // - deletePayment
+}
+```
+
+2. Register the provider in your configuration:
+```javascript
+{
+  resolve: "./my-payment-provider",
+  id: "my_provider",
+  options: {
+    // Your provider options
+  },
+}
+```
+
+## Advanced Topics
+
+### Error Handling
+
+Handle payment errors gracefully:
+
+```javascript
+try {
+  const payment = await paymentModuleService.authorizePaymentSession(
+    paymentSession.id,
+    {}
+  )
+} catch (error) {
+  if (error.code === "payment_intent_authentication_failure") {
+    // Handle authentication failure
+  } else if (error.code === "card_declined") {
+    // Handle declined card
+  } else if (error.code === "insufficient_funds") {
+    // Handle insufficient funds
+  } else {
+    // Handle generic error
+  }
+}
+```
+
+### Testing Payments
+
+Use test mode for development:
+
+1. Use Stripe's test API keys
+2. Test credit card numbers:
+   - Success: 4242 4242 4242 4242
+   - Requires authentication: 4000 0025 0000 3155
+   - Declined: 4000 0000 0000 0002
+
+### Handling Currency Conversion
+
+For multi-currency stores:
+
+```javascript
+// Example of getting exchange rates
+const exchangeRates = await fetch("https://api.exchangerate-api.com/v4/latest/USD").then(res => res.json())
+
+// Convert amount to the target currency
+const convertedAmount = originalAmount * exchangeRates.rates[targetCurrency]
+```
+
+## Troubleshooting
+
+### Common Issues and Solutions
+
+1. **Payment Authorization Fails**
+   - Check payment provider credentials
+   - Verify customer information is correct
+   - Ensure test mode is enabled for development
+
+2. **Webhook Events Not Processing**
+   - Validate webhook URL is accessible
+   - Check webhook signature verification
+   - Inspect event payload format
+
+3. **Payment Capture Fails**
+   - Ensure authorization was successful
+   - Check if authorization has expired
+   - Verify sufficient authorized amount
+
+4. **Payment Provider Not Showing in Checkout**
+   - Confirm provider is enabled in the region
+   - Check frontend integration code
+   - Verify payment collection is created correctly
+
+## Additional Resources
+
+- [Medusa Documentation](https://docs.medusajs.com)
+- [Payment Module API Reference](https://docs.medusajs.com/api/store#tag/Payment)
+- [Workflows Documentation](https://docs.medusajs.com/development/workflows/overview)
+- [Stripe Documentation](https://stripe.com/docs)
+- [Payment Processing Best Practices](https://docs.medusajs.com/modules/payment/payment-collection)
+- [Creating Custom Payment Providers](https://docs.medusajs.com/modules/payment/backend/create-payment-provider)

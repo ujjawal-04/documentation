@@ -1,0 +1,188 @@
+# Payment Wrapper
+
+The `Payment Wrapper` component is a client-side React component that conditionally wraps payment-related components with Stripe configuration when Stripe is the selected payment provider.
+
+## Overview
+
+```typescript copy
+"use client"
+
+import { loadStripe } from "@stripe/stripe-js"
+import React from "react"
+import StripeWrapper from "./stripe-wrapper"
+import { HttpTypes } from "@medusajs/types"
+import { isStripe } from "@lib/constants"
+```
+
+## Environment Setup
+
+```typescript copy
+const stripeKey = process.env.NEXT_PUBLIC_STRIPE_KEY
+const stripePromise = stripeKey ? loadStripe(stripeKey) : null
+```
+
+## Props Interface
+
+```typescript copy
+type PaymentWrapperProps = {
+  cart: HttpTypes.StoreCart
+  children: React.ReactNode
+}
+```
+
+### cart
+- Type: `HttpTypes.StoreCart`
+- Required: Yes
+- Description: The cart object containing payment session information.
+
+### children
+- Type: `React.ReactNode`
+- Required: Yes
+- Description: Child components to be rendered within the payment wrapper.
+
+## Implementation
+
+```typescript copy
+const PaymentWrapper: React.FC<PaymentWrapperProps> = ({ cart, children }) => {
+  const paymentSession = cart.payment_collection?.payment_sessions?.find(
+    (s) => s.status === "pending"
+  )
+
+  if (
+    isStripe(paymentSession?.provider_id) &&
+    paymentSession &&
+    stripePromise
+  ) {
+    return (
+      <StripeWrapper
+        paymentSession={paymentSession}
+        stripeKey={stripeKey}
+        stripePromise={stripePromise}
+      >
+        {children}
+      </StripeWrapper>
+    )
+  }
+
+  return <div>{children}</div>
+}
+```
+
+## Usage Example
+
+```jsx copy
+import PaymentWrapper from "@modules/checkout/components/payment-wrapper"
+
+function CheckoutPage() {
+  const cart = {
+    payment_collection: {
+      payment_sessions: [
+        {
+          provider_id: "stripe",
+          status: "pending"
+        }
+      ]
+    }
+  }
+
+  return (
+    <PaymentWrapper cart={cart}>
+      <PaymentForm />
+    </PaymentWrapper>
+  )
+}
+```
+
+## Configuration
+
+### Environment Variables
+```env copy
+NEXT_PUBLIC_STRIPE_KEY=pk_test_your_stripe_publishable_key
+```
+
+### Stripe Setup
+```typescript copy
+// Initialize Stripe
+const stripePromise = stripeKey ? loadStripe(stripeKey) : null
+```
+
+## Conditional Rendering Logic
+
+The component implements the following logic for Stripe integration:
+
+1. Check for pending payment session:
+```typescript copy
+const paymentSession = cart.payment_collection?.payment_sessions?.find(
+  (s) => s.status === "pending"
+)
+```
+
+2. Verify Stripe conditions:
+```typescript copy
+if (
+  isStripe(paymentSession?.provider_id) &&
+  paymentSession &&
+  stripePromise
+) {
+  // Render StripeWrapper
+}
+```
+
+## Features
+
+1. Client-side rendering with "use client" directive
+2. Conditional Stripe integration
+3. Environment variable support
+4. Payment session validation
+5. Fallback rendering for non-Stripe payments
+
+## Dependencies
+
+- @stripe/stripe-js: Stripe JavaScript library
+- @medusajs/types: TypeScript types for Medusa
+- React: Core React library
+- Environment variables handling
+- StripeWrapper component
+
+## Best Practices
+
+1. **Environment Configuration**
+   - Always use environment variables for Stripe keys
+   - Keep Stripe publishable key in NEXT_PUBLIC_ variables
+   - Never expose secret keys
+
+2. **Payment Session Handling**
+   - Validate payment session existence
+   - Check payment provider type
+   - Verify Stripe initialization
+
+3. **Error Prevention**
+   - Check for null/undefined values
+   - Validate Stripe configuration
+   - Provide fallback rendering
+
+## Security Considerations
+
+1. Use only publishable keys in client-side code
+2. Validate payment sessions
+3. Implement proper error handling
+4. Follow Stripe security guidelines
+5. Keep sensitive data server-side
+
+## Common Issues
+
+1. **Missing Stripe Key**
+   - Ensure NEXT_PUBLIC_STRIPE_KEY is set in environment
+   - Verify key format and validity
+   - Check environment variable loading
+
+2. **Payment Session Issues**
+   - Validate cart object structure
+   - Check payment session status
+   - Verify provider ID format
+
+## See Also
+
+- [Stripe.js Documentation](https://stripe.com/docs/js)
+- [Medusa Payment Documentation](https://docs.medusajs.com/modules/carts-and-checkout/payment)
+- [Next.js Environment Variables](https://nextjs.org/docs/basic-features/environment-variables)

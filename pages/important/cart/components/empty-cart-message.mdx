@@ -1,0 +1,151 @@
+# Empty Cart Message
+
+The `Empty Cart Message` component displays a message when the user's shopping cart is empty, providing a link to browse products.
+
+## Overview
+
+This component creates a user-friendly empty state for the shopping cart, featuring a heading, descriptive text, and a call-to-action link to the store.
+
+## Syntax
+
+```jsx copy
+<EmptyCartMessage />
+```
+
+## Technical Details
+
+### Import
+
+```jsx copy
+import EmptyCartMessage from "@modules/cart/components/empty-cart-message"
+```
+
+### Dependencies
+
+```jsx copy
+import { Heading, Text } from "@medusajs/ui"
+import InteractiveLink from "@modules/common/components/interactive-link"
+```
+
+## Component Structure
+
+### Layout
+The component uses a flex container with the following structure:
+- Main container with vertical padding and centered content
+- Heading "Cart"
+- Descriptive text
+- Interactive link to store
+
+```jsx copy
+<div className="py-48 px-2 flex flex-col justify-center items-start">
+  <Heading>Cart</Heading>
+  <Text>...</Text>
+  <InteractiveLink>...</InteractiveLink>
+</div>
+```
+
+### Styling
+
+The component uses Tailwind CSS classes for styling:
+
+#### Container
+```jsx copy
+"py-48 px-2 flex flex-col justify-center items-start"
+```
+- Vertical padding: `py-48`
+- Horizontal padding: `px-2`
+- Flex layout: `flex flex-col`
+- Content alignment: `justify-center items-start`
+
+#### Heading
+```jsx copy
+"flex flex-row text-3xl-regular gap-x-2 items-baseline"
+```
+- Text size: `text-3xl-regular`
+- Flex layout: `flex flex-row`
+- Gap between elements: `gap-x-2`
+- Alignment: `items-baseline`
+
+#### Description Text
+```jsx copy
+"text-base-regular mt-4 mb-6 max-w-[32rem]"
+```
+- Text size: `text-base-regular`
+- Margins: `mt-4 mb-6`
+- Maximum width: `max-w-[32rem]`
+
+## Testing
+
+The component includes a data-testid attribute for testing:
+```jsx copy
+data-testid="empty-cart-message"
+```
+
+## Examples
+
+### Basic Usage
+
+```jsx copy
+function CartPage() {
+  const isEmpty = true;
+  
+  return (
+    <div className="cart-container">
+      {isEmpty && <EmptyCartMessage />}
+    </div>
+  )
+}
+```
+
+### Within a Cart Context
+
+```jsx copy
+function Cart() {
+  const { items } = useCart();
+  
+  return (
+    <div>
+      {items.length === 0 ? (
+        <EmptyCartMessage />
+      ) : (
+        <CartItems items={items} />
+      )}
+    </div>
+  )
+}
+```
+
+## Accessibility
+
+- Uses semantic HTML structure
+- Employs proper heading hierarchy with `<Heading level="h1">`
+- Provides clear navigation with interactive link
+- Maintains readable text sizes
+
+## Best Practices
+
+1. Use within a cart context
+2. Place at appropriate cart empty states
+3. Maintain consistent spacing
+4. Keep text content clear and actionable
+5. Ensure link destination is valid
+
+## Dependencies
+
+- Medusa UI (`@medusajs/ui`)
+  - `Heading` component
+  - `Text` component
+- Interactive Link component
+- Tailwind CSS
+
+## Browser Compatibility
+
+- Works in all modern browsers
+- Requires JavaScript enabled
+- CSS Flexbox support required
+
+## See Also
+
+- [Medusa UI Documentation](https://docs.medusajs.com/ui)
+- [React Component Documentation](https://react.dev/reference/react/Component)
+- [Tailwind CSS Documentation](https://tailwindcss.com/docs)

@@ -1,0 +1,120 @@
+# Submit Button
+
+A client-side button component that integrates with React's Form Status API to handle loading states during form submissions.
+
+## Props
+
+| Prop | Type | Required | Default | Description |
+|------|------|----------|---------|-------------|
+| children | React.ReactNode | Yes | - | The content to be rendered inside the button |
+| variant | "primary" \| "secondary" \| "transparent" \| "danger" \| null | No | "primary" | The visual style variant of the button |
+| className | string | No | undefined | Additional CSS classes to apply to the button |
+| data-testid | string | No | undefined | Test identifier for the button element |
+
+## Features
+
+- Automatic loading state management using `useFormStatus`
+- Integration with Medusa UI Button component
+- Support for multiple visual variants
+- Test ID support for automated testing
+
+## Usage
+
+```tsx copy
+// Basic usage
+import { SubmitButton } from "./components/SubmitButton"
+
+const MyForm = () => {
+  return (
+    <form action="/api/submit">
+      <SubmitButton>
+        Submit Form
+      </SubmitButton>
+    </form>
+  )
+}
+
+// With custom styling and variant
+const StyledForm = () => {
+  return (
+    <form action="/api/submit">
+      <SubmitButton 
+        variant="secondary"
+        className="mt-4 w-full"
+        data-testid="submit-form-button"
+      >
+        Save Changes
+      </SubmitButton>
+    </form>
+  )
+}
+```
+
+## Variants
+
+The component supports several visual variants through the Medusa UI Button component:
+
+- `primary` (default): Main call-to-action style
+- `secondary`: Alternative, less prominent style
+- `transparent`: No background style
+- `danger`: Error or destructive action style
+
+## Loading State
+
+The component automatically handles loading states during form submission:
+
+```typescript copy
+const { pending } = useFormStatus()
+```
+
+The loading state is passed to the Medusa UI Button component through the `isLoading` prop.
+
+## Integration with Medusa UI
+
+The component wraps the Medusa UI Button component with the following default props:
+
+```typescript copy
+<Button
+  size="large"
+  type="submit"
+  variant={variant || "primary"}
+/>
+```
+
+## Testing
+
+The component supports testing through the optional `data-testid` prop:
+
+```typescript copy
+// In your test
+const button = screen.getByTestId("your-test-id")
+```
+
+## Best Practices
+
+1. Always use within a form element
+2. Use appropriate variants for different actions:
+   - `primary` for main form submissions
+   - `secondary` for alternative actions
+   - `danger` for destructive operations
+3. Provide meaningful button text through children
+4. Include data-testid when using in tested components
+
+## Dependencies
+
+- `@medusajs/ui`: For the base Button component
+- `react`: For component and children types
+- `react-dom`: For useFormStatus hook
+
+## TypeScript Support
+
+The component includes full TypeScript support with proper type definitions for all props:
+
+```typescript copy
+interface SubmitButtonProps {
+  children: React.ReactNode
+  variant?: "primary" | "secondary" | "transparent" | "danger" | null
+  className?: string
+  "data-testid"?: string
+}
+```

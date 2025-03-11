@@ -1,0 +1,242 @@
+# Payment Container 
+
+A set of React components that handle the display and interaction of payment methods in a checkout flow. Includes both a base PaymentContainer and a specialized StripeCardContainer.
+
+## Payment Container
+
+### Overview
+
+```typescript copy
+import { Radio as RadioGroupOption } from "@headlessui/react"
+import { Text, clx } from "@medusajs/ui"
+import Radio from "@modules/common/components/radio"
+```
+
+### Props Interface
+
+```typescript copy
+type PaymentContainerProps = {
+  paymentMethods: any[]
+  loading?: boolean
+  cart: any
+  paymentProviderId: string
+  selectedPaymentOptionId: string | null
+  disabled?: boolean
+  paymentInfoMap: Record<string, { 
+    title: string
+    icon: JSX.Element 
+  }>
+  children?: React.ReactNode
+}
+```
+
+### Component Structure
+
+```typescript copy
+const PaymentContainer: React.FC<PaymentContainerProps> = ({
+  paymentMethods,
+  loading,
+  cart,
+  paymentProviderId,
+  selectedPaymentOptionId,
+  paymentInfoMap,
+  disabled = false,
+  children,
+}) => {
+  const isSelected = selectedPaymentOptionId === paymentProviderId
+  
+  return (
+    <RadioGroupOption>
+      {/* Component implementation */}
+    </RadioGroupOption>
+  )
+}
+```
+
+### Styling
+
+The component uses dynamic Tailwind CSS classes:
+
+```typescript copy
+className={clx(
+  "flex flex-col gap-y-4 p-6 border transition-all duration-200",
+  {
+    "border-green-500 bg-gray-100": isSelected,
+    "border-gray-300 bg-white hover:shadow-md": !isSelected,
+    "rounded-t-lg": paymentProviderId === paymentMethods[0].id,
+    "rounded-b-lg": paymentProviderId === paymentMethods[paymentMethods.length - 1].id,
+  }
+)}
+```
+
+### Usage Example
+
+```jsx copy
+import PaymentContainer from "@modules/checkout/components/payment-container"
+
+function CheckoutPage() {
+  const paymentMethods = [
+    { id: "stripe", title: "Credit Card" },
+    { id: "manual", title: "Bank Transfer" }
+  ]
+  
+  const paymentInfoMap = {
+    stripe: { 
+      title: "Credit Card",
+      icon: <CreditCardIcon />
+    }
+  }
+
+  return (
+    <PaymentContainer
+      paymentMethods={paymentMethods}
+      cart={cart}
+      paymentProviderId="stripe"
+      selectedPaymentOptionId="stripe"
+      paymentInfoMap={paymentInfoMap}
+    />
+  )
+}
+```
+
+## StripeCardContainer
+
+### Overview
+
+An extension of PaymentContainer that handles Stripe-specific card input functionality.
+
+```typescript copy
+export const StripeCardContainer = ({
+  // Props
+}) => {
+  const stripeReady = useContext(StripeContext)
+  // Implementation
+}
+```
+
+### Props Interface
+
+```typescript copy
+type StripeCardContainerProps = Omit<PaymentContainerProps, "children"> & {
+  setCardBrand: (brand: string) => void
+  setError: (error: string | null) => void
+  setCardComplete: (complete: boolean) => void
+}
+```
+
+### Stripe Card Options
+
+```typescript copy
+const useOptions: StripeCardElementOptions = useMemo(() => ({
+  style: {
+    base: {
+      fontFamily: "Inter, sans-serif",
+      color: "#424270",
+      "::placeholder": {
+        color: "rgb(107 114 128)",
+      },
+    },
+  },
+  classes: {
+    base: "pt-3 pb-1 block w-full h-11 px-4 mt-0 bg-ui-bg-field border rounded-md appearance-none focus:outline-none focus:ring-0 focus:shadow-borders-interactive-with-active border-ui-border-base hover:bg-ui-bg-field-hover transition-all duration-300 ease-in-out",
+  },
+}), [])
+```
+
+### Card Element Integration
+
+```typescript copy
+<CardElement
+  options={useOptions as StripeCardElementOptions}
+  onChange={(e) => {
+    setCardBrand(
+      e.brand && e.brand.charAt(0).toUpperCase() + e.brand.slice(1)
+    )
+    setError(e.error?.message || null)
+    setCardComplete(e.complete)
+  }}
+/>
+```
+
+### Usage Example
+
+```jsx copy
+import { StripeCardContainer } from "@modules/checkout/components/payment-container"
+
+function StripeCheckout() {
+  const [cardBrand, setCardBrand] = useState("")
+  const [error, setError] = useState(null)
+  const [isComplete, setIsComplete] = useState(false)
+
+  return (
+    <StripeCardContainer
+      paymentMethods={paymentMethods}
+      cart={cart}
+      paymentProviderId="stripe"
+      selectedPaymentOptionId="stripe"
+      paymentInfoMap={paymentInfoMap}
+      setCardBrand={setCardBrand}
+      setError={setError}
+      setCardComplete={setIsComplete}
+    />
+  )
+}
+```
+
+## Features
+
+1. Radio group-based payment method selection
+2. Loading state handling
+3. Dynamic styling based on selection state
+4. Stripe card input integration
+5. Error handling
+6. Card brand detection
+7. Completion status tracking
+
+## States
+
+### Selection State
+```typescript copy
+const isSelected = selectedPaymentOptionId === paymentProviderId
+```
+
+### Loading State
+```typescript copy
+{loading && isSelected && <span><Spinner /></span>}
+```
+
+### Stripe Ready State
+```typescript copy
+const stripeReady = useContext(StripeContext)
+```
+
+## Dependencies
+
+- @headlessui/react: Radio component
+- @medusajs/ui: UI components and utilities
+- @stripe/react-stripe-js: Stripe React components
+- @stripe/stripe-js: Stripe JS library
+- React hooks (useContext, useMemo)
+
+## Testing
+
+Both components support testing through data-testid attributes:
+```typescript copy
+data-testid="submit-order-button"
+```
+
+## Best Practices
+
+1. Proper error handling
+2. Loading state management
+3. Responsive design
+4. Accessibility support
+5. Type safety
+6. Component composition
+7. Style encapsulation
+
+## See Also
+
+- [Stripe Elements Documentation](https://stripe.com/docs/stripe-js)
+- [Headless UI Documentation](https://headlessui.com)
+- [Medusa Payment Documentation](https://docs.medusajs.com/modules/carts-and-checkout/payment)

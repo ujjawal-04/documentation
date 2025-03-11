@@ -1,0 +1,320 @@
+# Promotion Integration in Medusa
+
+This guide covers everything you need to know about integrating and working with the Promotion Module in Medusa.
+
+## Overview
+
+The Promotion Module in Medusa provides discount functionality for your e-commerce application. It allows you to:
+
+- Create and manage different types of promotions
+- Apply promotions to carts
+- Track promotion usage and effectiveness
+- Customize promotion rules and conditions
+
+## Module Links
+
+The Promotion Module has the following key relationships:
+
+- **Cart Module**: Promotions are linked to carts to apply discounts during checkout
+- **Line Item Adjustments**: Read-only link to track which promotion affects which line item
+
+![Promotion Module Links](https://example.com/promo-module-links.png)
+
+## Creating Promotions
+
+### Using the Promotion Workflow
+
+```javascript
+import {
+  createWorkflow,
+  WorkflowResponse,
+  createStep,
+  StepResponse,
+} from "@medusajs/framework/workflows-sdk"
+import { Modules } from "@medusajs/framework/utils"
+
+const createPromotionStep = createStep(
+  "create-promotion",
+  async ({}, { container }) => {
+    const promotionModuleService = container.resolve(Modules.PROMOTION)
+
+    const promotion = await promotionModuleService.createPromotions({
+      code: "10%OFF",
+      type: "standard",
+      application_method: {
+        type: "percentage",
+        target_type: "order",
+        value: 10,
+        currency_code: "usd",
+      },
+    })
+
+    return new StepResponse({ promotion }, promotion.id)
+  },
+  async (promotionId, { container }) => {
+    // Rollback logic
+    if (!promotionId) {
+      return
+    }
+    const promotionModuleService = container.resolve(Modules.PROMOTION)
+
+    await promotionModuleService.deletePromotions(promotionId)
+  }
+)
+
+export const createPromotionWorkflow = createWorkflow(
+  "create-promotion",
+  () => {
+    const { promotion } = createPromotionStep()
+
+    return new WorkflowResponse({
+      promotion,
+    })
+  }
+)
+```
+
+### Promotion Types
+
+Medusa supports several promotion types:
+
+| Type | Description |
+|------|-------------|
+| Standard | Regular discount applied to entire cart |
+| Free Shipping | Removes shipping costs |
+| Buy X Get Y | Purchase quantity-based discount |
+| Fixed Amount | Specific amount off order |
+| Percentage | Percentage discount off order |
+
+### Application Methods
+
+Promotions can be applied to different targets:
+
+```javascript
+// Percentage off entire order
+{
+  type: "percentage",
+  target_type: "order",
+  value: 10,  // 10% off
+  currency_code: "usd",
+}
+
+// Fixed amount off a specific product
+{
+  type: "fixed",
+  target_type: "product",
+  target_id: "prod_123",
+  value: 500, // $5.00 off
+  currency_code: "usd",
+}
+```
+
+## Applying Promotions to Carts
+
+### Using Link API
+
+```javascript
+import { Modules } from "@medusajs/framework/utils"
+
+// Apply promotion to cart
+await link.create({
+  [Modules.CART]: {
+    cart_id: "cart_123",
+  },
+  [Modules.PROMOTION]: {
+    promotion_id: "promo_123",
+  },
+})
+```
+
+### Via REST API
+
+The Storefront API provides endpoints for managing promotions:
+
+```
+POST /store/carts/{id}/promotions
+```
+
+Request body:
+```json
+{
+  "promotion_codes": ["SUMMER10", "FREESHIP"]
+}
+```
+
+## Retrieving Promotion Data
+
+### Using Query API
+
+```javascript
+// Get promotions applied to cart
+const { data: carts } = await query.graph({
+  entity: "cart",
+  fields: [
+    "id",
+    "email",
+    "promotions.*",  // Get all promotion data
+  ],
+})
+
+// Access promotion data
+const appliedPromotions = carts[0].promotions
+
+// Get line item adjustments with promotions
+const { data: lineItems } = await query.graph({
+  entity: "line_item_adjustment",
+  fields: [
+    "id",
+    "amount",
+    "promotion.*",  // Get the promotion that created this adjustment
+  ],
+})
+```
+
+## Promotion Rules and Conditions
+
+You can create complex rules for promotions:
+
+```javascript
+// Create promotion with eligibility rules
+const promotion = await promotionModuleService.createPromotions({
+  code: "SUMMER25",
+  type: "standard",
+  application_method: {
+    type: "percentage",
+    target_type: "order",
+    value: 25,
+    currency_code: "usd",
+  },
+  rules: [
+    {
+      type: "minimum_cart_subtotal",
+      value: 10000,  // $100.00 minimum order
+      currency_code: "usd"
+    },
+    {
+      type: "customer_group",
+      customer_group_id: "group_vip"
+    }
+  ]
+})
+```
+
+## Managing Promotion Campaigns
+
+Group related promotions into campaigns for better organization:
+
+```javascript
+// Create a campaign
+const campaign = await campaignService.create({
+  name: "Summer Sale 2023",
+  description: "All summer promotions",
+  start_date: new Date("2023-06-01"),
+  end_date: new Date("2023-08-31")
+})
+
+// Add promotion to campaign
+await campaignService.addPromotion(campaign.id, promotion.id)
+```
+
+## Extending the Promotion Module
+
+### Custom Promotion Types
+
+You can extend the promotion module to create custom promotion types:
+
+```javascript
+// services/custom-promotion.js
+class CustomPromotionService extends BaseService {
+  constructor(container) {
+    super(container)
+    this.promotionService = container.resolve(Modules.PROMOTION)
+  }
+
+  async createBuyOneGetOneFree(productId) {
+    return this.promotionService.createPromotions({
+      code: `BOGO-${productId}`,
+      type: "custom",
+      application_method: {
+        type: "custom",
+        target_type: "product",
+        target_id: productId,
+        handler: "buyOneGetOneFree",
+        // Custom handler configuration
+      }
+    })
+  }
+}
+```
+
+### Custom Promotion Handlers
+
+```javascript
+// strategies/buy-one-get-one-free.js
+class BuyOneGetOneFreeStrategy {
+  calculate(items, promotion) {
+    // Your custom calculation logic here
+    // Find eligible items, apply discounts, etc.
+    return adjustments
+  }
+}
+```
+
+## Best Practices
+
+1. **Promotion Codes**: Use clear, memorable codes that reflect the offer
+2. **Validation**: Always validate promotion eligibility before applying
+3. **Testing**: Test various combinations of promotions to ensure they stack correctly
+4. **Monitoring**: Track promotion usage to measure effectiveness
+5. **Security**: Implement rate limiting for promotion code attempts
+
+## Troubleshooting
+
+### Common Issues
+
+- **Promotion Not Applied**: Check eligibility rules and conditions
+- **Wrong Discount Amount**: Verify the application method and calculation
+- **Promotion Conflicts**: Some promotions may not be designed to stack with others
+
+### Debugging Tips
+
+```javascript
+// Debug promotion eligibility
+const eligibility = await promotionService.checkEligibility(
+  promotionId,
+  cartId,
+  context
+)
+
+console.log('Eligibility result:', eligibility)
+
+// Inspect adjustments
+const adjustments = cart.items.flatMap(item => item.adjustments)
+console.log('Applied adjustments:', adjustments)
+```
+
+## API Reference
+
+### Promotion Module API
+
+| Method | Description |
+|--------|-------------|
+| `createPromotions` | Creates one or more promotions |
+| `updatePromotions` | Updates existing promotions |
+| `deletePromotions` | Removes promotions |
+| `listPromotions` | Retrieves promotions with filtering options |
+| `checkEligibility` | Checks if a promotion can be applied |
+
+## Migration Guide
+
+If you're upgrading from an older version of Medusa, follow these steps to migrate your promotions:
+
+1. Update your database schema
+2. Migrate existing discount codes to the new promotion format
+3. Update your frontend to use the new promotion APIs
+
+## Conclusion
+
+The Promotion Module in Medusa offers a powerful and flexible way to implement discounts in your e-commerce application. By understanding the module links, API usage, and customization options, you can create a comprehensive promotion strategy for your store.
+
+For more information, refer to the [official Medusa documentation](https://docs.medusajs.com/).

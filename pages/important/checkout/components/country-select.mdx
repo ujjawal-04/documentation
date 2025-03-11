@@ -1,0 +1,184 @@
+# Country Select
+
+The `Country Select` component is a forwarded React component that creates a select dropdown for countries based on a region's available countries. It extends the native select component with region-specific functionality.
+
+## Overview
+
+```typescript copy
+import { forwardRef, useImperativeHandle, useMemo, useRef } from "react"
+import NativeSelect, {
+  NativeSelectProps,
+} from "@modules/common/components/native-select"
+import { HttpTypes } from "@medusajs/types"
+
+const CountrySelect = forwardRef<
+  HTMLSelectElement,
+  NativeSelectProps & {
+    region?: HttpTypes.StoreRegion
+  }
+>((props, ref) => {
+  // Component implementation
+})
+```
+
+## Props
+
+The component extends `NativeSelectProps` and adds additional props:
+
+```typescript copy
+type CountrySelectProps = NativeSelectProps & {
+  region?: HttpTypes.StoreRegion
+  placeholder?: string
+  defaultValue?: string
+}
+```
+
+### region
+- Type: `HttpTypes.StoreRegion`
+- Required: No
+- Description: A region object containing available countries.
+
+### placeholder
+- Type: `string`
+- Required: No
+- Default: "Country"
+- Description: Placeholder text for the select input.
+
+### defaultValue
+- Type: `string`
+- Required: No
+- Description: Default selected value for the select input.
+
+### Additional Props
+- Inherits all props from `NativeSelectProps`
+
+## Implementation Details
+
+### Ref Handling
+```typescript copy
+const innerRef = useRef<HTMLSelectElement>(null)
+
+useImperativeHandle<HTMLSelectElement | null, HTMLSelectElement | null>(
+  ref,
+  () => innerRef.current
+)
+```
+
+### Country Options Generation
+```typescript copy
+const countryOptions = useMemo(() => {
+  if (!region) {
+    return []
+  }
+
+  return region.countries?.map((country) => ({
+    value: country.iso_2,
+    label: country.display_name,
+  }))
+}, [region])
+```
+
+### Component Structure
+```typescript copy
+return (
+  <NativeSelect
+    ref={innerRef}
+    placeholder={placeholder}
+    defaultValue={defaultValue}
+    {...props}
+  >
+    {countryOptions?.map(({ value, label }, index) => (
+      <option key={index} value={value}>
+        {label}
+      </option>
+    ))}
+  </NativeSelect>
+)
+```
+
+## Usage Example
+
+```jsx copy
+import CountrySelect from "@modules/common/components/country-select"
+
+function ShippingForm() {
+  const region = {
+    countries: [
+      { iso_2: "US", display_name: "United States" },
+      { iso_2: "CA", display_name: "Canada" },
+      { iso_2: "MX", display_name: "Mexico" }
+    ]
+  }
+
+  return (
+    <CountrySelect
+      region={region}
+      name="country"
+      placeholder="Select a country"
+      defaultValue="US"
+      onChange={(e) => console.log(e.target.value)}
+    />
+  )
+}
+```
+
+## Performance Optimization
+
+The component uses `useMemo` to optimize the generation of country options:
+- Options are only regenerated when the region prop changes
+- Empty array is returned when no region is provided
+- Prevents unnecessary re-renders of option elements
+
+## TypeScript Support
+
+The component is fully typed with TypeScript:
+- Uses `forwardRef` generic types for proper ref typing
+- Extends `NativeSelectProps` for complete prop type coverage
+- Properly types the region prop using Medusa's `HttpTypes.StoreRegion`
+
+## Dependencies
+
+- React hooks (forwardRef, useImperativeHandle, useMemo, useRef)
+- NativeSelect component from common components
+- @medusajs/types for TypeScript definitions
+
+## Accessibility
+
+- Uses native select element for optimal accessibility
+- Supports forwarded refs for form integration
+- Maintains all native select accessibility features
+- Properly labels options with display names
+
+## Component Display Name
+
+```typescript copy
+CountrySelect.displayName = "CountrySelect"
+```
+
+## Event Handling
+
+The component inherits all event handlers from NativeSelectProps:
+- onChange
+- onFocus
+- onBlur
+- etc.
+
+## Best Practices
+
+1. Always provide a region prop for meaningful country options
+2. Use placeholder text that makes sense for your form context
+3. Consider providing a defaultValue that matches your region
+4. Implement proper error handling for when region is undefined
+5. Use with form libraries through the forwarded ref
+
+## Limitations
+
+- Requires a valid region object with countries array
+- Empty selection list when no region is provided
+- Limited to countries available in the provided region
+
+## See Also
+
+- [Medusa Region Documentation](https://docs.medusajs.com/modules/regions-and-currencies/regions)
+- [React forwardRef Documentation](https://react.dev/reference/react/forwardRef)
+- [Native Select MDN Documentation](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/select)
